@@ -16,6 +16,7 @@ const sections = [
   { href: "/admin/reviews", label: "Отзывы" },
   { href: "/admin/booking", label: "Запись" },
   { href: "/admin/promo", label: "Промокоды" },
+  { href: "/admin/agreement", label: "Пользовательское соглашение" },
   { href: "/admin/settings", label: "Контакты студии" },
 ];
 

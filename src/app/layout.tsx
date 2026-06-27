@@ -30,6 +30,7 @@ const FALLBACK_SETTINGS: SiteSettings = {
   phone: "8-888-888-88-88",
   email: "test@mail.ru",
   courseThreshold: 3,
+  userAgreementUrl: "",
 };
 
 export default async function RootLayout({

@@ -135,6 +135,7 @@ export interface SiteSettings {
   phone: string;
   email: string;
   courseThreshold: number;
+  userAgreementUrl: string;
 }
 export interface Announcement {
   id: number;

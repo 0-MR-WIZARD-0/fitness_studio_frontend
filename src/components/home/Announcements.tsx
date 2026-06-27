@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Container, Grid } from "../Container";
 import { Calendar, toKey } from "../Calendar";
-import { api, mediaUrl, type Announcement } from "@/lib/api";
+import { api, getSettings, mediaUrl, type Announcement } from "@/lib/api";
 import { clsx } from "@/lib/clsx";
 import { formatPhone, isValidEmail, isValidPhone } from "@/lib/phone";
 
@@ -108,9 +108,17 @@ function AnnouncementBookingModal({
 }) {
   const [form, setForm] = useState({ name: "", phone: "", email: "", promo: "" });
   const [usePromo, setUsePromo] = useState(false);
+  const [agreementUrl, setAgreementUrl] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    getSettings().then((s) => setAgreementUrl(s.userAgreementUrl));
+  }, []);
+
+  const needsAgreement = !item.isFree && !!agreementUrl;
 
   async function submit() {
     setSubmitting(true);
@@ -211,6 +219,27 @@ function AnnouncementBookingModal({
                 )}
               </>
             )}
+            {needsAgreement && (
+              <label className="flex items-start gap-2 text-sm text-text/80">
+                <input
+                  type="checkbox"
+                  className="mt-1"
+                  checked={agreed}
+                  onChange={(e) => setAgreed(e.target.checked)}
+                />
+                <span>
+                  Я ознакомлен(а) с{" "}
+                  <a
+                    href={mediaUrl(agreementUrl) ?? "#"}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-accent underline"
+                  >
+                    пользовательским соглашением
+                  </a>
+                </span>
+              </label>
+            )}
             {error && <p className="text-sm text-red-400">{error}</p>}
             <button
               onClick={submit}
@@ -218,6 +247,7 @@ function AnnouncementBookingModal({
                 !form.name.trim() ||
                 !isValidPhone(form.phone) ||
                 !isValidEmail(form.email) ||
+                (needsAgreement && !agreed) ||
                 submitting
               }
               className={clsx("btn-gold w-full disabled:opacity-40")}

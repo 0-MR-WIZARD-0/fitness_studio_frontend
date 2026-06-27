@@ -13,6 +13,7 @@ import {
   getDiagnosticSlots,
   getFormats,
   getSettings,
+  mediaUrl,
   type Format,
   type Slot,
 } from "@/lib/api";
@@ -88,6 +89,8 @@ function BookingModal({
   const [diagSlot, setDiagSlot] = useState<Slot | null>(null);
   const [usePromo, setUsePromo] = useState(false);
   const [promo, setPromo] = useState("");
+  const [agreementUrl, setAgreementUrl] = useState("");
+  const [agreed, setAgreed] = useState(false);
   const [form, setForm] = useState({ name: "", phone: "", email: "" });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +106,10 @@ function BookingModal({
       setFormats(fs);
       if (!initialFormatId && fs[0]) setFormatId(fs[0].id);
     });
-    getSettings().then((s) => setThreshold(s.courseThreshold));
+    getSettings().then((s) => {
+      setThreshold(s.courseThreshold);
+      setAgreementUrl(s.userAgreementUrl);
+    });
     getDiagnosticSlots().then(setDiagSlots).catch(() => {});
   }, [initialFormatId]);
 
@@ -137,6 +143,7 @@ function BookingModal({
     0,
   );
   const singlesTotal = cart.reduce((s, x) => s + x.pricePerSession, 0);
+  const needsAgreement = tab === "lesson" && total > 0 && !!agreementUrl;
 
   function toggleCart(slot: Slot) {
     setCart((prev) =>
@@ -211,7 +218,8 @@ function BookingModal({
     !!form.name.trim() &&
     isValidPhone(form.phone) &&
     isValidEmail(form.email) &&
-    spanOk;
+    spanOk &&
+    (!needsAgreement || agreed);
 
   return (
     <div
@@ -442,6 +450,28 @@ function BookingModal({
                       />
                     )}
                   </>
+                )}
+
+                {needsAgreement && (
+                  <label className="flex items-start gap-2 text-sm text-text/80">
+                    <input
+                      type="checkbox"
+                      className="mt-1"
+                      checked={agreed}
+                      onChange={(e) => setAgreed(e.target.checked)}
+                    />
+                    <span>
+                      Я ознакомлен(а) с{" "}
+                      <a
+                        href={mediaUrl(agreementUrl) ?? "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-accent underline"
+                      >
+                        пользовательским соглашением
+                      </a>
+                    </span>
+                  </label>
                 )}
               </div>
             )}

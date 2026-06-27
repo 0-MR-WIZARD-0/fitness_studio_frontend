@@ -184,3 +184,28 @@ export const deleteAnnouncement = (id: number) =>
 
 export const updateSettings = (data: Partial<SiteSettings>) =>
   api<SiteSettings>("/settings", authOpts("PUT", data));
+
+export async function uploadAgreement(file: File): Promise<SiteSettings> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch(`${API_BASE}/settings/agreement`, {
+    method: "POST",
+    body: fd,
+    credentials: "include",
+  });
+  if (!res.ok) {
+    let message = "Не удалось загрузить файл";
+    try {
+      const body = (await res.json()) as { message?: string | string[] };
+      if (body?.message)
+        message = Array.isArray(body.message)
+          ? body.message.join(", ")
+          : body.message;
+    } catch {}
+    throw new Error(message);
+  }
+  return res.json();
+}
+
+export const deleteAgreement = () =>
+  api<SiteSettings>("/settings/agreement", authOpts("DELETE"));
