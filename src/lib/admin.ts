@@ -2,7 +2,9 @@ import {
   api,
   API_BASE,
   type Announcement,
+  type Condition,
   type Format,
+  type RiskLevel,
   type HomeFaq,
   type HomeHero,
   type HomeStep,
@@ -88,6 +90,26 @@ export const updateFormat = (id: number, data: unknown) =>
   api<Format>(`/formats/${id}`, authOpts("PUT", data));
 export const deleteFormat = (id: number) =>
   api(`/formats/${id}`, authOpts("DELETE"));
+
+export interface ConditionInput {
+  name: string;
+  order?: number;
+  isActive?: boolean;
+  rules: { formatId: number; risk: RiskLevel; note?: string }[];
+}
+export const adminConditions = () =>
+  api<Condition[]>("/survey/admin/conditions", { auth: true });
+export const createCondition = (data: ConditionInput) =>
+  api<Condition>("/survey/conditions", authOpts("POST", data));
+export const updateCondition = (id: number, data: ConditionInput) =>
+  api<Condition>(`/survey/conditions/${id}`, authOpts("PUT", data));
+export const deleteCondition = (id: number) =>
+  api(`/survey/conditions/${id}`, authOpts("DELETE"));
+export const importConditions = (items: ConditionInput[]) =>
+  api<{ created: number; updated: number }>(
+    "/survey/conditions/import",
+    authOpts("POST", { items }),
+  );
 
 export const adminReviews = (status?: ReviewStatus) =>
   api<Review[]>(

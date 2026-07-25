@@ -104,6 +104,21 @@ export interface Format {
   forWhom?: ForWhomItem[];
   mechanisms?: Mechanism[];
 }
+export type RiskLevel = "ALLOWED" | "CAUTION" | "FORBIDDEN";
+export interface ConditionRule {
+  id: number;
+  conditionId: number;
+  formatId: number;
+  risk: RiskLevel;
+  note: string;
+}
+export interface Condition {
+  id: number;
+  name: string;
+  order: number;
+  isActive: boolean;
+  rules: ConditionRule[];
+}
 export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type MediaType = "NONE" | "IMAGE" | "VIDEO";
 export interface Review {
@@ -155,6 +170,7 @@ export const getSteps = () => api<HomeStep[]>("/home/steps");
 export const getFormats = () => api<Format[]>("/formats");
 export const getFormat = (slug: string) =>
   api<Format>(`/formats/slug/${slug}`);
+export const getConditions = () => api<Condition[]>("/survey/conditions");
 export const getApprovedReviews = () => api<Review[]>("/reviews");
 export const getSettings = () => api<SiteSettings>("/settings");
 export const getAvailableSlots = (formatId?: number) =>

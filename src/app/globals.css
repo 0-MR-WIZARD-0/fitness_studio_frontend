@@ -48,6 +48,14 @@ h4 {
   animation: chevron-bounce 1.8s ease-in-out infinite;
 }
 
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  animation: fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 .reveal {
   opacity: 0;
   transform: translateY(40px);

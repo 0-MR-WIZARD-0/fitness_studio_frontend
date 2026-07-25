@@ -12,6 +12,7 @@ const sections = [
   { href: "/admin/faq", label: "Вопрос-ответ (табы)" },
   { href: "/admin/steps", label: "Шаги «Начни уже сегодня»" },
   { href: "/admin/formats", label: "Форматы" },
+  { href: "/admin/survey", label: "Опрос (противопоказания)" },
   { href: "/admin/announcements", label: "Анонсы" },
   { href: "/admin/reviews", label: "Отзывы" },
   { href: "/admin/booking", label: "Запись" },

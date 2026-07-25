@@ -3,7 +3,7 @@ import type { SiteSettings } from "@/lib/api";
 
 export function Footer({ settings }: { settings: SiteSettings }) {
   return (
-    <footer className="border-t border-white/10 py-10 mt-20">
+    <footer className="mt-0 border-t border-white/10 py-10 md:mt-20">
       <Container>
         <Grid className="items-start gap-y-8">
           <div className="col-span-12 md:col-span-4">

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Container, Grid } from "@/components/Container";
 import { Reveal } from "@/components/Reveal";
+import { FormatsCarousel } from "@/components/formats/FormatsCarousel";
 import { mediaUrl, getFormats, type Format } from "@/lib/api";
 
 export const metadata = { title: "Форматы — Триединство" };
@@ -20,20 +21,24 @@ export default async function FormatsPage() {
         </h1>
 
         <Reveal>
-          <Grid className="mt-12 items-stretch">
+          <FormatsCarousel
+            formats={formats}
+            showPrices
+            className="mt-10 md:hidden"
+          />
+
+          <Grid className="mt-12 hidden items-stretch md:grid">
             {formats.map((f, i) => (
               <FormatCard key={f.id} format={f} highlight={i === 0} />
             ))}
           </Grid>
         </Reveal>
 
-        {formats[0] && (
-          <div className="mt-10 flex justify-end">
-            <Link href={`/formats/${formats[0].slug}`} className="btn-gold">
-              Пройти опрос и подобрать формат
-            </Link>
-          </div>
-        )}
+        <div className="mt-10 flex justify-center md:justify-end">
+          <Link href="/survey" className="btn-gold">
+            Пройти опрос и подобрать формат
+          </Link>
+        </div>
       </Container>
     </div>
   );

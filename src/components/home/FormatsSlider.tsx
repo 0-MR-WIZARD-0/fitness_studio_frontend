@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Container, Grid } from "../Container";
+import { FormatsCarousel } from "../formats/FormatsCarousel";
 import { mediaUrl, type Format } from "@/lib/api";
 import { clsx } from "@/lib/clsx";
 
@@ -29,14 +30,16 @@ export function FormatsSlider({
       <Container>
         <h2 className="text-3xl md:text-4xl font-bold">{title}</h2>
 
-        <Grid className="mt-8 items-stretch">
+        <FormatsCarousel formats={formats} className="mt-8 md:hidden" />
+
+        <Grid className="mt-8 hidden items-stretch md:grid">
           {visible.map((f, i) => (
             <FormatCard key={f.id} format={f} highlight={start === 0 && i === 0} />
           ))}
         </Grid>
 
         {pages > 1 && (
-          <div className="mt-8 flex justify-center gap-2.5">
+          <div className="mt-8 hidden justify-center gap-2.5 md:flex">
             {Array.from({ length: pages }).map((_, i) => (
               <button
                 key={i}

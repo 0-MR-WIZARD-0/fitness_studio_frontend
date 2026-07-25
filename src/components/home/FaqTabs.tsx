@@ -15,10 +15,10 @@ export function FaqTabs({ items }: { items: HomeFaq[] }) {
   if (!items.length) return null;
 
   return (
-    <section className="py-16 md:py-24">
+    <section className="pt-16 pb-0 md:py-24">
       <Container>
         <Grid className="items-start">
-          <div className="col-span-12 lg:col-span-7 space-y-3">
+          <div className="order-2 col-span-12 space-y-3 lg:order-1 lg:col-span-7">
             {items.map((item) => {
               const isOpen = item.id === activeId;
               return (
@@ -52,7 +52,7 @@ export function FaqTabs({ items }: { items: HomeFaq[] }) {
             })}
           </div>
 
-          <div className="col-span-12 lg:col-span-5">
+          <div className="order-1 col-span-12 mb-6 lg:order-2 lg:col-span-5 lg:mb-0">
             <Placeholder
               src={active?.imageUrl}
               alt={active?.question}
