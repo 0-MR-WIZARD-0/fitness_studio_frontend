@@ -12,6 +12,7 @@ import {
   type ReviewStatus,
   type SiteSettings,
   type Slot,
+  type Trainer,
 } from "./api";
 
 export type UploadFolder =
@@ -20,7 +21,8 @@ export type UploadFolder =
   | "steps"
   | "formats"
   | "mechanisms"
-  | "announcements";
+  | "announcements"
+  | "trainers";
 
 const authOpts = (
   method: string,
@@ -129,6 +131,8 @@ export interface AdminSlot {
   formatId: number | null;
   isDiagnostic: boolean;
   format: Format | null;
+  trainerId: number | null;
+  trainer: Trainer | null;
   bookings: { id: number; name: string }[];
   _count: { bookings: number };
 }
@@ -136,6 +140,7 @@ export const adminSlots = () =>
   api<AdminSlot[]>("/booking/admin/slots", { auth: true });
 export const createSlot = (data: {
   formatId?: number;
+  trainerId?: number | null;
   startsAt: string;
   durationMin?: number;
   capacity?: number;
@@ -143,6 +148,7 @@ export const createSlot = (data: {
 }) => api<Slot>("/booking/slots", authOpts("POST", data));
 export const createWeekdaySlots = (data: {
   formatId?: number;
+  trainerId?: number | null;
   time: string;
   weeks: number;
   fromDate?: string;
@@ -150,9 +156,28 @@ export const createWeekdaySlots = (data: {
   capacity?: number;
   isDiagnostic?: boolean;
 }) =>
-  api<{ created: number }>("/booking/slots/weekdays", authOpts("POST", data));
-export const updateSlot = (id: number, startsAt: string) =>
-  api<Slot>(`/booking/slots/${id}`, authOpts("PUT", { startsAt }));
+  api<{ created: number; skipped?: number }>(
+    "/booking/slots/weekdays",
+    authOpts("POST", data),
+  );
+export const updateSlot = (
+  id: number,
+  startsAt: string,
+  trainerId?: number | null,
+) =>
+  api<Slot>(
+    `/booking/slots/${id}`,
+    authOpts("PUT", { startsAt, ...(trainerId !== undefined ? { trainerId } : {}) }),
+  );
+
+export const adminTrainers = () =>
+  api<Trainer[]>("/trainers/admin", { auth: true });
+export const createTrainer = (data: Partial<Trainer>) =>
+  api<Trainer>("/trainers", authOpts("POST", data));
+export const updateTrainer = (id: number, data: Partial<Trainer>) =>
+  api<Trainer>(`/trainers/${id}`, authOpts("PUT", data));
+export const deleteTrainer = (id: number) =>
+  api(`/trainers/${id}`, authOpts("DELETE"));
 export const deleteSlot = (id: number) =>
   api(`/booking/slots/${id}`, authOpts("DELETE"));
 export interface AdminBooking {

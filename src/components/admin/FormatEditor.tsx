@@ -32,6 +32,7 @@ interface Draft {
   heroImageUrl: string | null;
   pricePerSession: number;
   priceCourse: number;
+  durationMin: number;
   order: number;
   isActive: boolean;
   forWhom: ForWhom[];
@@ -46,6 +47,7 @@ const empty: Draft = {
   heroImageUrl: null,
   pricePerSession: 5000,
   priceCourse: 20000,
+  durationMin: 60,
   order: 0,
   isActive: true,
   forWhom: [],
@@ -141,6 +143,19 @@ export function FormatEditor({ initial }: { initial?: Format }) {
           onChange={(v) => set({ priceCourse: Number(v) })}
         />
       </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <TextField
+          label="Продолжительность занятия, мин"
+          type="number"
+          value={d.durationMin}
+          onChange={(v) => set({ durationMin: Math.max(5, Number(v)) })}
+        />
+      </div>
+      <p className="-mt-2 text-xs text-text/50">
+        Подставляется при создании слотов в разделе «Запись» и показывается
+        посетителю в расписании.
+      </p>
 
       <label className="flex items-center gap-2 text-sm">
         <input

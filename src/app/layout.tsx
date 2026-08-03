@@ -4,6 +4,7 @@ import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { BookingProvider } from "@/components/BookingProvider";
 import { PublicChrome } from "@/components/PublicChrome";
+import { SocialDock } from "@/components/SocialDock";
 import { getSettings, type SiteSettings } from "@/lib/api";
 
 const montserrat = Montserrat({
@@ -31,6 +32,8 @@ const FALLBACK_SETTINGS: SiteSettings = {
   email: "test@mail.ru",
   courseThreshold: 3,
   userAgreementUrl: "",
+  telegramUrl: "",
+  maxUrl: "",
 };
 
 export default async function RootLayout({
@@ -52,6 +55,10 @@ export default async function RootLayout({
           <PublicChrome footer={<Footer settings={settings} />}>
             {children}
           </PublicChrome>
+          <SocialDock
+            telegramUrl={settings.telegramUrl}
+            maxUrl={settings.maxUrl}
+          />
         </BookingProvider>
       </body>
     </html>

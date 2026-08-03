@@ -12,15 +12,19 @@ import {
   type ConditionInput,
 } from "@/lib/admin";
 import { PageTitle, TextField, Toast } from "@/components/admin/ui";
+import { clsx } from "@/lib/clsx";
 import { Select } from "@/components/Select";
 import { RISK_OPTIONS } from "@/lib/survey";
 import { cleanCell, parseCsv, riskFromCell } from "@/lib/csv";
+
+const PER_PAGE = 6;
 
 export default function AdminSurvey() {
   const [formats, setFormats] = useState<Format[]>([]);
   const [items, setItems] = useState<Condition[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(0);
 
   const reload = () => adminConditions().then(setItems);
 
@@ -36,15 +40,20 @@ export default function AdminSurvey() {
 
   const formatsKey = formats.map((f) => f.id).join(",");
 
-  const visible = useMemo(() => {
+  const found = useMemo(() => {
     const q = query.trim().toLowerCase();
     return q ? items.filter((i) => i.name.toLowerCase().includes(q)) : items;
   }, [items, query]);
 
+  const pages = Math.max(1, Math.ceil(found.length / PER_PAGE));
+  const current = Math.min(page, pages - 1);
+  const visible = found.slice(current * PER_PAGE, current * PER_PAGE + PER_PAGE);
+
   async function add() {
+    const minOrder = items.reduce((m, i) => Math.min(m, i.order), 0);
     await createCondition({
       name: "Новое состояние",
-      order: items.length + 1,
+      order: minOrder - 1,
       isActive: true,
       rules: formats.map((f) => ({
         formatId: f.id,
@@ -53,6 +62,7 @@ export default function AdminSurvey() {
       })),
     });
     await reload();
+    setPage(0);
     flash("Добавлено");
   }
 
@@ -78,7 +88,10 @@ export default function AdminSurvey() {
           className="field max-w-xs"
           placeholder="Поиск по списку…"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setPage(0);
+          }}
         />
         <button onClick={add} className="btn-gold" disabled={!formats.length}>
           + Добавить состояние
@@ -105,7 +118,44 @@ export default function AdminSurvey() {
             />
           ))}
         {!items.length && <p className="text-text/60">Пока пусто.</p>}
+        {!!items.length && !found.length && (
+          <p className="text-text/60">Ничего не найдено.</p>
+        )}
       </div>
+
+      {pages > 1 && (
+        <div className="mt-6 flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setPage(Math.max(0, current - 1))}
+            disabled={current === 0}
+            className="rounded-lg border-gold px-3 py-1.5 text-sm disabled:opacity-30"
+          >
+            ←
+          </button>
+          {Array.from({ length: pages }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setPage(i)}
+              className={clsx(
+                "h-8 w-8 rounded-lg border-gold text-sm transition",
+                i === current ? "bg-accent text-bg" : "hover:bg-surface-2",
+              )}
+            >
+              {i + 1}
+            </button>
+          ))}
+          <button
+            onClick={() => setPage(Math.min(pages - 1, current + 1))}
+            disabled={current === pages - 1}
+            className="rounded-lg border-gold px-3 py-1.5 text-sm disabled:opacity-30"
+          >
+            →
+          </button>
+          <span className="ml-2 text-sm text-text/60">
+            Всего: {found.length}
+          </span>
+        </div>
+      )}
 
       <Toast message={toast} />
     </div>

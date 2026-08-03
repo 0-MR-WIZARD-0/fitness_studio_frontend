@@ -18,6 +18,8 @@ const FALLBACK_SETTINGS: SiteSettings = {
   email: "",
   courseThreshold: 3,
   userAgreementUrl: "",
+  telegramUrl: "",
+  maxUrl: "",
 };
 
 export default async function SurveyPage() {

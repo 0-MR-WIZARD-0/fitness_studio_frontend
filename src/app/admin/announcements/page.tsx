@@ -37,6 +37,7 @@ export default function AdminAnnouncements() {
       title: "Новое занятие",
       description: "",
       startsAt: now.toISOString(),
+      durationMin: 60,
       capacity: 7,
       price: 0,
       isFree: true,
@@ -124,6 +125,18 @@ function AnnouncementCard({
             className="field mt-1"
             value={d.capacity}
             onChange={(e) => setD({ ...d, capacity: Number(e.target.value) })}
+          />
+        </label>
+        <label className="text-sm">
+          Продолжительность, мин
+          <input
+            type="number"
+            className="field mt-1"
+            min={5}
+            value={d.durationMin}
+            onChange={(e) =>
+              setD({ ...d, durationMin: Math.max(5, Number(e.target.value)) })
+            }
           />
         </label>
       </div>

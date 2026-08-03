@@ -15,6 +15,7 @@ const sections = [
   { href: "/admin/survey", label: "Опрос (противопоказания)" },
   { href: "/admin/announcements", label: "Анонсы" },
   { href: "/admin/reviews", label: "Отзывы" },
+  { href: "/admin/trainers", label: "Тренеры" },
   { href: "/admin/booking", label: "Запись" },
   { href: "/admin/promo", label: "Промокоды" },
   { href: "/admin/agreement", label: "Пользовательское соглашение" },

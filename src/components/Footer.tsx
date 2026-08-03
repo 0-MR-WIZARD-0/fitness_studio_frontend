@@ -1,4 +1,5 @@
 import { Container, Grid } from "./Container";
+import { MaxIcon, TelegramIcon } from "./SocialIcons";
 import type { SiteSettings } from "@/lib/api";
 
 export function Footer({ settings }: { settings: SiteSettings }) {
@@ -26,6 +27,38 @@ export function Footer({ settings }: { settings: SiteSettings }) {
 
           <div className="col-span-12 md:col-span-4">
             <p className="font-sub text-heading">Email: {settings.email}</p>
+
+            {(settings.telegramUrl || settings.maxUrl) && (
+              <div className="mt-4 space-y-2">
+                {settings.telegramUrl && (
+                  <a
+                    href={settings.telegramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm transition hover:text-accent"
+                  >
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-accent/50 text-accent">
+                      <TelegramIcon className="h-4 w-4" />
+                    </span>
+                    Telegram-канал
+                  </a>
+                )}
+                {settings.maxUrl && (
+                  <a
+                    href={settings.maxUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-sm transition hover:text-accent"
+                  >
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-accent/50 text-accent">
+                      <MaxIcon className="h-4 w-4" />
+                    </span>
+                    Канал в MAX
+                  </a>
+                )}
+              </div>
+            )}
+
             <p className="mt-6 text-sm text-text/50">
               © {new Date().getFullYear()} Триединство
             </p>

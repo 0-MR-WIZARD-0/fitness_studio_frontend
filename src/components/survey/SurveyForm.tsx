@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useBooking } from "../BookingProvider";
+import { bookingHref, useBooking } from "../BookingProvider";
 import { clsx } from "@/lib/clsx";
 import { evaluateSurvey, RISK_META, summaryText } from "@/lib/survey";
 import type { Condition, Format } from "@/lib/api";
@@ -219,7 +219,14 @@ function Contacts({ phone, email }: { phone: string; email: string }) {
       <p className="font-sub text-heading">Не нашли своё состояние в списке?</p>
       <p className="mt-2 text-sm leading-relaxed">
         Напишите или позвоните нам — уточним детали и подберём формат вместе с
-        тренером.
+        тренером. Так же вы можете записаться на{" "}
+        <Link
+          href={bookingHref(undefined, "diagnostic")}
+          className="text-accent underline underline-offset-4"
+        >
+          бесплатную консультацию
+        </Link>
+        .
       </p>
       <div className="mt-3 space-y-1 text-sm">
         {phone && (

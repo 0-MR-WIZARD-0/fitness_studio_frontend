@@ -99,6 +99,7 @@ export interface Format {
   heroImageUrl: string | null;
   pricePerSession: number;
   priceCourse: number;
+  durationMin: number;
   order: number;
   isActive: boolean;
   forWhom?: ForWhomItem[];
@@ -131,6 +132,15 @@ export interface Review {
   status: ReviewStatus;
   createdAt: string;
 }
+export interface Trainer {
+  id: number;
+  name: string;
+  role: string;
+  description: string;
+  photoUrl: string | null;
+  order: number;
+  isActive: boolean;
+}
 export interface Slot {
   id: number;
   startsAt: string;
@@ -139,6 +149,8 @@ export interface Slot {
   formatId: number | null;
   isDiagnostic: boolean;
   formatName: string | null;
+  trainerId: number | null;
+  trainerName: string | null;
   pricePerSession: number;
   coursePerSession: number;
   taken: number;
@@ -151,6 +163,8 @@ export interface SiteSettings {
   email: string;
   courseThreshold: number;
   userAgreementUrl: string;
+  telegramUrl: string;
+  maxUrl: string;
 }
 export interface Announcement {
   id: number;
@@ -158,6 +172,7 @@ export interface Announcement {
   description: string;
   imageUrl: string | null;
   startsAt: string;
+  durationMin: number;
   capacity: number;
   price: number;
   isFree: boolean;
@@ -171,6 +186,7 @@ export const getFormats = () => api<Format[]>("/formats");
 export const getFormat = (slug: string) =>
   api<Format>(`/formats/slug/${slug}`);
 export const getConditions = () => api<Condition[]>("/survey/conditions");
+export const getTrainers = () => api<Trainer[]>("/trainers");
 export const getApprovedReviews = () => api<Review[]>("/reviews");
 export const getSettings = () => api<SiteSettings>("/settings");
 export const getAvailableSlots = (formatId?: number) =>

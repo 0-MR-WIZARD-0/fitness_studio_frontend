@@ -62,7 +62,9 @@ export function Announcements({ items }: { items: Announcement[] }) {
                   )}
                   <div className="p-5">
                     <h3 className="font-sub text-xl text-heading">{a.title}</h3>
-                    <p className="mt-1 text-sm text-accent">{fmt(a.startsAt)}</p>
+                    <p className="mt-1 text-sm text-accent">
+                      {fmt(a.startsAt)} · {a.durationMin} мин
+                    </p>
                     {a.description && (
                       <p className="mt-3 text-sm leading-relaxed text-text/90">
                         {a.description}

@@ -44,6 +44,24 @@ export default function AdminSettings() {
         Карта и точка на сайте формируются автоматически из адреса.
       </p>
 
+      <div className="border-t border-white/10 pt-4 space-y-4">
+        <p className="font-sub text-heading">Каналы</p>
+        <TextField
+          label="Ссылка на Telegram-канал"
+          value={data.telegramUrl}
+          onChange={(v) => setData({ ...data, telegramUrl: v })}
+        />
+        <TextField
+          label="Ссылка на канал в MAX"
+          value={data.maxUrl}
+          onChange={(v) => setData({ ...data, maxUrl: v })}
+        />
+        <p className="text-sm text-text/60">
+          Появятся в футере и кружками справа внизу на десктопе. Пустое поле —
+          канал не показывается.
+        </p>
+      </div>
+
       <button onClick={save} className="btn-gold">
         Сохранить
       </button>
