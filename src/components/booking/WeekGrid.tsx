@@ -62,7 +62,7 @@ export function WeekGrid({
         <span className="font-sub text-heading">
           {title}
           {offset === 0 && (
-            <span className="ml-2 text-sm text-text/50">эта неделя</span>
+            <span className="ml-2 text-sm text-text/50">текущая неделя</span>
           )}
         </span>
         <button

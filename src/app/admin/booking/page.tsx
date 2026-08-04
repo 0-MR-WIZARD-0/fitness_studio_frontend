@@ -37,6 +37,8 @@ export default function AdminBooking() {
   const [editing, setEditing] = useState<{ id: number; value: string } | null>(
     null,
   );
+  const [confirmMove, setConfirmMove] = useState<{ id: number } | null>(null);
+  const [moveError, setMoveError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
@@ -44,7 +46,11 @@ export default function AdminBooking() {
       setFormats(fs);
       if (fs[0]) setFormatId(fs[0].id);
     });
-    adminTrainers().then((ts) => setTrainers(ts.filter((t) => t.isActive)));
+    adminTrainers().then((ts) => {
+      const active = ts.filter((t) => t.isActive);
+      setTrainers(active);
+      if (active[0]) setTrainerId(active[0].id);
+    });
   }, []);
 
   const reload = () => {
@@ -125,12 +131,24 @@ export default function AdminBooking() {
     reload();
   }
 
-  async function reschedule() {
+  async function reschedule(password: string) {
     if (!editing) return;
-    await updateSlot(editing.id, new Date(editing.value).toISOString());
+    setMoveError(null);
+    try {
+      await updateSlot(
+        editing.id,
+        new Date(editing.value).toISOString(),
+        undefined,
+        { password, notified: true },
+      );
+    } catch (e) {
+      setMoveError(e instanceof Error ? e.message : "Не удалось перенести");
+      return;
+    }
     setEditing(null);
+    setConfirmMove(null);
     reload();
-    flash("Слот перенесён");
+    flash("Занятие перенесено");
   }
 
   const fmtTime = (iso: string) =>
@@ -155,14 +173,15 @@ export default function AdminBooking() {
         </p>
         <p className="mb-4 text-xs text-text/50">
           День берётся из календаря ниже — кликните по дате нужного дня.
-          Продолжительность подставляется из формата (меняется в разделе
-          «Форматы»), у диагностики — 30 минут. Одного тренера нельзя поставить
-          на два пересекающихся занятия.
+          Занятие длится {duration} мин (меняется в разделе «Форматы», у
+          диагностики — 30 минут), следующее можно ставить с{" "}
+          {shiftTime(time, duration)}. Одного тренера нельзя поставить на два
+          пересекающихся занятия.
         </p>
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid items-end gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="text-sm">
-            <span className="mb-1 block text-text/80">Занятие</span>
+            <span className="mb-1 block h-5 text-text/80">Занятие</span>
             <Select
               value={diag ? "diag" : (formatId ?? "")}
               onChange={(v) => {
@@ -181,28 +200,21 @@ export default function AdminBooking() {
           </div>
 
           <div className="text-sm">
-            <span className="mb-1 block text-text/80">
-              Тренер (на все создаваемые)
-            </span>
+            <span className="mb-1 block h-5 text-text/80">Тренер</span>
             <Select
               value={trainerId ?? ""}
-              onChange={(v) => setTrainerId(v === "" ? null : Number(v))}
-              placeholder="Без тренера"
-              options={[
-                { value: "", label: "Без тренера" },
-                ...trainers.map((t) => ({
-                  value: t.id,
-                  label: t.role ? `${t.name} — ${t.role}` : t.name,
-                })),
-              ]}
+              onChange={(v) => setTrainerId(Number(v))}
+              placeholder="Укажите тренера"
+              disabled={trainers.length === 0}
+              options={trainers.map((t) => ({
+                value: t.id,
+                label: t.role ? `${t.name} — ${t.role}` : t.name,
+              }))}
             />
           </div>
 
           <label className="text-sm">
-            <span className="mb-1 block text-text/80">
-              Время (занятие {duration} мин, следующее с{" "}
-              {shiftTime(time, duration)})
-            </span>
+            <span className="mb-1 block h-5 text-text/80">Время</span>
             <input
               type="time"
               className="field"
@@ -212,7 +224,7 @@ export default function AdminBooking() {
           </label>
 
           <label className="text-sm">
-            <span className="mb-1 block text-text/80">Мест (максимум 7)</span>
+            <span className="mb-1 block h-5 text-text/80">Мест (максимум 7)</span>
             <input
               type="number"
               className="field"
@@ -245,14 +257,19 @@ export default function AdminBooking() {
               />
             </label>
           )}
-          <button onClick={createSlots} className="btn-gold">
+          <button
+            onClick={createSlots}
+            disabled={!trainerId}
+            className="btn-gold disabled:cursor-not-allowed disabled:opacity-40"
+          >
             {weekdayMode ? `Создать Пн–Пт × ${weeks} нед.` : "Создать занятие"}
           </button>
         </div>
 
         {trainers.length === 0 && (
-          <p className="mt-3 text-xs text-text/50">
-            Список тренеров пуст — добавьте их в разделе «Тренеры».
+          <p className="mt-3 text-xs text-red-400">
+            Список тренеров пуст — сначала добавьте тренера в разделе «Тренеры»,
+            без него занятие создать нельзя.
           </p>
         )}
       </div>
@@ -341,19 +358,14 @@ export default function AdminBooking() {
               </span>
               <Select
                 value={openSlot.trainerId ?? ""}
+                placeholder="Укажите тренера"
+                disabled={trainers.length === 0}
                 onChange={async (v) => {
-                  await updateSlot(
-                    openSlot.id,
-                    openSlot.startsAt,
-                    v === "" ? null : Number(v),
-                  );
+                  await updateSlot(openSlot.id, openSlot.startsAt, Number(v));
                   reload();
                   flash("Тренер обновлён");
                 }}
-                options={[
-                  { value: "", label: "Не назначен" },
-                  ...trainers.map((t) => ({ value: t.id, label: t.name })),
-                ]}
+                options={trainers.map((t) => ({ value: t.id, label: t.name }))}
               />
             </div>
 
@@ -373,7 +385,7 @@ export default function AdminBooking() {
                   }
                 />
                 <button
-                  onClick={reschedule}
+                  onClick={() => setConfirmMove({ id: openSlot.id })}
                   disabled={editing?.id !== openSlot.id}
                   className="btn-gold disabled:opacity-40"
                 >
@@ -434,7 +446,116 @@ export default function AdminBooking() {
         </div>
       </div>
 
+      {confirmMove && editing && (
+        <MoveDialog
+          slot={slots.find((s) => s.id === confirmMove.id) ?? null}
+          newValue={editing.value}
+          error={moveError}
+          onCancel={() => {
+            setConfirmMove(null);
+            setMoveError(null);
+          }}
+          onConfirm={reschedule}
+        />
+      )}
+
       <Toast message={toast} />
+    </div>
+  );
+}
+
+function MoveDialog({
+  slot,
+  newValue,
+  error,
+  onCancel,
+  onConfirm,
+}: {
+  slot: AdminSlot | null;
+  newValue: string;
+  error: string | null;
+  onCancel: () => void;
+  onConfirm: (password: string) => void;
+}) {
+  const [notified, setNotified] = useState(false);
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const when = (value: string | Date) =>
+    new Date(value).toLocaleString("ru-RU", {
+      day: "numeric",
+      month: "long",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const booked = slot?._count.bookings ?? 0;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl border-gold bg-surface p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="font-sub text-xl text-heading">Перенос занятия</h3>
+
+        {slot && (
+          <p className="mt-3 text-sm leading-relaxed">
+            {when(slot.startsAt)} → <span className="text-accent">{when(newValue)}</span>
+            <br />
+            {booked > 0
+              ? `На занятие записаны ${booked} чел.: ${slot.bookings
+                  .map((b) => b.name)
+                  .join(", ")}`
+              : "Записей на это занятие пока нет."}
+          </p>
+        )}
+
+        <label className="mt-4 flex items-start gap-2 text-sm">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={notified}
+            onChange={(e) => setNotified(e.target.checked)}
+          />
+          <span>
+            Подтверждаю, что все записанные клиенты уведомлены о переносе
+          </span>
+        </label>
+
+        <label className="mt-4 block text-sm">
+          <span className="mb-1 block text-text/80">Пароль от учётной записи</span>
+          <input
+            type="password"
+            className="field"
+            value={password}
+            autoComplete="current-password"
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </label>
+
+        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+
+        <div className="mt-5 flex gap-3">
+          <button
+            onClick={async () => {
+              setBusy(true);
+              await onConfirm(password);
+              setBusy(false);
+            }}
+            disabled={!notified || !password || busy}
+            className="btn-gold disabled:opacity-40"
+          >
+            {busy ? "Переносим…" : "Перенести"}
+          </button>
+          <button onClick={onCancel} className="text-sm text-text/70">
+            Отмена
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

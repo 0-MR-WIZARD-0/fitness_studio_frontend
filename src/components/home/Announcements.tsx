@@ -53,13 +53,6 @@ export function Announcements({ items }: { items: Announcement[] }) {
                   key={a.id}
                   className="overflow-hidden rounded-2xl border-gold bg-surface/50"
                 >
-                  {mediaUrl(a.imageUrl) && (
-                    <img
-                      src={mediaUrl(a.imageUrl)!}
-                      alt=""
-                      className="h-48 w-full object-cover"
-                    />
-                  )}
                   <div className="p-5">
                     <h3 className="font-sub text-xl text-heading">{a.title}</h3>
                     <p className="mt-1 text-sm text-accent">

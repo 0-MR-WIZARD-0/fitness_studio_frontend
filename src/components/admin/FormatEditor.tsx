@@ -31,7 +31,6 @@ interface Draft {
   miniResults: string[];
   heroImageUrl: string | null;
   pricePerSession: number;
-  priceCourse: number;
   durationMin: number;
   order: number;
   isActive: boolean;
@@ -46,7 +45,6 @@ const empty: Draft = {
   miniResults: [],
   heroImageUrl: null,
   pricePerSession: 5000,
-  priceCourse: 20000,
   durationMin: 60,
   order: 0,
   isActive: true,
@@ -136,15 +134,6 @@ export function FormatEditor({ initial }: { initial?: Format }) {
           value={d.pricePerSession}
           onChange={(v) => set({ pricePerSession: Number(v) })}
         />
-        <TextField
-          label="Цена курса"
-          type="number"
-          value={d.priceCourse}
-          onChange={(v) => set({ priceCourse: Number(v) })}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
         <TextField
           label="Продолжительность занятия, мин"
           type="number"

@@ -164,10 +164,15 @@ export const updateSlot = (
   id: number,
   startsAt: string,
   trainerId?: number | null,
+  confirm?: { password: string; notified: boolean },
 ) =>
   api<Slot>(
     `/booking/slots/${id}`,
-    authOpts("PUT", { startsAt, ...(trainerId !== undefined ? { trainerId } : {}) }),
+    authOpts("PUT", {
+      startsAt,
+      ...(trainerId !== undefined ? { trainerId } : {}),
+      ...(confirm ?? {}),
+    }),
   );
 
 export const adminTrainers = () =>

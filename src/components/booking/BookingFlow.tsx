@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Container } from "../Container";
 import { WeekSchedule } from "./WeekSchedule";
-import { courseIds } from "@/lib/course";
+import { courseGroups } from "@/lib/course";
+import { plural } from "@/lib/plural";
 import {
   api,
   getAvailableSlots,
@@ -52,8 +53,8 @@ export function BookingFlow({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<null | {
-    course?: boolean;
-    gift?: string | null;
+    courses?: number;
+    gifts?: string[];
     free?: boolean;
     total?: number;
   }>(null);
@@ -81,14 +82,12 @@ export function BookingFlow({
       ? `Только «${formats.find((f) => f.id === filterFormatId)?.name ?? "формат"}»`
       : null;
 
-  const inCourse = useMemo(() => courseIds(cart, threshold), [cart, threshold]);
-  const isCourse = inCourse.size > 0;
-  const total = cart.reduce(
-    (sum, s) =>
-      sum + (inCourse.has(s.id) ? s.coursePerSession : s.pricePerSession),
-    0,
+  const { groups, countedIds } = useMemo(
+    () => courseGroups(cart, threshold),
+    [cart, threshold],
   );
-  const singlesTotal = cart.reduce((s, x) => s + x.pricePerSession, 0);
+  const courses = groups.length;
+  const total = cart.reduce((sum, s) => sum + s.pricePerSession, 0);
   const needsAgreement = !diagSlot && total > 0 && !!agreementUrl;
 
   function pickSlot(slot: Slot) {
@@ -148,8 +147,9 @@ export function BookingFlow({
       } else {
         const res = await api<{
           isCourse: boolean;
+          courses: number;
           total: number;
-          giftCode: string | null;
+          giftCodes: string[];
         }>("/booking/cart", {
           method: "POST",
           body: JSON.stringify({
@@ -159,7 +159,11 @@ export function BookingFlow({
             email: form.email,
           }),
         });
-        setDone({ course: res.isCourse, gift: res.giftCode, total: res.total });
+        setDone({
+          courses: res.courses,
+          gifts: res.giftCodes,
+          total: res.total,
+        });
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Ошибка записи");
@@ -181,25 +185,43 @@ export function BookingFlow({
       <Container>
         <div className="mx-auto mt-10 max-w-lg rounded-2xl border-gold bg-surface/60 p-8 text-center">
           <p className="text-2xl text-heading">Заявка создана!</p>
-          {done.course && (
-            <p className="mt-4 text-sm leading-relaxed">
-              Это курс 🎉 Скидка применена. Подарочный промокод на бесплатное
-              занятие:
-              <br />
-              <code className="text-accent">{done.gift}</code>
-              <br />
-              (отправлен на почту)
+
+          {done.free ? (
+            <p className="mt-4 text-sm">Бесплатно. Ждём вас!</p>
+          ) : (
+            <p className="mt-4 text-sm">
+              К оплате:{" "}
+              <span className="text-accent">
+                {(done.total ?? 0).toLocaleString("ru-RU")} ₽
+              </span>{" "}
+              (заглушка оплаты)
             </p>
           )}
-          {!done.course &&
-            (done.free ? (
-              <p className="mt-4 text-sm">Бесплатно. Ждём вас!</p>
-            ) : (
-              <p className="mt-4 text-sm">
-                К оплате: <span className="text-accent">{done.total} ₽</span>{" "}
-                (заглушка оплаты)
+
+          {!!done.courses && (
+            <div className="mt-4 text-sm leading-relaxed">
+              <p>
+                Собрано {done.courses}{" "}
+                {plural(done.courses, ["курс", "курса", "курсов"])} 🎉 — дарим{" "}
+                {done.gifts?.length}{" "}
+                {plural(done.gifts?.length ?? 0, [
+                  "занятие",
+                  "занятия",
+                  "занятий",
+                ])}
+                . Промокод
+                {(done.gifts?.length ?? 0) > 1 ? "ы" : ""}:
               </p>
-            ))}
+              <p className="mt-1">
+                {done.gifts?.map((code) => (
+                  <code key={code} className="mx-1 text-accent">
+                    {code}
+                  </code>
+                ))}
+              </p>
+              <p className="mt-1 text-text/60">(отправлены на почту)</p>
+            </div>
+          )}
           <button onClick={() => router.push("/")} className="btn-gold mt-6">
             На главную
           </button>
@@ -224,12 +246,16 @@ export function BookingFlow({
       )}
 
       <p className="rounded-xl bg-surface-2/60 px-4 py-3 text-sm leading-relaxed text-text/85">
-        Всё расписание студии на неделю — занятия всех форматов и бесплатная
-        диагностика. Наберите {threshold}+ занятий в пределах одной недели — они
-        станут курсом со скидкой и подарочным промокодом.
+        Всё расписание студии — занятия всех форматов и бесплатная диагностика.
+        Каждое занятие оплачивается по своей цене, а как только набирается{" "}
+        {threshold}{" "}
+        {plural(threshold, ["занятие", "занятия", "занятий"])} в пределах 7 дней
+        — это курс, и мы дарим ещё одно занятие промокодом.
         {cart.length > 0 &&
           ` Выбрано: ${cart.length}${
-            isCourse ? ` — курсом идут ${inCourse.size}` : ""
+            courses
+              ? ` — это ${courses} ${plural(courses, ["курс", "курса", "курсов"])} и ${courses} ${plural(courses, ["подарок", "подарка", "подарков"])}`
+              : ""
           }`}
       </p>
 
@@ -266,9 +292,12 @@ export function BookingFlow({
               <span>
                 {s.formatName} · {dayOf(s.startsAt)} {timeOf(s.startsAt)}
                 {s.trainerName ? ` · ${s.trainerName}` : ""}
-                {inCourse.has(s.id) && (
+                {countedIds.has(s.id) && (
                   <span className="ml-2 text-xs text-accent">курс</span>
                 )}
+                <span className="ml-2 text-text/60">
+                  {s.pricePerSession.toLocaleString("ru-RU")} ₽
+                </span>
               </span>
               <button
                 onClick={() => pickSlot(s)}
@@ -280,14 +309,19 @@ export function BookingFlow({
             </div>
           ))}
           <div className="mt-3 border-t border-white/10 pt-3">
-            {isCourse && singlesTotal > total && (
-              <span className="mr-2 text-text/50 line-through">
-                {singlesTotal} ₽
+            <span className="text-heading">
+              Итого: {total.toLocaleString("ru-RU")} ₽
+            </span>
+            {courses > 0 && (
+              <span className="ml-2 text-accent">
+                + {courses}{" "}
+                {plural(courses, [
+                  "занятие в подарок",
+                  "занятия в подарок",
+                  "занятий в подарок",
+                ])}{" "}
+                🎁
               </span>
-            )}
-            <span className="text-heading">Итого: {total} ₽</span>
-            {isCourse && (
-              <span className="ml-2 text-accent">курс + подарок 🎁</span>
             )}
           </div>
         </div>

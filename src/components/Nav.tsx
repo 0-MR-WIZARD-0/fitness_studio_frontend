@@ -16,7 +16,6 @@ export function Nav() {
   const pathname = usePathname();
   const { open } = useBooking();
   const [menuOpen, setMenuOpen] = useState(false);
-  const transparent = pathname.startsWith("/formats/");
 
   useEffect(() => {
     setMenuOpen(false);
@@ -33,14 +32,7 @@ export function Nav() {
 
   return (
     <>
-      <header
-        className={clsx(
-          "fixed inset-x-0 top-0 z-40 transition-colors",
-          transparent && !menuOpen
-            ? "bg-gradient-to-b from-black/40 to-transparent"
-            : "backdrop-blur-md bg-bg/55 border-b border-white/5",
-        )}
-      >
+      <header className="fixed inset-x-0 top-0 z-40 border-b border-white/5 bg-bg/55 backdrop-blur-md transition-colors">
         <Container className="flex h-16 items-center justify-between">
           <Link
             href="/"

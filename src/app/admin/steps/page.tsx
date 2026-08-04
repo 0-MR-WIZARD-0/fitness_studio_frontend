@@ -129,17 +129,6 @@ function StepCard({
       />
       <div className="flex items-center gap-4">
         <label className="flex items-center gap-2 text-sm">
-          Порядок
-          <input
-            className="field w-20"
-            type="number"
-            value={draft.order}
-            onChange={(e) =>
-              setDraft({ ...draft, order: Number(e.target.value) })
-            }
-          />
-        </label>
-        <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"
             checked={draft.isActive}

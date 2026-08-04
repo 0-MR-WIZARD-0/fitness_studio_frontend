@@ -14,12 +14,14 @@ export function Select({
   options,
   placeholder = "Выберите…",
   className,
+  disabled = false,
 }: {
   value: string | number | null;
   onChange: (value: string | number) => void;
   options: Option[];
   placeholder?: string;
   className?: string;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -45,7 +47,11 @@ export function Select({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between gap-2 rounded-xl border border-[color-mix(in_srgb,var(--color-border)_50%,transparent)] bg-bg px-4 py-[0.7rem] text-left text-heading outline-none transition focus:border-accent"
+        disabled={disabled}
+        className={clsx(
+          "flex w-full items-center justify-between gap-2 rounded-xl border border-[color-mix(in_srgb,var(--color-border)_50%,transparent)] bg-bg px-4 py-[0.7rem] text-left text-heading outline-none transition focus:border-accent",
+          disabled && "cursor-not-allowed opacity-50",
+        )}
       >
         <span className={clsx(!current && "text-text/50")}>
           {current?.label ?? placeholder}
@@ -67,7 +73,7 @@ export function Select({
         </svg>
       </button>
 
-      {open && (
+      {open && !disabled && (
         <ul className="absolute z-50 mt-2 max-h-60 w-full overflow-y-auto no-scrollbar rounded-xl border-gold bg-surface py-1 shadow-xl">
           {options.map((o) => (
             <li key={o.value}>

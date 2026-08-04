@@ -98,7 +98,6 @@ export interface Format {
   previewImageUrl: string | null;
   heroImageUrl: string | null;
   pricePerSession: number;
-  priceCourse: number;
   durationMin: number;
   order: number;
   isActive: boolean;
@@ -152,7 +151,6 @@ export interface Slot {
   trainerId: number | null;
   trainerName: string | null;
   pricePerSession: number;
-  coursePerSession: number;
   taken: number;
   remaining: number;
 }
@@ -170,7 +168,6 @@ export interface Announcement {
   id: number;
   title: string;
   description: string;
-  imageUrl: string | null;
   startsAt: string;
   durationMin: number;
   capacity: number;

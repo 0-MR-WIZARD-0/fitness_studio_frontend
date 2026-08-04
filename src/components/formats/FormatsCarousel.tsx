@@ -120,11 +120,11 @@ function Card({
         </div>
       </Link>
       {showPrices && (
-        <div className="mt-3 px-1 text-sm leading-relaxed">
+        <div className="mt-3 px-1 text-center text-sm leading-relaxed">
           <p>
             Цена за занятие — {format.pricePerSession.toLocaleString("ru-RU")} руб.
           </p>
-          <p>Курс — {format.priceCourse.toLocaleString("ru-RU")} руб.</p>
+          <p className="text-text/60">{format.durationMin} мин</p>
         </div>
       )}
     </div>

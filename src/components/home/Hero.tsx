@@ -19,7 +19,7 @@ export function Hero({ hero }: { hero: HomeHero }) {
       ) : (
         <div className="absolute inset-0 bg-gradient-to-b from-[#3a2d24] via-[#2a2122] to-bg" />
       )}
-      <div className="absolute inset-0 bg-gradient-to-b from-bg/30 via-transparent to-bg" />
+      <div className="absolute inset-0 bg-gradient-to-b from-bg/70 via-bg/45 to-bg md:from-bg/30 md:via-transparent" />
 
       <Container className="relative z-10 flex flex-1 flex-col pt-24 pb-24 md:pt-28 lg:pb-28">
         <div className="flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-6">
@@ -36,9 +36,9 @@ export function Hero({ hero }: { hero: HomeHero }) {
             <Spheres spheres={hero.spheres} />
           </div>
 
-          <p className="max-w-2xl text-sm md:text-base leading-relaxed text-text/90 lg:col-span-7 lg:row-start-2 lg:self-end">
-            {hero.description}
-          </p>
+          <div className="max-w-2xl lg:col-span-7 lg:row-start-2 lg:self-end">
+            <Description text={hero.description} />
+          </div>
         </div>
       </Container>
 
@@ -55,6 +55,39 @@ export function Hero({ hero }: { hero: HomeHero }) {
         </svg>
       </button>
     </section>
+  );
+}
+
+const MOBILE_LIMIT = 220;
+
+function Description({ text }: { text: string }) {
+  const [expanded, setExpanded] = useState(false);
+
+  if (!text) return null;
+
+  const paragraph =
+    "text-sm leading-relaxed text-heading/90 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] md:text-base lg:text-text/90 lg:drop-shadow-none";
+
+  if (text.length <= MOBILE_LIMIT) {
+    return <p className={paragraph}>{text}</p>;
+  }
+
+  const cut = text.slice(0, MOBILE_LIMIT);
+  const short = cut.slice(0, cut.lastIndexOf(" ")).trimEnd();
+
+  return (
+    <>
+      <div className="md:hidden">
+        <p className={paragraph}>{expanded ? text : `${short}…`}</p>
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          className="mt-2 font-sub text-sm text-accent underline underline-offset-4"
+        >
+          {expanded ? "Свернуть" : "Читать далее"}
+        </button>
+      </div>
+      <p className={`hidden md:block ${paragraph}`}>{text}</p>
+    </>
   );
 }
 
@@ -89,7 +122,7 @@ function Spheres({ spheres }: { spheres: Sphere[] }) {
       {current && current.items.length > 0 && (
         <div
           key={active}
-          className="fade-up mt-5 max-w-sm text-center text-sm leading-relaxed text-text/90"
+          className="fade-up mt-5 max-w-sm rounded-xl bg-bg/60 px-4 py-3 text-center text-sm leading-relaxed text-heading/90 backdrop-blur-sm"
         >
           {current.items.map((it) => (
             <div key={it}>{it}</div>
@@ -117,14 +150,14 @@ function Circle({
       onClick={onClick}
       aria-pressed={active}
       className={clsx(
-        "absolute grid h-32 w-32 place-items-center rounded-full border backdrop-blur-[1px] transition duration-300 ease-out sm:h-36 sm:w-36 md:h-44 md:w-44",
+        "absolute grid h-32 w-32 place-items-center rounded-full border backdrop-blur-[3px] transition duration-300 ease-out sm:h-36 sm:w-36 md:h-44 md:w-44",
         active
-          ? "scale-105 border-accent bg-accent/15"
-          : "border-accent/40 bg-white/[0.03] hover:scale-105 hover:border-accent/80 hover:bg-white/[0.07]",
+          ? "scale-105 border-accent bg-accent/20"
+          : "border-accent/50 bg-bg/30 hover:scale-105 hover:border-accent/80 hover:bg-bg/45",
         className,
       )}
     >
-      <span className="px-2 text-center font-sub text-sm text-heading/90">
+      <span className="px-2 text-center font-sub text-sm text-heading drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)]">
         {label}
       </span>
     </button>

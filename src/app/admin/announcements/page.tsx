@@ -9,7 +9,6 @@ import {
   updateAnnouncement,
 } from "@/lib/admin";
 import {
-  ImageField,
   PageTitle,
   TextArea,
   TextField,
@@ -99,12 +98,6 @@ function AnnouncementCard({
         label="Описание"
         value={d.description}
         onChange={(v) => setD({ ...d, description: v })}
-      />
-      <ImageField
-        label="Изображение"
-        value={d.imageUrl}
-        folder="announcements"
-        onChange={(url) => setD({ ...d, imageUrl: url })}
       />
       <div className="grid grid-cols-2 gap-3">
         <label className="text-sm">

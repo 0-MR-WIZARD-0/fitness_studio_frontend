@@ -5,6 +5,7 @@ import { Placeholder } from "@/components/Placeholder";
 import { Reveal } from "@/components/Reveal";
 import { BookFormatButton } from "@/components/formats/BookFormatButton";
 import { ApiError, getFormat, mediaUrl, type Format } from "@/lib/api";
+import { plural } from "@/lib/plural";
 
 export async function generateMetadata({
   params,
@@ -87,7 +88,7 @@ export default async function FormatPage({
 
             <p className="mt-5 text-sm text-text/80">
               Цена за занятие — {format.pricePerSession.toLocaleString("ru-RU")}{" "}
-              руб. · Курс — {format.priceCourse.toLocaleString("ru-RU")} руб.
+              руб. · {format.durationMin} мин
             </p>
           </div>
         </Container>
@@ -123,11 +124,16 @@ export default async function FormatPage({
 
       {format.mechanisms && format.mechanisms.length > 0 && (
         <Reveal>
-        <section className="pb-20">
+        <section className="pt-10 pb-20">
           <Container>
             <h2 className="text-2xl md:text-4xl font-bold uppercase">
-              Как это работает: {format.mechanisms.length} механизма в{" "}
-              {format.name.toLowerCase()}
+              Как это работает: {format.mechanisms.length}{" "}
+              {plural(format.mechanisms.length, [
+                "механизм",
+                "механизма",
+                "механизмов",
+              ])}
+              , формата «{format.name}»
             </h2>
             <div className="mt-10 space-y-8">
               {format.mechanisms.map((m, i) => (

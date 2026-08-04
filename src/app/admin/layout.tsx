@@ -7,19 +7,29 @@ import { adminLogout, adminMe } from "@/lib/admin";
 import { ApiError } from "@/lib/api";
 import { clsx } from "@/lib/clsx";
 
-const sections = [
-  { href: "/admin/hero", label: "Главный экран" },
-  { href: "/admin/faq", label: "Вопрос-ответ (табы)" },
-  { href: "/admin/steps", label: "Шаги «Начни уже сегодня»" },
-  { href: "/admin/formats", label: "Форматы" },
-  { href: "/admin/survey", label: "Опрос (противопоказания)" },
-  { href: "/admin/announcements", label: "Анонсы" },
-  { href: "/admin/reviews", label: "Отзывы" },
-  { href: "/admin/trainers", label: "Тренеры" },
-  { href: "/admin/booking", label: "Запись" },
-  { href: "/admin/promo", label: "Промокоды" },
-  { href: "/admin/agreement", label: "Пользовательское соглашение" },
-  { href: "/admin/settings", label: "Контакты студии" },
+const groups = [
+  {
+    title: "Содержимое сайта",
+    items: [
+      { href: "/admin/hero", label: "Главный экран" },
+      { href: "/admin/faq", label: "Вопрос-ответ (табы)" },
+      { href: "/admin/steps", label: "Шаги «Начни уже сегодня»" },
+      { href: "/admin/formats", label: "Форматы" },
+      { href: "/admin/survey", label: "Опрос (противопоказания)" },
+      { href: "/admin/settings", label: "Контакты студии" },
+      { href: "/admin/agreement", label: "Пользовательское соглашение" },
+    ],
+  },
+  {
+    title: "Работа студии",
+    items: [
+      { href: "/admin/booking", label: "Запись" },
+      { href: "/admin/trainers", label: "Тренеры" },
+      { href: "/admin/announcements", label: "Анонсы" },
+      { href: "/admin/promo", label: "Промокоды" },
+      { href: "/admin/reviews", label: "Отзывы" },
+    ],
+  },
 ];
 
 export default function AdminLayout({
@@ -82,20 +92,29 @@ export default function AdminLayout({
         <Link href="/admin" className="font-sub text-lg text-heading">
           Админка
         </Link>
-        <nav className="mt-6 space-y-1">
-          {sections.map((s) => (
-            <Link
-              key={s.href}
-              href={s.href}
-              className={clsx(
-                "block rounded-lg px-3 py-2 text-sm transition",
-                pathname.startsWith(s.href)
-                  ? "bg-accent/20 text-heading"
-                  : "text-text/80 hover:bg-surface-2",
-              )}
-            >
-              {s.label}
-            </Link>
+        <nav className="mt-6 space-y-6">
+          {groups.map((group) => (
+            <div key={group.title}>
+              <p className="mb-2 px-3 font-sub text-xs uppercase tracking-wider text-text/45">
+                {group.title}
+              </p>
+              <div className="space-y-1">
+                {group.items.map((s) => (
+                  <Link
+                    key={s.href}
+                    href={s.href}
+                    className={clsx(
+                      "block rounded-lg px-3 py-2 text-sm transition",
+                      pathname.startsWith(s.href)
+                        ? "bg-accent/20 text-heading"
+                        : "text-text/80 hover:bg-surface-2",
+                    )}
+                  >
+                    {s.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
         <div className="mt-8 space-y-2 border-t border-white/10 pt-4 text-sm">

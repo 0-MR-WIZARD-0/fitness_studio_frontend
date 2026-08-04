@@ -1,30 +1,36 @@
 const MS_DAY = 86400000;
-const WINDOW = 6 * MS_DAY;
+const WINDOW = 7 * MS_DAY;
 
-export function courseIds<T extends { id: number; startsAt: string | Date }>(
+export interface CourseSummary<T> {
+  groups: T[][];
+  countedIds: Set<number>;
+}
+
+export function courseGroups<T extends { id: number; startsAt: string | Date }>(
   slots: T[],
   threshold: number,
-): Set<number> {
+): CourseSummary<T> {
   const sorted = [...slots].sort(
     (a, b) => +new Date(a.startsAt) - +new Date(b.startsAt),
   );
-  const ids = new Set<number>();
+  const groups: T[][] = [];
+  const countedIds = new Set<number>();
+
+  if (threshold < 1) return { groups, countedIds };
+
   let i = 0;
-  while (i < sorted.length) {
-    let j = i;
-    while (
-      j + 1 < sorted.length &&
-      +new Date(sorted[j + 1].startsAt) - +new Date(sorted[i].startsAt) <=
-        WINDOW
-    ) {
-      j += 1;
-    }
-    if (j - i + 1 >= threshold) {
-      for (let k = i; k <= j; k += 1) ids.add(sorted[k].id);
-      i = j + 1;
+  while (i + threshold - 1 < sorted.length) {
+    const first = +new Date(sorted[i].startsAt);
+    const last = +new Date(sorted[i + threshold - 1].startsAt);
+    if (last - first <= WINDOW) {
+      const group = sorted.slice(i, i + threshold);
+      groups.push(group);
+      for (const s of group) countedIds.add(s.id);
+      i += threshold;
     } else {
       i += 1;
     }
   }
-  return ids;
+
+  return { groups, countedIds };
 }
