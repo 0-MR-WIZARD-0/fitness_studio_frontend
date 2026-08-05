@@ -170,6 +170,8 @@ export interface Announcement {
   description: string;
   startsAt: string;
   durationMin: number;
+  trainerId: number | null;
+  trainerName: string | null;
   capacity: number;
   price: number;
   isFree: boolean;

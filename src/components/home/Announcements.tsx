@@ -30,7 +30,7 @@ export function Announcements({ items }: { items: Announcement[] }) {
     });
 
   return (
-    <section className="py-12 md:py-16">
+    <section id="announcements" className="scroll-mt-20 py-12 md:py-16">
       <Container>
         <h2 className="text-3xl md:text-4xl font-bold">Анонсы</h2>
         <Grid className="mt-8 items-start">

@@ -1,18 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Container } from "../Container";
-import { WeekSchedule } from "./WeekSchedule";
+import { WeekMatrix } from "./WeekMatrix";
 import { courseGroups } from "@/lib/course";
 import { plural } from "@/lib/plural";
 import {
   api,
+  getAnnouncements,
   getAvailableSlots,
   getDiagnosticSlots,
   getFormats,
   getSettings,
   mediaUrl,
+  type Announcement,
   type Format,
   type Slot,
 } from "@/lib/api";
@@ -34,6 +36,7 @@ export function BookingFlow({
   initialDiagnostic?: boolean;
 }) {
   const router = useRouter();
+  const summaryRef = useRef<HTMLDivElement>(null);
 
   const [formats, setFormats] = useState<Format[]>([]);
   const [filterFormatId, setFilterFormatId] = useState<number | null>(
@@ -43,8 +46,10 @@ export function BookingFlow({
   const [threshold, setThreshold] = useState(3);
   const [lessons, setLessons] = useState<Slot[]>([]);
   const [diagSlots, setDiagSlots] = useState<Slot[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [cart, setCart] = useState<Slot[]>([]);
   const [diagSlot, setDiagSlot] = useState<Slot | null>(null);
+  const [annSlot, setAnnSlot] = useState<Announcement | null>(null);
   const [usePromo, setUsePromo] = useState(false);
   const [promo, setPromo] = useState("");
   const [agreementUrl, setAgreementUrl] = useState("");
@@ -67,6 +72,7 @@ export function BookingFlow({
     });
     getAvailableSlots().then(setLessons).catch(() => {});
     getDiagnosticSlots().then(setDiagSlots).catch(() => {});
+    getAnnouncements().then(setAnnouncements).catch(() => {});
   }, []);
 
   const weekSlots = useMemo(() => {
@@ -75,6 +81,16 @@ export function BookingFlow({
       return lessons.filter((s) => s.formatId === filterFormatId);
     return [...lessons, ...diagSlots];
   }, [lessons, diagSlots, filterFormatId, filterDiagnostic]);
+
+  const visibleFormats = useMemo(
+    () =>
+      filterDiagnostic
+        ? []
+        : filterFormatId
+          ? formats.filter((f) => f.id === filterFormatId)
+          : formats,
+    [formats, filterFormatId, filterDiagnostic],
+  );
 
   const filterLabel = filterDiagnostic
     ? "Только диагностика"
@@ -88,9 +104,23 @@ export function BookingFlow({
   );
   const courses = groups.length;
   const total = cart.reduce((sum, s) => sum + s.pricePerSession, 0);
-  const needsAgreement = !diagSlot && total > 0 && !!agreementUrl;
+  const needsAgreement =
+    !diagSlot && !!agreementUrl && (total > 0 || (!!annSlot && !annSlot.isFree));
+
+  function scrollToSummary() {
+    setTimeout(
+      () =>
+        summaryRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "end",
+        }),
+      80,
+    );
+  }
 
   function pickSlot(slot: Slot) {
+    scrollToSummary();
+    setAnnSlot(null);
     if (slot.isDiagnostic) {
       setCart([]);
       setDiagSlot((prev) => (prev?.id === slot.id ? null : slot));
@@ -104,6 +134,13 @@ export function BookingFlow({
     );
   }
 
+  function pickAnnouncement(a: Announcement) {
+    scrollToSummary();
+    setCart([]);
+    setDiagSlot(null);
+    setAnnSlot((prev) => (prev?.id === a.id ? null : a));
+  }
+
   const isPicked = (slot: Slot) =>
     slot.isDiagnostic
       ? diagSlot?.id === slot.id
@@ -114,6 +151,25 @@ export function BookingFlow({
     setError(null);
     try {
       const promoCode = usePromo && promo ? promo : undefined;
+
+      if (annSlot) {
+        const res = await api<{ free: boolean; total: number }>(
+          "/booking/announcement",
+          {
+            method: "POST",
+            body: JSON.stringify({
+              announcementId: annSlot.id,
+              name: form.name,
+              phone: form.phone,
+              email: form.email,
+              promoCode,
+            }),
+          },
+        );
+        setDone({ free: res.free, total: res.total });
+        return;
+      }
+
       if (diagSlot) {
         await api("/booking/single", {
           method: "POST",
@@ -172,7 +228,7 @@ export function BookingFlow({
     }
   }
 
-  const hasSelection = !!diagSlot || cart.length > 0;
+  const hasSelection = !!diagSlot || !!annSlot || cart.length > 0;
   const canSubmit =
     hasSelection &&
     !!form.name.trim() &&
@@ -250,28 +306,63 @@ export function BookingFlow({
         Каждое занятие оплачивается по своей цене, а как только набирается{" "}
         {threshold}{" "}
         {plural(threshold, ["занятие", "занятия", "занятий"])} в пределах 7 дней
-        — это курс, и мы дарим ещё одно занятие промокодом.
-        {cart.length > 0 &&
-          ` Выбрано: ${cart.length}${
-            courses
+        — это курс, и мы дарим ещё одно занятие промокодом. Запись на
+        диагностику и анонсированные занятия оформляется отдельно от основной
+        записи — по одному занятию за раз.
+        {cart.length > 0 && (
+          <span className="text-emerald-400">
+            {" "}
+            Выбрано: {cart.length}
+            {courses
               ? ` — это ${courses} ${plural(courses, ["курс", "курса", "курсов"])} и ${courses} ${plural(courses, ["подарок", "подарка", "подарков"])}`
-              : ""
-          }`}
+              : ""}
+          </span>
+        )}
       </p>
 
       <div className="mt-6">
-        <WeekSchedule
+        <WeekMatrix
+          limitForward
+          formats={visibleFormats}
           slots={weekSlots}
-          emptyText="Свободных занятий пока нет."
+          announcements={filterFormatId || filterDiagnostic ? [] : announcements}
           isSelected={isPicked}
           onPick={pickSlot}
+          isAnnouncementSelected={(a) => annSlot?.id === a.id}
+          onPickAnnouncement={pickAnnouncement}
         />
       </div>
 
+      <div ref={summaryRef} className="scroll-mb-6">
+        {hasSelection && (
+          <h2 className="mt-10 font-sub text-lg text-heading md:text-xl">
+            Формирование записи на:
+          </h2>
+        )}
+
+      {annSlot && (
+        <div className="mt-4 max-w-2xl rounded-2xl border border-accent/50 bg-surface/40 p-4 text-sm">
+          {annSlot.title} · {dayOf(annSlot.startsAt)} {timeOf(annSlot.startsAt)}{" "}
+          · {annSlot.durationMin} мин
+          {annSlot.trainerName ? ` · ${annSlot.trainerName}` : ""} ·{" "}
+          {annSlot.isFree
+            ? "бесплатно"
+            : `стоимость: ${annSlot.price.toLocaleString("ru-RU")} ₽`}
+          <button
+            onClick={() => setAnnSlot(null)}
+            className="ml-3 text-red-400"
+            aria-label="Убрать"
+          >
+            ×
+          </button>
+        </div>
+      )}
+
       {diagSlot && (
-        <div className="mt-6 max-w-2xl rounded-2xl border border-emerald-400/50 bg-surface/40 p-4 text-sm">
-          Диагностика · {dayOf(diagSlot.startsAt)} {timeOf(diagSlot.startsAt)}
-          {diagSlot.trainerName ? ` · ${diagSlot.trainerName}` : ""} — бесплатно
+        <div className="mt-4 max-w-2xl rounded-2xl border border-emerald-400/50 bg-surface/40 p-4 text-sm">
+          Диагностика · {dayOf(diagSlot.startsAt)} {timeOf(diagSlot.startsAt)} ·{" "}
+          {diagSlot.durationMin} мин
+          {diagSlot.trainerName ? ` · ${diagSlot.trainerName}` : ""} · бесплатно
           <button
             onClick={() => setDiagSlot(null)}
             className="ml-3 text-red-400"
@@ -283,7 +374,7 @@ export function BookingFlow({
       )}
 
       {cart.length > 0 && (
-        <div className="mt-6 max-w-2xl rounded-2xl border-gold bg-surface/40 p-4 text-sm">
+        <div className="mt-4 max-w-2xl rounded-2xl border-gold bg-surface/40 p-4 text-sm">
           {cart.map((s) => (
             <div
               key={s.id}
@@ -296,7 +387,7 @@ export function BookingFlow({
                   <span className="ml-2 text-xs text-accent">курс</span>
                 )}
                 <span className="ml-2 text-text/60">
-                  {s.pricePerSession.toLocaleString("ru-RU")} ₽
+                  · стоимость: {s.pricePerSession.toLocaleString("ru-RU")} ₽
                 </span>
               </span>
               <button
@@ -325,7 +416,8 @@ export function BookingFlow({
             )}
           </div>
         </div>
-      )}
+        )}
+      </div>
 
       {hasSelection && (
         <div className="mt-6 max-w-md space-y-3">
@@ -358,7 +450,7 @@ export function BookingFlow({
             <p className="text-xs text-red-400">Email должен содержать «@»</p>
           )}
 
-          {(!!diagSlot || cart.length === 1) && (
+          {(!!diagSlot || !!annSlot || cart.length === 1) && (
             <>
               <label className="flex items-center gap-2 text-sm text-text/80">
                 <input
