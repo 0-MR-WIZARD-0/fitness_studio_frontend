@@ -4,6 +4,7 @@ import { Container, Grid } from "@/components/Container";
 import { Placeholder } from "@/components/Placeholder";
 import { Reveal } from "@/components/Reveal";
 import { BookFormatButton } from "@/components/formats/BookFormatButton";
+import { ForWhomCarousel } from "@/components/formats/ForWhomCarousel";
 import { ApiError, getFormat, mediaUrl, type Format } from "@/lib/api";
 import { plural } from "@/lib/plural";
 
@@ -101,7 +102,9 @@ export default async function FormatPage({
             <h2 className="text-3xl md:text-4xl font-bold">
               Для кого этот формат
             </h2>
-            <Grid className="mt-8">
+            <ForWhomCarousel items={format.forWhom} className="mt-8 md:hidden" />
+
+            <Grid className="mt-8 hidden md:grid">
               {format.forWhom.map((item) => (
                 <div
                   key={item.id}

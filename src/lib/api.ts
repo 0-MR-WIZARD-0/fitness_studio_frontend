@@ -54,6 +54,7 @@ export interface HomeHero {
   id: number;
   title: string;
   subtitle: string;
+  subtitle2: string;
   description: string;
   imageUrl: string | null;
   spheres: Sphere[];

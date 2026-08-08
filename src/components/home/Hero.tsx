@@ -30,10 +30,15 @@ export function Hero({ hero }: { hero: HomeHero }) {
             <p className="mt-3 font-sub text-base sm:text-lg md:text-2xl text-heading/90">
               {hero.subtitle}
             </p>
+            {hero.subtitle2 && (
+              <p className="mt-2 font-sub text-sm text-heading/80 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] sm:text-base md:hidden">
+                {hero.subtitle2}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center justify-center lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">
-            <Spheres spheres={hero.spheres} />
+            <Spheres spheres={hero.spheres} subtitle2={hero.subtitle2} />
           </div>
 
           <div className="max-w-2xl lg:col-span-7 lg:row-start-2 lg:self-end">
@@ -97,7 +102,13 @@ const POSITIONS = [
   "bottom-0 right-0",
 ];
 
-function Spheres({ spheres }: { spheres: Sphere[] }) {
+function Spheres({
+  spheres,
+  subtitle2,
+}: {
+  spheres: Sphere[];
+  subtitle2?: string;
+}) {
   const [active, setActive] = useState<number | null>(null);
 
   if (!spheres?.length) return null;
@@ -128,6 +139,12 @@ function Spheres({ spheres }: { spheres: Sphere[] }) {
             <div key={it}>{it}</div>
           ))}
         </div>
+      )}
+
+      {subtitle2 && (
+        <p className="mt-5 hidden max-w-sm text-center font-sub text-base text-heading/85 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] md:block">
+          {subtitle2}
+        </p>
       )}
     </div>
   );

@@ -54,6 +54,11 @@ export default function AdminHero() {
         value={data.subtitle}
         onChange={(v) => setData({ ...data, subtitle: v })}
       />
+      <TextField
+        label="Второй слоган (под кружками, необязательно)"
+        value={data.subtitle2}
+        onChange={(v) => setData({ ...data, subtitle2: v })}
+      />
       <TextArea
         label="Описание"
         value={data.description}

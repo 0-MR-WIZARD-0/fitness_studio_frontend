@@ -21,6 +21,7 @@ const FALLBACK_HERO: HomeHero = {
   id: 0,
   title: "ТРИЕДИНСТВО",
   subtitle: "Три сферы. Одна система. Тройной эффект",
+  subtitle2: "",
   description: "",
   imageUrl: null,
   spheres: [],
