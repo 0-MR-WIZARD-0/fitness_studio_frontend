@@ -13,7 +13,7 @@ export default async function ReviewsPage() {
   }
 
   return (
-    <div className="pt-28 pb-10">
+    <div className="pt-32 pb-10">
       <Container>
         <div className="flex flex-wrap items-center justify-between gap-4">
           <h1 className="text-5xl md:text-7xl font-bold">Отзывы</h1>

@@ -1,16 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Container, Grid } from "../Container";
 import { Placeholder } from "../Placeholder";
 import { clsx } from "@/lib/clsx";
 import type { HomeFaq } from "@/lib/api";
 
-export function FaqTabs({ items }: { items: HomeFaq[] }) {
+export function FaqTabs({
+  items,
+  imageUrl,
+}: {
+  items: HomeFaq[];
+  imageUrl?: string | null;
+}) {
   const [activeId, setActiveId] = useState<number | null>(
     items[0]?.id ?? null,
   );
-  const active = items.find((i) => i.id === activeId) ?? items[0];
+  const refs = useRef<Record<number, HTMLDivElement | null>>({});
 
   if (!items.length) return null;
 
@@ -24,10 +30,25 @@ export function FaqTabs({ items }: { items: HomeFaq[] }) {
               return (
                 <div
                   key={item.id}
-                  className="rounded-2xl border-gold bg-surface/60 overflow-hidden"
+                  ref={(el) => {
+                    refs.current[item.id] = el;
+                  }}
+                  className="scroll-mt-28 rounded-2xl border-gold bg-surface/60 overflow-hidden"
                 >
                   <button
-                    onClick={() => setActiveId(isOpen ? null : item.id)}
+                    onClick={() => {
+                      const next = isOpen ? null : item.id;
+                      setActiveId(next);
+                      if (next !== null)
+                        setTimeout(
+                          () =>
+                            refs.current[item.id]?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "start",
+                            }),
+                          60,
+                        );
+                    }}
                     className="flex w-full items-center gap-3 px-5 py-4 text-left"
                   >
                     <span
@@ -54,8 +75,8 @@ export function FaqTabs({ items }: { items: HomeFaq[] }) {
 
           <div className="order-1 col-span-12 mb-6 lg:order-2 lg:col-span-5 lg:mb-0">
             <Placeholder
-              src={active?.imageUrl}
-              alt={active?.question}
+              src={imageUrl}
+              alt=""
               label="фото"
               className="aspect-[4/5] w-full"
             />

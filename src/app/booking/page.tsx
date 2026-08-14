@@ -13,7 +13,7 @@ export default async function BookingPage({
   const tabRaw = Array.isArray(sp.tab) ? sp.tab[0] : sp.tab;
 
   return (
-    <div className="pt-24 pb-14 md:pt-28">
+    <div className="pt-28 pb-14 md:pt-32">
       <Container>
         <h1 className="text-4xl md:text-6xl font-bold">Запись</h1>
         <p className="mt-4 max-w-2xl text-sm md:text-base leading-relaxed">

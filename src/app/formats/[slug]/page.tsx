@@ -5,7 +5,14 @@ import { Placeholder } from "@/components/Placeholder";
 import { Reveal } from "@/components/Reveal";
 import { BookFormatButton } from "@/components/formats/BookFormatButton";
 import { ForWhomCarousel } from "@/components/formats/ForWhomCarousel";
-import { ApiError, getFormat, mediaUrl, type Format } from "@/lib/api";
+import {
+  ApiError,
+  getFormat,
+  getSettings,
+  mediaUrl,
+  type Format,
+  type SiteSettings,
+} from "@/lib/api";
 import { plural } from "@/lib/plural";
 
 export async function generateMetadata({
@@ -35,6 +42,11 @@ export default async function FormatPage({
     if (e instanceof ApiError && e.status === 404) notFound();
     throw e;
   }
+
+  let settings: SiteSettings | null = null;
+  try {
+    settings = await getSettings();
+  } catch {}
 
   const heroImg = mediaUrl(format.heroImageUrl);
 
@@ -88,9 +100,11 @@ export default async function FormatPage({
             </div>
 
             <p className="mt-5 text-sm text-text/80">
-              Цена за занятие — {format.pricePerSession.toLocaleString("ru-RU")}{" "}
-              руб. · {format.durationMin} мин
+              Цена за занятие —{" "}
+              {(settings?.pricePerSession ?? 0).toLocaleString("ru-RU")} руб. ·{" "}
+              {format.durationMin} мин
             </p>
+
           </div>
         </Container>
       </section>
@@ -110,8 +124,7 @@ export default async function FormatPage({
                   key={item.id}
                   className="col-span-12 md:col-span-4 rounded-2xl border-gold bg-surface/60 p-6"
                 >
-                  <span className="grid h-9 w-9 place-items-center rounded-full border border-accent/70" />
-                  <h3 className="mt-4 font-sub text-lg text-heading">
+                  <h3 className="font-sub text-lg text-heading">
                     {item.title}
                   </h3>
                   <p className="mt-2 text-sm leading-relaxed text-text/85">
@@ -179,7 +192,7 @@ function Mechanism({
     </div>
   );
   const photo = (
-    <div className="col-span-12 md:col-span-5">
+    <div className="hidden md:col-span-5 md:block">
       <Placeholder
         src={mechanism.imageUrl}
         label="фото"

@@ -31,6 +31,8 @@ const FALLBACK_SETTINGS: SiteSettings = {
   phone: "8-888-888-88-88",
   email: "test@mail.ru",
   courseThreshold: 3,
+  pricePerSession: 0,
+  priceCourse: 0,
   userAgreementUrl: "",
   telegramUrl: "",
   maxUrl: "",

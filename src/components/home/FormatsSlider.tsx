@@ -26,7 +26,7 @@ export function FormatsSlider({
   const visible = formats.slice(start, start + PER_PAGE);
 
   return (
-    <section className="py-12 md:py-16">
+    <section className="pt-12 pb-8 md:pt-16 md:pb-10">
       <Container>
         <h2 className="text-3xl md:text-4xl font-bold">{title}</h2>
 

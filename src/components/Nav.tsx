@@ -6,6 +6,8 @@ import { usePathname } from "next/navigation";
 import { useBooking } from "./BookingProvider";
 import { Container } from "./Container";
 import { clsx } from "@/lib/clsx";
+import Logo from "../../public/logo.svg"
+import Image from "next/image";
 
 const links = [
   { href: "/formats", label: "Форматы" },
@@ -33,12 +35,14 @@ export function Nav() {
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/5 bg-bg/55 backdrop-blur-md transition-colors">
-        <Container className="flex h-16 items-center justify-between">
-          <Link
-            href="/"
-            className="font-sub italic text-heading/90 tracking-wide"
-          >
-            Логотип
+        <Container className="flex h-20 items-center justify-between">
+          <Link href="/" className="flex h-full items-center">
+            <Image
+              src={Logo}
+              alt="Триединство"
+              className="h-[90%] w-auto"
+              priority
+            />
           </Link>
 
           <nav className="hidden items-center gap-6 font-sub text-sm md:flex md:gap-10 md:text-base">
@@ -94,7 +98,7 @@ export function Nav() {
 
       <div
         className={clsx(
-          "fixed inset-x-0 bottom-0 top-16 z-30 bg-bg/95 transition-transform duration-300 ease-out md:hidden",
+          "fixed inset-x-0 bottom-0 top-20 z-30 bg-bg/95 transition-transform duration-300 ease-out md:hidden",
           menuOpen ? "translate-x-0" : "translate-x-full",
         )}
         aria-hidden={!menuOpen}
@@ -106,7 +110,7 @@ export function Nav() {
               href={l.href}
               tabIndex={menuOpen ? undefined : -1}
               className={clsx(
-                "border-b border-white/10 py-4 font-sub text-2xl transition",
+                "border-b border-white/10 py-3.5 font-sub text-lg transition",
                 pathname.startsWith(l.href) ? "text-accent" : "text-heading/90",
               )}
             >
@@ -119,7 +123,7 @@ export function Nav() {
               open();
             }}
             tabIndex={menuOpen ? undefined : -1}
-            className="border-b border-white/10 py-4 text-left font-sub text-2xl text-heading/90"
+            className="border-b border-white/10 py-3.5 text-left font-sub text-lg text-heading/90"
           >
             Запись
           </button>

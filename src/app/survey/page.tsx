@@ -17,6 +17,8 @@ const FALLBACK_SETTINGS: SiteSettings = {
   phone: "",
   email: "",
   courseThreshold: 3,
+  pricePerSession: 0,
+  priceCourse: 0,
   userAgreementUrl: "",
   telegramUrl: "",
   maxUrl: "",
@@ -37,7 +39,7 @@ export default async function SurveyPage() {
   }
 
   return (
-    <div className="pt-24 pb-14 md:pt-28">
+    <div className="pt-28 pb-14 md:pt-32">
       <Container>
         <h1 className="text-4xl md:text-6xl font-bold">Подбор формата</h1>
         <p className="mt-4 max-w-2xl text-sm md:text-base leading-relaxed">

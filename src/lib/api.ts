@@ -57,6 +57,7 @@ export interface HomeHero {
   subtitle2: string;
   description: string;
   imageUrl: string | null;
+  faqImageUrl: string | null;
   spheres: Sphere[];
 }
 export interface HomeFaq {
@@ -98,7 +99,6 @@ export interface Format {
   miniResults: string[];
   previewImageUrl: string | null;
   heroImageUrl: string | null;
-  pricePerSession: number;
   durationMin: number;
   order: number;
   isActive: boolean;
@@ -161,6 +161,8 @@ export interface SiteSettings {
   phone: string;
   email: string;
   courseThreshold: number;
+  pricePerSession: number;
+  priceCourse: number;
   userAgreementUrl: string;
   telegramUrl: string;
   maxUrl: string;

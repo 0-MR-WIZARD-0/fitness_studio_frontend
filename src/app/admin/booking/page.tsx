@@ -93,7 +93,7 @@ export default function AdminBooking() {
         formatName: s.format?.name ?? null,
         trainerId: s.trainerId,
         trainerName: s.trainer?.name ?? null,
-        pricePerSession: s.format?.pricePerSession ?? 0,
+        pricePerSession: 0,
         taken: s._count.bookings,
         remaining: Math.max(0, s.capacity - s._count.bookings),
       })),

@@ -21,7 +21,7 @@ export function Hero({ hero }: { hero: HomeHero }) {
       )}
       <div className="absolute inset-0 bg-gradient-to-b from-bg/70 via-bg/45 to-bg md:from-bg/30 md:via-transparent" />
 
-      <Container className="relative z-10 flex flex-1 flex-col pt-24 pb-24 md:pt-28 lg:pb-28">
+      <Container className="relative z-10 flex flex-1 flex-col pt-28 pb-24 md:pt-32 lg:pb-28">
         <div className="flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-6">
           <div className="lg:col-span-7 lg:row-start-1 lg:pt-8">
             <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
@@ -31,7 +31,7 @@ export function Hero({ hero }: { hero: HomeHero }) {
               {hero.subtitle}
             </p>
             {hero.subtitle2 && (
-              <p className="mt-2 font-sub text-sm text-heading/80 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] sm:text-base md:hidden">
+              <p className="mt-2 font-sub text-sm text-heading/80 sm:text-base md:hidden">
                 {hero.subtitle2}
               </p>
             )}
@@ -142,7 +142,7 @@ function Spheres({
       )}
 
       {subtitle2 && (
-        <p className="mt-5 hidden max-w-sm text-center font-sub text-base text-heading/85 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)] md:block">
+        <p className="mt-5 hidden max-w-sm text-center font-sub text-base text-heading/85 md:block">
           {subtitle2}
         </p>
       )}

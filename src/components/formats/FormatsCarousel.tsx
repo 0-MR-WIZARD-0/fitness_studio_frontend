@@ -6,11 +6,11 @@ import { mediaUrl, type Format } from "@/lib/api";
 
 export function FormatsCarousel({
   formats,
-  showPrices = false,
+  price,
   className,
 }: {
   formats: Format[];
-  showPrices?: boolean;
+  price?: number;
   className?: string;
 }) {
   return (
@@ -19,17 +19,17 @@ export function FormatsCarousel({
       keyOf={(f) => f.id}
       labelOf={(f) => f.name}
       className={className}
-      renderItem={(f) => <Card format={f} showPrices={showPrices} />}
+      renderItem={(f) => <Card format={f} price={price} />}
     />
   );
 }
 
 function Card({
   format,
-  showPrices,
+  price,
 }: {
   format: Format;
-  showPrices?: boolean;
+  price?: number;
 }) {
   const img = mediaUrl(format.heroImageUrl);
   return (
@@ -54,11 +54,10 @@ function Card({
           </span>
         </div>
       </Link>
-      {showPrices && (
+      {price !== undefined && (
         <div className="mt-3 px-1 text-center text-sm leading-relaxed">
           <p>
-            Цена за занятие — {format.pricePerSession.toLocaleString("ru-RU")}{" "}
-            руб.
+            Цена за занятие — {price.toLocaleString("ru-RU")} руб.
           </p>
           <p className="text-text/60">{format.durationMin} мин</p>
         </div>

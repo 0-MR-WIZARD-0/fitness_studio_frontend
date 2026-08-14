@@ -44,6 +44,7 @@ export function BookingFlow({
   );
   const [filterDiagnostic, setFilterDiagnostic] = useState(initialDiagnostic);
   const [threshold, setThreshold] = useState(3);
+  const [coursePrice, setCoursePrice] = useState(0);
   const [lessons, setLessons] = useState<Slot[]>([]);
   const [diagSlots, setDiagSlots] = useState<Slot[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -68,6 +69,7 @@ export function BookingFlow({
     getFormats().then(setFormats);
     getSettings().then((s) => {
       setThreshold(s.courseThreshold);
+      setCoursePrice(s.priceCourse);
       setAgreementUrl(s.userAgreementUrl);
     });
     getAvailableSlots().then(setLessons).catch(() => {});
@@ -103,7 +105,13 @@ export function BookingFlow({
     [cart, threshold],
   );
   const courses = groups.length;
-  const total = cart.reduce((sum, s) => sum + s.pricePerSession, 0);
+  const total = cart.reduce(
+    (sum, s) =>
+      sum +
+      (countedIds.has(s.id) && coursePrice > 0 ? coursePrice : s.pricePerSession),
+    0,
+  );
+  const fullTotal = cart.reduce((sum, s) => sum + s.pricePerSession, 0);
   const needsAgreement =
     !diagSlot && !!agreementUrl && (total > 0 || (!!annSlot && !annSlot.isFree));
 
@@ -302,13 +310,11 @@ export function BookingFlow({
       )}
 
       <p className="rounded-xl bg-surface-2/60 px-4 py-3 text-sm leading-relaxed text-text/85">
-        Всё расписание студии — занятия всех форматов и бесплатная диагностика.
-        Каждое занятие оплачивается по своей цене, а как только набирается{" "}
-        {threshold}{" "}
-        {plural(threshold, ["занятие", "занятия", "занятий"])} в пределах 7 дней
-        — это курс, и мы дарим ещё одно занятие промокодом. Запись на
-        диагностику и анонсированные занятия оформляется отдельно от основной
-        записи — по одному занятию за раз.
+Всё расписание студии — занятия всех форматов, бесплатная диагностика и
+        анонсы. Оплачиваете любые {threshold} занятия (основные форматы или
+        дополнительные) в неделю — и четвёртое занятие получаете в
+        подарок промокодом. Запись на диагностику и анонсированные занятия
+        оформляется отдельно от основной записи — по одному занятию за раз.
         {cart.length > 0 && (
           <span className="text-emerald-400">
             {" "}
@@ -387,7 +393,12 @@ export function BookingFlow({
                   <span className="ml-2 text-xs text-accent">курс</span>
                 )}
                 <span className="ml-2 text-text/60">
-                  · стоимость: {s.pricePerSession.toLocaleString("ru-RU")} ₽
+                  · стоимость:{" "}
+                  {(countedIds.has(s.id) && coursePrice > 0
+                    ? coursePrice
+                    : s.pricePerSession
+                  ).toLocaleString("ru-RU")}{" "}
+                  ₽
                 </span>
               </span>
               <button
@@ -400,6 +411,11 @@ export function BookingFlow({
             </div>
           ))}
           <div className="mt-3 border-t border-white/10 pt-3">
+            {fullTotal > total && (
+              <span className="mr-2 text-text/50 line-through">
+                {fullTotal.toLocaleString("ru-RU")} ₽
+              </span>
+            )}
             <span className="text-heading">
               Итого: {total.toLocaleString("ru-RU")} ₽
             </span>

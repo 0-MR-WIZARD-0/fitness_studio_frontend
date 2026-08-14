@@ -2,19 +2,28 @@ import Link from "next/link";
 import { Container, Grid } from "@/components/Container";
 import { Reveal } from "@/components/Reveal";
 import { FormatsCarousel } from "@/components/formats/FormatsCarousel";
-import { mediaUrl, getFormats, type Format } from "@/lib/api";
+import { CoursePromo } from "@/components/CoursePromo";
+import {
+  mediaUrl,
+  getFormats,
+  getSettings,
+  type Format,
+  type SiteSettings,
+} from "@/lib/api";
 
 export const metadata = { title: "Форматы — Триединство" };
 
 export default async function FormatsPage() {
   let formats: Format[] = [];
+  let settings: SiteSettings | null = null;
   try {
-    formats = await getFormats();
+    [formats, settings] = await Promise.all([getFormats(), getSettings()]);
   } catch {
   }
+  const price = settings?.pricePerSession ?? 0;
 
   return (
-    <div className="pt-28 pb-10">
+    <div className="pt-32 pb-10">
       <Container>
         <h1 className="text-center text-5xl md:text-7xl font-bold">
           Наши форматы
@@ -23,16 +32,30 @@ export default async function FormatsPage() {
         <Reveal>
           <FormatsCarousel
             formats={formats}
-            showPrices
+            price={price}
             className="mt-10 md:hidden"
           />
 
           <Grid className="mt-12 hidden items-stretch md:grid">
             {formats.map((f, i) => (
-              <FormatCard key={f.id} format={f} highlight={i === 0} />
+              <FormatCard
+                key={f.id}
+                format={f}
+                price={price}
+                highlight={i === 0}
+              />
             ))}
           </Grid>
         </Reveal>
+
+        {settings && (
+          <CoursePromo
+            className="mt-12"
+            threshold={settings.courseThreshold}
+            price={settings.pricePerSession}
+            coursePrice={settings.priceCourse}
+          />
+        )}
 
         <div className="mt-10 flex justify-center md:justify-end">
           <Link href="/survey" className="btn-gold">
@@ -46,9 +69,11 @@ export default async function FormatsPage() {
 
 function FormatCard({
   format,
+  price,
   highlight,
 }: {
   format: Format;
+  price: number;
   highlight?: boolean;
 }) {
   const img = mediaUrl(format.heroImageUrl);
@@ -78,7 +103,7 @@ function FormatCard({
       </Link>
       <div className="mt-4 px-1 text-center text-sm leading-relaxed">
         <p>
-          Цена за занятие — {format.pricePerSession.toLocaleString("ru-RU")} руб.
+          Цена за занятие — {price.toLocaleString("ru-RU")} руб.
         </p>
         <p className="text-text/60">{format.durationMin} мин</p>
       </div>

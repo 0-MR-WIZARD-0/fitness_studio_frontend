@@ -86,7 +86,6 @@ export function WeekMatrix({
       list.push({
         key: `f-${f.id}`,
         label: f.name,
-        hint: money(f.pricePerSession),
         slots: own,
         announcements: [],
       });

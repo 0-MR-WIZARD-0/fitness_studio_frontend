@@ -15,12 +15,18 @@ import { MoveButtons } from "@/components/admin/MoveButtons";
 export default function AdminFormats() {
   const [items, setItems] = useState<Format[]>([]);
   const [threshold, setThreshold] = useState(3);
+  const [price, setPrice] = useState(0);
+  const [coursePrice, setCoursePrice] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
   const reload = () => adminFormatList().then(setItems);
   useEffect(() => {
     reload();
-    getSettings().then((s) => setThreshold(s.courseThreshold));
+    getSettings().then((s) => {
+      setThreshold(s.courseThreshold);
+      setPrice(s.pricePerSession);
+      setCoursePrice(s.priceCourse);
+    });
   }, []);
 
   const flash = (m: string) => {
@@ -28,9 +34,13 @@ export default function AdminFormats() {
     setTimeout(() => setToast(null), 2000);
   };
 
-  async function saveThreshold() {
-    await updateSettings({ courseThreshold: Math.max(1, threshold) });
-    flash("Порог курса сохранён");
+  async function savePrices() {
+    await updateSettings({
+      courseThreshold: Math.max(1, threshold),
+      pricePerSession: Math.max(0, price),
+      priceCourse: Math.max(0, coursePrice),
+    });
+    flash("Цены сохранены");
   }
 
   async function move(index: number, dir: -1 | 1) {
@@ -100,19 +110,34 @@ export default function AdminFormats() {
         {items.length === 0 && <p className="text-text/60">Форматов нет.</p>}
       </div>
 
-      <div className="mt-8 max-w-sm rounded-xl border-gold bg-surface/40 p-4">
-        <TextField
-          label="Сколько занятий = курс (общий порог)"
-          type="number"
-          value={threshold}
-          onChange={(v) => setThreshold(Math.max(1, Number(v)))}
-        />
-        <p className="mt-1 text-xs text-text/50">
-          Если пользователь набрал столько занятий (любых форматов за неделю) —
-          это курс: снижается цена и даётся подарок.
+      <div className="mt-8 max-w-xxl rounded-xl border-gold bg-surface/40 p-4">
+        <p className="mb-3 font-sub text-heading">Цены и курс</p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <TextField
+            label="Цена за занятие, ₽"
+            type="number"
+            value={price}
+            onChange={(v) => setPrice(Math.max(0, Number(v)))}
+          />
+          <TextField
+            label="Цена занятия в курсе, ₽"
+            type="number"
+            value={coursePrice}
+            onChange={(v) => setCoursePrice(Math.max(0, Number(v)))}
+          />
+          <TextField
+            label="Занятий = курс"
+            type="number"
+            value={threshold}
+            onChange={(v) => setThreshold(Math.max(1, Number(v)))}
+          />
+        </div>
+        <p className="mt-2 text-xs text-text/50">
+          Цена одна для всех форматов. Набрал столько занятий за 7 дней — они
+          считаются по курсовой цене, и клиент получает ещё одно в подарок.
         </p>
-        <button onClick={saveThreshold} className="btn-gold mt-3">
-          Сохранить порог
+        <button onClick={savePrices} className="btn-gold mt-3">
+          Сохранить
         </button>
       </div>
 
