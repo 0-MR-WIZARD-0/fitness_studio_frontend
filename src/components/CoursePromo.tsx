@@ -13,8 +13,6 @@ export function CoursePromo({
   className?: string;
 }) {
   const discounted = coursePrice > 0 && coursePrice < price;
-  const savePerSession = price - coursePrice;
-  const saveTotal = savePerSession * threshold;
 
   return (
     <div
@@ -25,27 +23,19 @@ export function CoursePromo({
     >
       <p className="font-sub text-emerald-300">
         Приобретаете {threshold}{" "}
-        {plural(threshold, ["занятие", "занятия", "занятий"])} в неделю — дарим
-        1 бесплатное в подарок.
+        {plural(threshold, ["занятие", "занятия", "занятий"])} в неделю —{" "}
+        {threshold + 1}-е в подарок!
       </p>
-      <p className="mt-2 text-sm leading-relaxed text-text/85">
-        Занятия можно брать из любых форматов.
-        {discounted && (
-          <>
-            {" "}
-            При этом цена занятия падает с{" "}
-            <span className="text-text/60 line-through">
-              {price.toLocaleString("ru-RU")} ₽
-            </span>{" "}
-            до{" "}
-            <span className="font-sub text-emerald-300">
-              {coursePrice.toLocaleString("ru-RU")} ₽
-            </span>{" "}
-            — экономия {saveTotal.toLocaleString("ru-RU")} ₽ за курс + 1
-            бесплатное занятие.
-          </>
-        )}
-      </p>
+      {discounted && (
+        <p className="mt-2 text-sm leading-relaxed text-text/85">
+          Цена каждого занятия снижается до{" "}
+          <span className="font-sub text-emerald-300">
+            {coursePrice.toLocaleString("ru-RU")} ₽
+          </span>{" "}
+          (вместо {price.toLocaleString("ru-RU")} ₽). Действует на любые
+          тренировки из расписания студии.
+        </p>
+      )}
     </div>
   );
 }

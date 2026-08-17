@@ -31,7 +31,7 @@ export function Hero({ hero }: { hero: HomeHero }) {
               {hero.subtitle}
             </p>
             {hero.subtitle2 && (
-              <p className="mt-2 font-sub text-sm text-heading/80 sm:text-base md:hidden">
+              <p className="mt-2 font-sub text-sm text-emerald-300 sm:text-base md:hidden">
                 {hero.subtitle2}
               </p>
             )}
@@ -142,7 +142,7 @@ function Spheres({
       )}
 
       {subtitle2 && (
-        <p className="mt-5 hidden max-w-sm text-center font-sub text-base text-heading/85 md:block">
+        <p className="mt-5 hidden max-w-sm text-center font-sub text-base md:block">
           {subtitle2}
         </p>
       )}
