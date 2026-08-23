@@ -9,12 +9,18 @@ export function SnapCarousel<T>({
   labelOf,
   renderItem,
   className,
+  itemClassName,
+  trackClassName,
+  dimInactive = true,
 }: {
   items: T[];
   keyOf: (item: T) => string | number;
   labelOf?: (item: T, index: number) => string;
   renderItem: (item: T, state: { active: boolean }) => React.ReactNode;
   className?: string;
+  itemClassName?: string;
+  trackClassName?: string;
+  dimInactive?: boolean;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
@@ -56,14 +62,25 @@ export function SnapCarousel<T>({
       <div
         ref={trackRef}
         onScroll={() => setActive(nearestIndex())}
-        className="no-scrollbar -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-[14vw] py-1"
+        className={clsx(
+          "no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto py-1",
+          trackClassName ?? "-mx-5 px-[14vw]",
+        )}
       >
         {items.map((item, i) => (
-          <div key={keyOf(item)} className="w-[72vw] shrink-0 snap-center">
+          <div
+            key={keyOf(item)}
+            className={clsx(
+              "shrink-0 snap-center",
+              itemClassName ?? "w-[72vw]",
+            )}
+          >
             <div
               className={clsx(
                 "h-full transition duration-300",
-                i === active ? "scale-100 opacity-100" : "scale-95 opacity-70",
+                dimInactive && i !== active
+                  ? "scale-95 opacity-70"
+                  : "scale-100 opacity-100",
               )}
             >
               {renderItem(item, { active: i === active })}
