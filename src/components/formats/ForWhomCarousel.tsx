@@ -5,9 +5,9 @@ import type { ForWhomItem } from "@/lib/api";
 
 export function ForWhomCard({ item }: { item: ForWhomItem }) {
   return (
-    <div className="flex aspect-[4/3] w-full flex-col overflow-hidden rounded-2xl border-gold bg-surface/60 p-6">
-      <h3 className="shrink-0 font-sub text-lg text-heading">{item.title}</h3>
-      <p className="no-scrollbar mt-2 min-h-0 flex-1 overflow-y-auto text-sm leading-relaxed text-text/85">
+    <div className="h-full w-full rounded-2xl border-gold bg-surface/60 p-6">
+      <h3 className="font-sub text-lg text-heading">{item.title}</h3>
+      <p className="mt-2 text-sm leading-relaxed text-text/85">
         {item.description}
       </p>
     </div>
