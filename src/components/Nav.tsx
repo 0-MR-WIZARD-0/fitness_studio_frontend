@@ -66,6 +66,17 @@ export function Nav() {
             >
               Запись
             </button>
+            <Link
+              href="/rent"
+              className={clsx(
+                "transition hover:text-accent",
+                pathname.startsWith("/rent")
+                  ? "text-accent"
+                  : "text-heading/85",
+              )}
+            >
+              Аренда студии
+            </Link>
           </nav>
 
           <button
@@ -127,6 +138,16 @@ export function Nav() {
           >
             Запись
           </button>
+          <Link
+            href="/rent"
+            tabIndex={menuOpen ? undefined : -1}
+            className={clsx(
+              "border-b border-white/10 py-3.5 font-sub text-lg transition",
+              pathname.startsWith("/rent") ? "text-accent" : "text-heading/90",
+            )}
+          >
+            Аренда студии
+          </Link>
         </Container>
       </div>
     </>

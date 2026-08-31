@@ -25,6 +25,7 @@ const groups = [
     items: [
       { href: "/admin/booking", label: "Запись" },
       { href: "/admin/trainers", label: "Тренеры" },
+      { href: "/admin/rent", label: "Аренда студии" },
       { href: "/admin/promo", label: "Промокоды" },
       { href: "/admin/reviews", label: "Отзывы" },
     ],

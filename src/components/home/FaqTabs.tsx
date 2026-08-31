@@ -6,19 +6,15 @@ import { Placeholder } from "../Placeholder";
 import { clsx } from "@/lib/clsx";
 import type { HomeFaq } from "@/lib/api";
 
-export function FaqTabs({
-  items,
-  imageUrl,
-}: {
-  items: HomeFaq[];
-  imageUrl?: string | null;
-}) {
+export function FaqTabs({ items }: { items: HomeFaq[] }) {
   const [activeId, setActiveId] = useState<number | null>(
     items[0]?.id ?? null,
   );
   const refs = useRef<Record<number, HTMLDivElement | null>>({});
 
   if (!items.length) return null;
+
+  const active = items.find((i) => i.id === activeId) ?? items[0];
 
   return (
     <section className="pt-16 pb-0 md:py-24">
@@ -75,8 +71,8 @@ export function FaqTabs({
 
           <div className="order-1 col-span-12 mb-6 lg:order-2 lg:col-span-5 lg:mb-0">
             <Placeholder
-              src={imageUrl}
-              alt=""
+              src={active?.imageUrl}
+              alt={active?.question}
               label="фото"
               className="aspect-[4/5] w-full"
             />

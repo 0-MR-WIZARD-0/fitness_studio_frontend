@@ -12,6 +12,7 @@ import {
   type ReviewStatus,
   type SiteSettings,
   type Slot,
+  type RentalSlot,
   type Trainer,
 } from "./api";
 
@@ -174,6 +175,31 @@ export const updateSlot = (
       ...(confirm ?? {}),
     }),
   );
+
+export interface AdminRentalSlot extends RentalSlot {
+  bookings: { id: number; name: string; phone: string; email: string | null }[];
+}
+export const adminRentSlots = () =>
+  api<AdminRentalSlot[]>("/rent/admin/slots", { auth: true });
+export const createRentSlot = (data: {
+  startsAt: string;
+  endsAt: string;
+  price?: number;
+  comment?: string;
+  isActive?: boolean;
+}) => api<RentalSlot>("/rent/slots", authOpts("POST", data));
+export const updateRentSlot = (
+  id: number,
+  data: {
+    startsAt: string;
+    endsAt: string;
+    price?: number;
+    comment?: string;
+    isActive?: boolean;
+  },
+) => api<RentalSlot>(`/rent/slots/${id}`, authOpts("PUT", data));
+export const deleteRentSlot = (id: number) =>
+  api(`/rent/slots/${id}`, authOpts("DELETE"));
 
 export const adminTrainers = () =>
   api<Trainer[]>("/trainers/admin", { auth: true });

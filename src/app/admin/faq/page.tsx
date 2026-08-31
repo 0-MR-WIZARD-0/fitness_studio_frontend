@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getHero, type HomeFaq } from "@/lib/api";
+import type { HomeFaq } from "@/lib/api";
 import {
   adminFaqList,
   createFaq,
   deleteFaq,
   updateFaq,
-  updateHero,
 } from "@/lib/admin";
 import {
   ImageField,
@@ -21,12 +20,10 @@ import { MoveButtons } from "@/components/admin/MoveButtons";
 export default function AdminFaq() {
   const [items, setItems] = useState<HomeFaq[]>([]);
   const [toast, setToast] = useState<string | null>(null);
-  const [faqImageUrl, setFaqImageUrl] = useState<string | null>(null);
 
   const reload = () => adminFaqList().then(setItems);
   useEffect(() => {
     reload();
-    getHero().then((h) => setFaqImageUrl(h.faqImageUrl));
   }, []);
 
   const flash = (m: string) => {
@@ -64,19 +61,6 @@ export default function AdminFaq() {
         <button onClick={add} className="btn-gold">
           + Добавить
         </button>
-      </div>
-
-      <div className="mb-6 rounded-2xl border-gold bg-surface/40 p-5">
-        <ImageField
-          label="Фото блока (одно на все табы)"
-          value={faqImageUrl}
-          onChange={async (url) => {
-            setFaqImageUrl(url);
-            await updateHero({ faqImageUrl: url });
-            flash("Фото сохранено");
-          }}
-          folder="faq"
-        />
       </div>
 
       <div className="space-y-5">
@@ -128,6 +112,12 @@ function FaqCard({
         label="Ответ"
         value={draft.answer}
         onChange={(v) => setDraft({ ...draft, answer: v })}
+      />
+      <ImageField
+        label="Фото (показывается при выборе таба)"
+        value={draft.imageUrl}
+        onChange={(url) => setDraft({ ...draft, imageUrl: url })}
+        folder="faq"
       />
       <label className="flex items-center gap-2 text-sm">
         <input

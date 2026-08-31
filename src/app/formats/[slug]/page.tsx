@@ -148,11 +148,11 @@ export default async function FormatPage({
             <h2 className="text-2xl md:text-4xl font-bold uppercase">
               Как это работает: {format.mechanisms.length}{" "}
               {plural(format.mechanisms.length, [
-                "механизм",
-                "механизма",
-                "механизмов",
+                "механизм ",
+                "механизма ",
+                "механизмов ",
               ])}
-              , формата «{format.name}»
+              формата «{format.name}»
             </h2>
             <div className="mt-10 space-y-8">
               {format.mechanisms.map((m, i) => (

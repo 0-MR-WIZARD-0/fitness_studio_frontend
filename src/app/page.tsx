@@ -56,7 +56,7 @@ export default async function HomePage() {
     <>
       <Hero hero={hero} />
       <Reveal>
-        <FaqTabs items={faq} imageUrl={hero.faqImageUrl} />
+        <FaqTabs items={faq} />
       </Reveal>
       <Reveal>
         <FormatsSlider formats={formats} />

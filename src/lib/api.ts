@@ -120,6 +120,16 @@ export interface Condition {
   isActive: boolean;
   rules: ConditionRule[];
 }
+export interface RentalSlot {
+  id: number;
+  startsAt: string;
+  endsAt: string;
+  durationMin: number;
+  price: number;
+  comment: string;
+  isActive: boolean;
+  isBooked: boolean;
+}
 export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type MediaType = "NONE" | "IMAGE" | "VIDEO";
 export interface Review {
@@ -189,6 +199,17 @@ export const getFormat = (slug: string) =>
   api<Format>(`/formats/slug/${slug}`);
 export const getConditions = () => api<Condition[]>("/survey/conditions");
 export const getTrainers = () => api<Trainer[]>("/trainers");
+export const getRentSlots = () => api<RentalSlot[]>("/rent/slots");
+export const bookRent = (data: {
+  rentalSlotId: number;
+  name: string;
+  phone: string;
+  email: string;
+}) =>
+  api<{ total: number }>("/rent/book", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 export const getApprovedReviews = () => api<Review[]>("/reviews");
 export const getSettings = () => api<SiteSettings>("/settings");
 export const getAvailableSlots = (formatId?: number) =>
