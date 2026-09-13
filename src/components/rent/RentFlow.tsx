@@ -119,12 +119,6 @@ export function RentFlow() {
 
   return (
     <Container>
-      <p className="rounded-xl bg-surface-2/60 px-4 py-3 text-sm leading-relaxed text-text/85">
-        Здесь отображены услуги, которые занимают студию по времени: аренда зала по часам и
-        услуги с записью. Между занятиями оставлен перерыв, поэтому в расписании
-        отображено только свободное время.
-      </p>
-
       <div className="mt-6">
         {slots.length === 0 ? (
           <p className="rounded-2xl border-gold bg-surface/40 p-5 text-sm text-text/70">
@@ -132,6 +126,7 @@ export function RentFlow() {
           </p>
         ) : (
           <WeekGrid
+            firstDate={slots[0]?.startsAt ?? null}
             renderDay={(key) => {
               const daySlots = byDay.get(key) ?? [];
               if (!daySlots.length)

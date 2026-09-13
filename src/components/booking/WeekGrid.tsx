@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toKey } from "../Calendar";
 import { clsx } from "@/lib/clsx";
 
@@ -13,21 +13,37 @@ function startOfWeek(date: Date): Date {
   return d;
 }
 
+function weekOffsetOf(date: Date, base: Date): number {
+  const target = startOfWeek(date);
+  return Math.round((target.getTime() - base.getTime()) / (7 * 86400000));
+}
+
+
 export function WeekGrid({
   renderDay,
   renderFooter,
   selectedDay,
   onSelectDay,
   allowPast = false,
+  firstDate,
 }: {
   renderDay: (dateKey: string, date: Date) => React.ReactNode;
   renderFooter?: (days: Date[]) => React.ReactNode;
   selectedDay?: string | null;
   onSelectDay?: (dateKey: string) => void;
   allowPast?: boolean;
+  firstDate?: string | Date | null;
 }) {
   const [offset, setOffset] = useState(0);
+  const jumped = useRef(false);
   const base = startOfWeek(new Date());
+
+  useEffect(() => {
+    if (jumped.current || !firstDate) return;
+    const next = weekOffsetOf(new Date(firstDate), startOfWeek(new Date()));
+    jumped.current = true;
+    if (next > 0) setOffset(next);
+  }, [firstDate]);
 
   const weekStart = new Date(base);
   weekStart.setDate(base.getDate() + offset * 7);

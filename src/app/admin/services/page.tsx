@@ -30,7 +30,6 @@ import { clsx } from "@/lib/clsx";
 import { NumberInput } from "@/components/admin/NumberInput";
 
 type Scope = "main" | "extra";
-type Kind = "timed" | "plain";
 
 export default function AdminServices() {
   const [slots, setSlots] = useState<AdminRentalSlot[]>([]);
@@ -41,7 +40,6 @@ export default function AdminServices() {
   const [selected, setSelected] = useState<string>(() => toKey(new Date()));
   const [openId, setOpenId] = useState<number | null>(null);
   const [scope, setScope] = useState<Scope>("main");
-  const [kind, setKind] = useState<Kind>("timed");
   const [toast, setToast] = useState<string | null>(null);
 
   const reload = () => adminRentSlots().then(setSlots);
@@ -61,7 +59,6 @@ export default function AdminServices() {
 
   const mainHall = halls.find((h) => h.isMain) ?? null;
   const extraHalls = halls.filter((h) => !h.isMain);
-  const timedServices = services.filter((s) => !!s.durationMin);
   const plainServices = services.filter((s) => !s.durationMin);
 
   const scopeSlots = useMemo(() => {
@@ -116,20 +113,8 @@ export default function AdminServices() {
         ]}
       />
 
-      {scope === "main" && (
-        <Tabs
-          value={kind}
-          onChange={setKind}
-          items={[
-            ["timed", "С расписанием"],
-            ["plain", "Без расписания"],
-          ]}
-          className="mb-8 mt-3"
-          small
-        />
-      )}
 
-      {scope === "main" && kind === "timed" && (
+      {scope === "main" && (
         <>
           <div className="mb-8 rounded-2xl border-gold bg-surface/50 p-5">
             <p className="mb-1 font-sub text-heading">Автоматическая аренда</p>
@@ -246,28 +231,6 @@ export default function AdminServices() {
             )}
           </div>
 
-          {timedServices.length > 0 && (
-            <div className="mb-8 rounded-2xl border-gold bg-surface/50 p-5">
-              <p className="mb-1 font-sub text-heading">Услуги с расписанием</p>
-              <p className="mb-4 text-xs text-text/50">
-                Название, цена, длительность и комментарий.
-              </p>
-              <div className="space-y-3">
-                {timedServices.map((s) => (
-                  <ServiceRow
-                    key={s.id}
-                    service={s}
-                    withDuration
-                    onChanged={(m) => {
-                      reloadServices();
-                      reload();
-                      flash(m);
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
         </>
       )}
 
@@ -279,7 +242,7 @@ export default function AdminServices() {
         />
       )}
 
-      {scope === "main" && kind === "plain" && (
+      {scope === "main" && (
         <PlainServicesBlock
           services={plainServices}
           nextOrder={services.length + 1}
@@ -290,12 +253,13 @@ export default function AdminServices() {
         />
       )}
 
-      {scope === "main" && kind === "timed" && (
+      {scope === "main" && (
         <>
           <p className="mb-3 font-sub text-heading">
             Расписание основного зала
           </p>
           <WeekGrid
+            firstDate={scopeSlots[0]?.startsAt ?? null}
             selectedDay={selected}
             onSelectDay={setSelected}
             renderDay={(key) => {
@@ -349,7 +313,7 @@ export default function AdminServices() {
         </>
       )}
 
-      {openSlot && scope === "main" && kind === "timed" && (
+      {openSlot && scope === "main" && (
         <div className="mt-8 rounded-2xl border-gold bg-surface/50 p-5">
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
@@ -976,9 +940,9 @@ function PlainServicesBlock({
     <div className="mb-8 rounded-2xl border-gold bg-surface/50 p-5">
       <p className="mb-1 font-sub text-heading">Услуги без расписания</p>
       <p className="mb-4 text-xs text-text/50">
-        Время у таких услуг не задаётся. На сайте они показываются отдельным
-        блоком над расписанием — клиент оставляет заявку, студия связывается
-        сама.
+        Всё, что идёт по времени, основной зал собирает сам — здесь заводятся
+        услуги без расписания. На сайте они показываются отдельным блоком над
+        расписанием: клиент оставляет заявку, студия связывается сама.
       </p>
 
       <div className="grid items-start gap-4 md:grid-cols-3">

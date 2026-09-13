@@ -639,6 +639,7 @@ function MoveDialog({
         ) : (
           <div className="mt-4">
             <WeekGrid
+              firstDate={options[0]?.startsAt ?? null}
               renderDay={(key) => {
                 const day = byDay.get(key) ?? [];
                 if (!day.length)

@@ -30,6 +30,9 @@ export function SnapCarousel<T>({
   const nearestIndex = () => {
     const track = trackRef.current;
     if (!track) return 0;
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    if (maxScroll > 0 && track.scrollLeft >= maxScroll - 2) return items.length - 1;
+    if (track.scrollLeft <= 2) return 0;
     const center = track.getBoundingClientRect().left + track.clientWidth / 2;
     let best = 0;
     let bestDist = Infinity;
@@ -50,11 +53,13 @@ export function SnapCarousel<T>({
     if (!track || !card) return;
     const center = track.getBoundingClientRect().left + track.clientWidth / 2;
     const rect = card.getBoundingClientRect();
+    const maxScroll = track.scrollWidth - track.clientWidth;
+    const target = Math.min(
+      maxScroll,
+      Math.max(0, track.scrollLeft + rect.left + rect.width / 2 - center),
+    );
     setActive(i);
-    track.scrollBy({
-      left: rect.left + rect.width / 2 - center,
-      behavior: "smooth",
-    });
+    track.scrollTo({ left: target, behavior: "smooth" });
   };
 
   return (
@@ -63,7 +68,7 @@ export function SnapCarousel<T>({
         ref={trackRef}
         onScroll={() => setActive(nearestIndex())}
         className={clsx(
-          "no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto py-1",
+          "no-scrollbar flex snap-x snap-proximity gap-4 overflow-x-auto py-1",
           trackClassName ?? "-mx-5 px-[14vw]",
         )}
       >

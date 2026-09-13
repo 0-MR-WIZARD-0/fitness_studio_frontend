@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toKey } from "../Calendar";
 import { clsx } from "@/lib/clsx";
 import type { Announcement, Format, Slot } from "@/lib/api";
@@ -13,6 +13,12 @@ function startOfWeek(date: Date): Date {
   d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
   return d;
 }
+
+function weekOffsetOf(date: Date, base: Date): number {
+  const target = startOfWeek(date);
+  return Math.round((target.getTime() - base.getTime()) / (7 * 86400000));
+}
+
 
 const timeOf = (iso: string) =>
   new Date(iso).toLocaleTimeString("ru-RU", {
@@ -56,7 +62,23 @@ export function WeekMatrix({
   limitForward?: boolean;
 }) {
   const [offset, setOffset] = useState(0);
+  const jumped = useRef(false);
   const base = startOfWeek(new Date());
+
+  const firstAt = useMemo(() => {
+    const times = [
+      ...slots.map((s) => new Date(s.startsAt).getTime()),
+      ...(announcements ?? []).map((a) => new Date(a.startsAt).getTime()),
+    ].filter((t) => t >= Date.now() - 86400000);
+    return times.length ? Math.min(...times) : null;
+  }, [slots, announcements]);
+
+  useEffect(() => {
+    if (jumped.current || !firstAt) return;
+    const next = weekOffsetOf(new Date(firstAt), startOfWeek(new Date()));
+    jumped.current = true;
+    if (next > 0) setOffset(next);
+  }, [firstAt]);
 
   const weekStart = new Date(base);
   weekStart.setDate(base.getDate() + offset * 7);

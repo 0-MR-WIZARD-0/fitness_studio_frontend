@@ -24,7 +24,7 @@ const groups = [
   {
     title: "Работа студии",
     items: [
-      { href: "/admin/booking", label: "Запись" },
+      { href: "/admin/booking", label: "Расписание и запись" },
       { href: "/admin/trainers", label: "Тренеры" },
       { href: "/admin/services", label: "Дополнительные услуги" },
       { href: "/admin/promo", label: "Промокоды" },
