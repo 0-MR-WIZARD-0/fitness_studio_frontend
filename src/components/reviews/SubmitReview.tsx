@@ -60,7 +60,7 @@ function ReviewModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 grid place-items-center overlay-dim backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
@@ -120,7 +120,9 @@ function ReviewModal({ onClose }: { onClose: () => void }) {
                       "text-2xl transition-transform duration-150",
                       lit ? "text-accent" : "text-text/30",
                       hover === n && "scale-125",
-                      hover > 0 && n <= hover && "drop-shadow-[0_0_6px_rgba(195,148,74,0.6)]",
+                      hover > 0 &&
+                        n <= hover &&
+                        "drop-shadow-[0_0_6px_rgba(195,148,74,0.6)]",
                     )}
                   >
                     ★

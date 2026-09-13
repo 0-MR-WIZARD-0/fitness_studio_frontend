@@ -62,13 +62,10 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
       {children}
       {authMode && (
         <div
-          className="fixed inset-0 z-[60] grid place-items-center overflow-y-auto bg-black/75 p-4"
+          className="fixed inset-0 z-[60] grid place-items-center overflow-y-auto overlay-dim backdrop-blur-sm p-4"
           onClick={() => setAuthMode(null)}
         >
-          <div
-            className="w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="mb-3 flex items-center justify-between">
               <p className="font-sub text-xl text-heading">Личный кабинет</p>
               <button

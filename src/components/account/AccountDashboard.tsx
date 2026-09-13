@@ -76,14 +76,24 @@ export function AccountDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(() => {
-    accountBookings().then(setBookings).catch(() => {});
-    accountPromos().then(setPromos).catch(() => {});
-    accountCourses().then(setCourses).catch(() => {});
-    accountFreezes().then(setFreezes).catch(() => {});
+    accountBookings()
+      .then(setBookings)
+      .catch(() => {});
+    accountPromos()
+      .then(setPromos)
+      .catch(() => {});
+    accountCourses()
+      .then(setCourses)
+      .catch(() => {});
+    accountFreezes()
+      .then(setFreezes)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
-    getSettings().then(setContacts).catch(() => {});
+    getSettings()
+      .then(setContacts)
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -366,9 +376,7 @@ export function AccountDashboard() {
           <section>
             <h2 className="font-sub text-xl text-heading">Мои промокоды</h2>
             {promos.length === 0 ? (
-              <p className="mt-3 text-sm text-text/60">
-                Промокодов пока нет.
-              </p>
+              <p className="mt-3 text-sm text-text/60">Промокодов пока нет.</p>
             ) : (
               <div className="mt-4 space-y-2">
                 {promos.map((p) => {
@@ -406,10 +414,7 @@ export function AccountDashboard() {
       </div>
 
       {confirming && (
-        <ConfirmDialog
-          data={confirming}
-          onClose={() => setConfirming(null)}
-        />
+        <ConfirmDialog data={confirming} onClose={() => setConfirming(null)} />
       )}
 
       {moving && (
@@ -447,8 +452,8 @@ function ProfileCard({
     <div className="rounded-2xl border-gold bg-surface/50 p-5">
       <p className="font-sub text-lg text-heading">Личная информация</p>
       <p className="mt-1 text-xs text-text/50">
-        Эти данные подставляются в запись и бронь. Почта {user.email} —
-        логин кабинета, её сменить нельзя.
+        Эти данные подставляются в запись и бронь. Почта {user.email} — логин
+        кабинета, её сменить нельзя.
       </p>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -486,7 +491,9 @@ function ProfileCard({
             setBusy(false);
           }
         }}
-        disabled={!changed || busy || !draft.name.trim() || !isValidPhone(draft.phone)}
+        disabled={
+          !changed || busy || !draft.name.trim() || !isValidPhone(draft.phone)
+        }
         className="btn-gold mt-4 disabled:opacity-40"
       >
         {busy ? "Сохраняем…" : "Сохранить"}
@@ -527,7 +534,10 @@ function BookingRow({
 
         <div className="flex flex-wrap gap-3">
           {booking.canMove && (
-            <button onClick={onMove} className="text-accent underline underline-offset-4">
+            <button
+              onClick={onMove}
+              className="text-accent underline underline-offset-4"
+            >
               Перенести
             </button>
           )}
@@ -576,7 +586,9 @@ function MoveDialog({
     if (isRent) {
       getRentSlots()
         .then((list) =>
-          setRentals(list.filter((s) => !s.isBooked && s.id !== booking.rentalSlotId)),
+          setRentals(
+            list.filter((s) => !s.isBooked && s.id !== booking.rentalSlotId),
+          ),
         )
         .catch(() => {});
       return;
@@ -587,7 +599,9 @@ function MoveDialog({
         : getAvailableSlots(booking.formatId ?? undefined);
     source
       .then((list) =>
-        setLessons(list.filter((s) => s.id !== booking.slotId && s.remaining > 0)),
+        setLessons(
+          list.filter((s) => s.id !== booking.slotId && s.remaining > 0),
+        ),
       )
       .catch(() => {});
   }, [booking, isRent]);
@@ -596,7 +610,9 @@ function MoveDialog({
     ? rentals.map((s) => ({
         id: s.id,
         startsAt: s.startsAt,
-        title: s.hallTitle ? `${s.hallTitle} · ${s.serviceTitle}` : s.serviceTitle,
+        title: s.hallTitle
+          ? `${s.hallTitle} · ${s.serviceTitle}`
+          : s.serviceTitle,
         note: `${timeOf(s.startsAt)} – ${timeOf(s.endsAt)}`,
         extra:
           s.price > 0 ? `${s.price.toLocaleString("ru-RU")} ₽` : "бесплатно",
@@ -619,7 +635,7 @@ function MoveDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-start justify-center overflow-y-auto bg-black/70 p-4 py-10"
+      className="fixed inset-0 z-50 grid place-items-start justify-center overflow-y-auto overlay-dim backdrop-blur-sm p-4 py-10"
       onClick={onClose}
     >
       <div
@@ -659,7 +675,9 @@ function MoveDialog({
                     <span className="block font-sub text-sm text-heading">
                       {o.note}
                     </span>
-                    <span className="block text-xs text-text/60">{o.title}</span>
+                    <span className="block text-xs text-text/60">
+                      {o.title}
+                    </span>
                     <span className="block text-xs text-accent">{o.extra}</span>
                   </button>
                 ));
@@ -690,7 +708,9 @@ function MoveDialog({
                 );
                 onDone();
               } catch (e) {
-                setError(e instanceof Error ? e.message : "Не удалось перенести");
+                setError(
+                  e instanceof Error ? e.message : "Не удалось перенести",
+                );
               } finally {
                 setBusy(false);
               }
@@ -766,7 +786,7 @@ function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 grid place-items-center overlay-dim backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div

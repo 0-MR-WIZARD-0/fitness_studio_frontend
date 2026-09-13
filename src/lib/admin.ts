@@ -292,6 +292,7 @@ export const deleteSlot = (
   );
 export interface AdminBooking {
   id: number;
+  userId: number | null;
   name: string;
   phone: string;
   email: string | null;

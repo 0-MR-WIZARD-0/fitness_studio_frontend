@@ -385,19 +385,19 @@ export default function AdminBooking() {
                   Длительность, мин
                 </span>
                 <NumberInput
-              value={annDuration}
-              onChange={(v) => setAnnDuration(v)}
-              min={5}
-            />
+                  value={annDuration}
+                  onChange={(v) => setAnnDuration(v)}
+                  min={5}
+                />
               </label>
               <label className="text-sm">
                 <span className="mb-1 block h-5 text-text/80">Мест</span>
                 <NumberInput
-              value={capacity}
-              onChange={(v) => setCapacity(v)}
-              min={1}
-              max={7}
-            />
+                  value={capacity}
+                  onChange={(v) => setCapacity(v)}
+                  min={1}
+                  max={7}
+                />
               </label>
             </div>
 
@@ -424,11 +424,11 @@ export default function AdminBooking() {
                 <label className="mt-3 block text-sm">
                   <span className="mb-1 block text-text/80">Цена, ₽</span>
                   <NumberInput
-              value={annPrice}
-              onChange={(v) => setAnnPrice(v)}
-              min={0}
-              className="w-40"
-            />
+                    value={annPrice}
+                    onChange={(v) => setAnnPrice(v)}
+                    min={0}
+                    className="w-40"
+                  />
                 </label>
               )}
             </div>
@@ -511,11 +511,11 @@ export default function AdminBooking() {
               <label className="text-sm">
                 <span className="mb-1 block h-5 text-text/80">Мест</span>
                 <NumberInput
-              value={capacity}
-              onChange={(v) => setCapacity(v)}
-              min={1}
-              max={7}
-            />
+                  value={capacity}
+                  onChange={(v) => setCapacity(v)}
+                  min={1}
+                  max={7}
+                />
               </label>
             </div>
 
@@ -537,11 +537,11 @@ export default function AdminBooking() {
                 <label className="flex items-center gap-2 text-sm">
                   Недель:
                   <NumberInput
-              value={weeks}
-              onChange={(v) => setWeeks(v)}
-              min={1}
-              className="w-20"
-            />
+                    value={weeks}
+                    onChange={(v) => setWeeks(v)}
+                    min={1}
+                    className="w-20"
+                  />
                 </label>
               )}
               <button
@@ -723,6 +723,9 @@ export default function AdminBooking() {
                 {b.slot ? fmtTime(b.slot.startsAt) : "—"}
               </span>{" "}
               — <span className="text-heading">{b.name}</span> · {b.phone}
+              {!b.userId && (
+                <span className="ml-1 text-text/50">(не авторизован)</span>
+              )}
               {b.format ? ` · ${b.format.name}` : ""}
               {b.isDiagnostic ? " · диагностика" : ""}
               {b.isCourse ? " · курс" : ""}
@@ -824,7 +827,7 @@ function SlotActionDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 grid place-items-center overlay-dim backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
@@ -1017,25 +1020,29 @@ function AnnouncementEditor({
         <label className="text-sm">
           <span className="mb-1 block h-5 text-text/80">Длительность, мин</span>
           <NumberInput
-              value={draft.durationMin}
-              onChange={(v) => setDraft({
+            value={draft.durationMin}
+            onChange={(v) =>
+              setDraft({
                 ...draft,
                 durationMin: v,
-              })}
-              min={5}
-            />
+              })
+            }
+            min={5}
+          />
         </label>
         <label className="text-sm">
           <span className="mb-1 block h-5 text-text/80">Мест</span>
           <NumberInput
-              value={draft.capacity}
-              onChange={(v) => setDraft({
+            value={draft.capacity}
+            onChange={(v) =>
+              setDraft({
                 ...draft,
                 capacity: v,
-              })}
-              min={1}
-              max={7}
-            />
+              })
+            }
+            min={1}
+            max={7}
+          />
         </label>
       </div>
 
@@ -1144,14 +1151,16 @@ function ClientMoveDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 grid place-items-center overlay-dim backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
         className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-2xl border-gold bg-surface p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-sub text-xl text-heading">Перенос записи клиента</h3>
+        <h3 className="font-sub text-xl text-heading">
+          Перенос записи клиента
+        </h3>
         <p className="mt-2 text-sm text-text/75">
           {booking.name} · {booking.phone}
           <br />

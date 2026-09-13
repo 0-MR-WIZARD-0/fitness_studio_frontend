@@ -101,7 +101,12 @@ function AnnouncementBookingModal({
   item: Announcement;
   onClose: () => void;
 }) {
-  const [form, setForm] = useState({ name: "", phone: "", email: "", promo: "" });
+  const [form, setForm] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    promo: "",
+  });
   const [usePromo, setUsePromo] = useState(false);
   const [agreementUrl, setAgreementUrl] = useState("");
   const [agreed, setAgreed] = useState(false);
@@ -139,7 +144,7 @@ function AnnouncementBookingModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"
+      className="fixed inset-0 z-50 grid place-items-center overlay-dim backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
@@ -209,7 +214,9 @@ function AnnouncementBookingModal({
                     className="field"
                     placeholder="Промокод"
                     value={form.promo}
-                    onChange={(e) => setForm({ ...form, promo: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, promo: e.target.value })
+                    }
                   />
                 )}
               </>

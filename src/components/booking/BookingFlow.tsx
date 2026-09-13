@@ -20,6 +20,7 @@ import {
   type StudioDocument,
 } from "@/lib/api";
 import { useAccount } from "../account/AccountProvider";
+import { formatPhone, isValidPhone } from "@/lib/phone";
 import {
   ClientCard,
   DocumentConsents,
@@ -60,6 +61,7 @@ export function BookingFlow({
   const [promo, setPromo] = useState("");
   const [documents, setDocuments] = useState<StudioDocument[]>([]);
   const [accepted, setAccepted] = useState<number[]>([]);
+  const [guest, setGuest] = useState({ name: "", phone: "" });
   const { user } = useAccount();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -157,6 +159,9 @@ export function BookingFlow({
     try {
       const promoCode = usePromo && promo ? promo : undefined;
       const documentIds = accepted;
+      const guestData = user
+        ? {}
+        : { name: guest.name.trim(), phone: guest.phone };
 
       if (annSlot) {
         const res = await api<{ free: boolean; total: number }>(
@@ -168,6 +173,7 @@ export function BookingFlow({
               announcementId: annSlot.id,
               promoCode,
               documentIds,
+              ...guestData,
             }),
           },
         );
@@ -183,6 +189,7 @@ export function BookingFlow({
             slotId: diagSlot.id,
             promoCode,
             documentIds,
+            ...guestData,
           }),
         });
         setDone({ free: true });
@@ -231,7 +238,15 @@ export function BookingFlow({
   }
 
   const hasSelection = !!diagSlot || !!annSlot || cart.length > 0;
-  const canSubmit = hasSelection && !!user && docsAccepted;
+  // диагностику и бесплатный анонс можно взять без входа — по ФИО и телефону
+  const freeSelection =
+    (!!diagSlot && !annSlot && cart.length === 0) ||
+    (!!annSlot && annSlot.isFree && cart.length === 0);
+  const guestReady = !!guest.name.trim() && isValidPhone(guest.phone);
+  const canSubmit =
+    hasSelection &&
+    docsAccepted &&
+    (!!user || (freeSelection && guestReady));
 
   if (done) {
     return (
@@ -419,13 +434,42 @@ export function BookingFlow({
         )}
       </div>
 
-      {hasSelection && !user && <LoginRequired what="Запись на занятия" />}
+      {hasSelection && !user && !freeSelection && (
+        <LoginRequired what="Запись на платные занятия" />
+      )}
 
-      {hasSelection && user && (
+      {hasSelection && (!!user || freeSelection) && (
         <div className="mt-6 max-w-md space-y-3">
-          <ClientCard user={user} />
+          {user ? (
+            <ClientCard user={user} />
+          ) : (
+            <>
+              <p className="rounded-xl bg-surface-2/60 px-4 py-3 text-sm leading-relaxed text-text/85">
+                Бесплатная запись — вход не нужен, достаточно ФИО и телефона.
+                Если войдёте, запись сохранится в личном кабинете.
+              </p>
+              <input
+                className="field"
+                placeholder="ФИО полностью"
+                value={guest.name}
+                onChange={(e) => setGuest({ ...guest, name: e.target.value })}
+              />
+              <input
+                className="field"
+                inputMode="tel"
+                placeholder="+7 (999) 999-99-99"
+                value={guest.phone}
+                onChange={(e) =>
+                  setGuest({ ...guest, phone: formatPhone(e.target.value) })
+                }
+              />
+              {guest.phone && !isValidPhone(guest.phone) && (
+                <p className="text-xs text-red-400">Введите телефон полностью</p>
+              )}
+            </>
+          )}
 
-          {(!!diagSlot || !!annSlot || cart.length === 1) && (
+          {!!user && (!!diagSlot || !!annSlot || cart.length === 1) && (
             <>
               <label className="flex items-center gap-2 text-sm text-text/80">
                 <input

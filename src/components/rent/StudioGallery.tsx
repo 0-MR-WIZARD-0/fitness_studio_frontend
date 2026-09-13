@@ -44,14 +44,12 @@ export function StudioGallery({ photos }: { photos: StudioPhoto[] }) {
         className="mt-4"
         itemClassName="w-[78%] sm:w-[52%] md:w-[38%] lg:w-[31%]"
         trackClassName="-mx-5 px-[11vw] md:mx-0 md:px-0"
-        renderItem={(p) => (
-          <Photo photo={p} onOpen={() => setOpenId(p.id)} />
-        )}
+        renderItem={(p) => <Photo photo={p} onOpen={() => setOpenId(p.id)} />}
       />
 
       {open && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-black/85 p-4"
+          className="fixed inset-0 z-50 grid place-items-center overlay-dim backdrop-blur-sm p-4"
           onClick={() => setOpenId(null)}
         >
           <figure
@@ -108,13 +106,7 @@ export function StudioGallery({ photos }: { photos: StudioPhoto[] }) {
   );
 }
 
-function Photo({
-  photo,
-  onOpen,
-}: {
-  photo: StudioPhoto;
-  onOpen: () => void;
-}) {
+function Photo({ photo, onOpen }: { photo: StudioPhoto; onOpen: () => void }) {
   const src = mediaUrl(photo.url);
   return (
     <button

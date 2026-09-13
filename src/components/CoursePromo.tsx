@@ -1,6 +1,8 @@
 import { plural } from "@/lib/plural";
 import { clsx } from "@/lib/clsx";
 
+const money = (value: number) => value.toLocaleString("ru-RU");
+
 export function CoursePromo({
   threshold,
   price,
@@ -10,6 +12,11 @@ export function CoursePromo({
   price: number;
   className?: string;
 }) {
+  const total = price * threshold;
+  const full = price * (threshold + 1);
+  // цена занятия с учётом подарка, округлённая до десятков
+  const perLesson = Math.round(total / (threshold + 1) / 10) * 10;
+
   return (
     <div
       className={clsx(
@@ -24,12 +31,16 @@ export function CoursePromo({
       </p>
       {price > 0 && (
         <p className="mt-2 text-sm leading-relaxed text-text/85">
-          {threshold} {plural(threshold, ["занятие", "занятия", "занятий"])} —{" "}
+          Всего{" "}
+          <span className="font-sub text-emerald-300">{money(total)} ₽</span>{" "}
+          вместо{" "}
+          <span className="text-text/60 line-through">{money(full)} ₽</span>.
+          Цена за одно занятие —{" "}
           <span className="font-sub text-emerald-300">
-            {(price * threshold).toLocaleString("ru-RU")} ₽
+            {money(perLesson)} ₽
           </span>
-          . Промокод на бесплатное занятие придёт в личный кабинет, выбрать
-          время можно в течение месяца.
+          . Промокод на бесплатное занятие придёт в личный кабинет. Действует на
+          любые тренировки из расписания студии.
         </p>
       )}
     </div>

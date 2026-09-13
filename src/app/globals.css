@@ -9,7 +9,8 @@
   --color-heading: #f5ece3;
   --color-text: #cbbdb3;
 
-  --font-heading: "Spotify Mix UI", var(--font-montserrat), system-ui, sans-serif;
+  --font-heading:
+    "Spotify Mix UI", var(--font-montserrat), system-ui, sans-serif;
   --font-body: var(--font-montserrat), system-ui, sans-serif;
   --font-sub: var(--font-montserrat-alt), var(--font-montserrat), sans-serif;
 }
@@ -41,16 +42,29 @@ h4 {
 }
 
 @keyframes chevron-bounce {
-  0%, 100% { transform: translateY(0); opacity: 0.7; }
-  50% { transform: translateY(8px); opacity: 1; }
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(8px);
+    opacity: 1;
+  }
 }
 .animate-chevron {
   animation: chevron-bounce 1.8s ease-in-out infinite;
 }
 
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .fade-up {
   animation: fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1);
@@ -86,6 +100,11 @@ h4 {
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* затемнение страницы под модалкой — одинаковое для всех окон */
+@utility overlay-dim {
+  background: color-mix(in srgb, #000 82%, transparent);
 }
 
 .btn-gold {
