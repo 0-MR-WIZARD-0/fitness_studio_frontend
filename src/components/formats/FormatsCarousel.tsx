@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { SnapCarousel } from "../SnapCarousel";
 import { mediaUrl, type Format } from "@/lib/api";
@@ -39,10 +40,12 @@ function Card({
         className="relative block aspect-video overflow-hidden rounded-2xl border-gold bg-surface"
       >
         {img ? (
-          <img
+          <Image
             src={img}
             alt={format.name}
-            className="absolute inset-0 h-full w-full object-cover"
+            fill
+            sizes="(max-width: 768px) 72vw, 33vw"
+            className="object-cover"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#4a3826] to-[#2a2122]" />

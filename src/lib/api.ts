@@ -120,6 +120,12 @@ export interface Condition {
   isActive: boolean;
   rules: ConditionRule[];
 }
+export interface StudioPhoto {
+  id: number;
+  url: string;
+  caption: string;
+  order: number;
+}
 export interface RentalSlot {
   id: number;
   startsAt: string;
@@ -128,8 +134,175 @@ export interface RentalSlot {
   price: number;
   comment: string;
   isActive: boolean;
+  isAuto: boolean;
+  serviceId: number | null;
+  serviceTitle: string;
+  hallId: number | null;
+  hallTitle: string | null;
   isBooked: boolean;
 }
+
+export interface Hall {
+  id: number;
+  title: string;
+  description: string;
+  priceSingle: number;
+  price4: number;
+  price8: number;
+  price12: number;
+  isMain: boolean;
+  bookingUrl: string;
+  dayStart: string;
+  dayEnd: string;
+  bufferMin: number;
+  order: number;
+  isActive: boolean;
+}
+export const getHalls = () => api<Hall[]>("/halls");
+
+export interface Service {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  durationMin: number | null;
+  order: number;
+  isActive: boolean;
+}
+export const getServices = () => api<Service[]>("/services");
+export const orderService = (data: {
+  serviceId: number;
+  documentIds?: number[];
+}) =>
+  api<{ total: number }>("/services/order", {
+    method: "POST",
+    auth: true,
+    body: JSON.stringify(data),
+  });
+export interface StudioDocument {
+  id: number;
+  title: string;
+  fileUrl: string;
+  order: number;
+  isActive: boolean;
+}
+export const getDocuments = () => api<StudioDocument[]>("/documents");
+
+export interface AccountUser {
+  id: number;
+  email: string;
+  name: string;
+  phone: string;
+}
+export type BookingKind =
+  | "LESSON"
+  | "DIAGNOSTIC"
+  | "ANNOUNCEMENT"
+  | "RENT"
+  | "SERVICE";
+export interface AccountBooking {
+  id: number;
+  kind: BookingKind;
+  title: string;
+  startsAt: string | null;
+  endsAt: string | null;
+  durationMin: number | null;
+  trainerName: string | null;
+  formatId: number | null;
+  slotId: number | null;
+  rentalSlotId: number | null;
+  price: number;
+  isFree: boolean;
+  isCourse: boolean;
+  status: "PENDING" | "PAID" | "CANCELLED";
+  promoCode: string | null;
+  canMove: boolean;
+  canCancel: boolean;
+  canFreeze: boolean;
+  courseGroupId: string | null;
+  cancelWarning: string | null;
+  editHours: number;
+  courseHours: number;
+  createdAt: string;
+}
+
+export interface AccountCourse {
+  courseGroupId: string;
+  lessons: number;
+  firstAt: string | null;
+  total: number;
+  canCancel: boolean;
+  courseHours: number;
+  giftCode: string | null;
+  giftUsedAt: string | null;
+  freezeExpiresAt: string | null;
+}
+
+export interface AccountFreeze {
+  id: number;
+  courseGroupId: string;
+  expiresAt: string;
+  usedAt: string | null;
+  isExpired: boolean;
+}
+export interface AccountPromo {
+  id: number;
+  code: string;
+  kind: "GENERIC" | "GIFT";
+  isUsed: boolean;
+  createdAt: string;
+  expiresAt: string;
+  usedAt: string | null;
+}
+
+const accountOpts = (method: string, body?: unknown): FetchOpts => ({
+  method,
+  auth: true,
+  body: body !== undefined ? JSON.stringify(body) : undefined,
+});
+
+export const accountMe = () =>
+  api<{ user: AccountUser }>("/account/me", { auth: true });
+export const accountLogin = (email: string, password: string) =>
+  api<{ user: AccountUser }>(
+    "/account/login",
+    accountOpts("POST", { email, password }),
+  );
+export const accountRegister = (data: {
+  email: string;
+  password: string;
+  name: string;
+  phone: string;
+}) => api<{ user: AccountUser }>("/account/register", accountOpts("POST", data));
+export const accountLogout = () =>
+  api<{ ok: boolean }>("/account/logout", accountOpts("POST"));
+export const accountProfile = (data: { name: string; phone: string }) =>
+  api<{ user: AccountUser }>("/account/profile", accountOpts("PUT", data));
+export const accountBookings = () =>
+  api<AccountBooking[]>("/account/bookings", { auth: true });
+export const accountPromos = () =>
+  api<AccountPromo[]>("/account/promo", { auth: true });
+export const cancelAccountBooking = (id: number) =>
+  api<{ ok: boolean; burnedGift: string | null }>(
+    `/account/bookings/${id}/cancel`,
+    accountOpts("POST"),
+  );
+export const accountCourses = () =>
+  api<AccountCourse[]>("/account/courses", { auth: true });
+export const accountFreezes = () =>
+  api<AccountFreeze[]>("/account/freezes", { auth: true });
+export const cancelAccountCourse = (courseGroupId: string) =>
+  api<{ ok: boolean; cancelled: number; burnedGift: string | null }>(
+    "/account/courses/cancel",
+    accountOpts("POST", { courseGroupId }),
+  );
+export const freezeAccountBooking = (id: number) =>
+  api<{ ok: boolean }>(`/account/bookings/${id}/freeze`, accountOpts("POST"));
+export const moveAccountBooking = (
+  id: number,
+  target: { slotId?: number; rentalSlotId?: number },
+) => api(`/account/bookings/${id}/move`, accountOpts("POST", target));
+
 export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type MediaType = "NONE" | "IMAGE" | "VIDEO";
 export interface Review {
@@ -161,6 +334,8 @@ export interface Slot {
   formatName: string | null;
   trainerId: number | null;
   trainerName: string | null;
+  hallId?: number | null;
+  hallName?: string | null;
   pricePerSession: number;
   taken: number;
   remaining: number;
@@ -176,6 +351,11 @@ export interface SiteSettings {
   userAgreementUrl: string;
   telegramUrl: string;
   maxUrl: string;
+  rentPricePerHour: number;
+  rentDayStart: string;
+  rentDayEnd: string;
+  rentBufferMin: number;
+  bookingEditHours: number;
 }
 export interface Announcement {
   id: number;
@@ -200,14 +380,14 @@ export const getFormat = (slug: string) =>
 export const getConditions = () => api<Condition[]>("/survey/conditions");
 export const getTrainers = () => api<Trainer[]>("/trainers");
 export const getRentSlots = () => api<RentalSlot[]>("/rent/slots");
+export const getStudioPhotos = () => api<StudioPhoto[]>("/rent/photos");
 export const bookRent = (data: {
   rentalSlotId: number;
-  name: string;
-  phone: string;
-  email: string;
+  documentIds?: number[];
 }) =>
   api<{ total: number }>("/rent/book", {
     method: "POST",
+    auth: true,
     body: JSON.stringify(data),
   });
 export const getApprovedReviews = () => api<Review[]>("/reviews");

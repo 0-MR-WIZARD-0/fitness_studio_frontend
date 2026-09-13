@@ -20,5 +20,22 @@ export function isValidPhone(value: string): boolean {
 }
 
 export function isValidEmail(value: string): boolean {
-  return value.includes("@");
+  const email = value.trim();
+  return /^[^\s@]+@[^\s@.]+(\.[^\s@.]+)+$/.test(email);
+}
+
+export const PASSWORD_MIN = 8;
+
+export function passwordIssues(value: string): string[] {
+  const issues: string[] = [];
+  if (value.length < PASSWORD_MIN) issues.push(`не меньше ${PASSWORD_MIN} символов`);
+  if (!/[a-zа-яё]/.test(value)) issues.push("строчную букву");
+  if (!/[A-ZА-ЯЁ]/.test(value)) issues.push("заглавную букву");
+  if (!/\d/.test(value)) issues.push("цифру");
+  if (!/[^A-Za-zА-Яа-яЁё0-9\s]/.test(value)) issues.push("специальный символ");
+  return issues;
+}
+
+export function isValidPassword(value: string): boolean {
+  return passwordIssues(value).length === 0;
 }

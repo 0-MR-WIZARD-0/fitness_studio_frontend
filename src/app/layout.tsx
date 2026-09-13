@@ -3,6 +3,7 @@ import { Montserrat, Montserrat_Alternates } from "next/font/google";
 import "./globals.css";
 import { Footer } from "@/components/Footer";
 import { BookingProvider } from "@/components/BookingProvider";
+import { AccountProvider } from "@/components/account/AccountProvider";
 import { PublicChrome } from "@/components/PublicChrome";
 import { SocialDock } from "@/components/SocialDock";
 import { getSettings, type SiteSettings } from "@/lib/api";
@@ -36,6 +37,11 @@ const FALLBACK_SETTINGS: SiteSettings = {
   userAgreementUrl: "",
   telegramUrl: "",
   maxUrl: "",
+  rentPricePerHour: 0,
+  rentDayStart: "09:00",
+  rentDayEnd: "17:30",
+  rentBufferMin: 30,
+  bookingEditHours: 12,
 };
 
 export default async function RootLayout({
@@ -53,15 +59,17 @@ export default async function RootLayout({
       className={`${montserrat.variable} ${montserratAlt.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-bg text-text">
-        <BookingProvider>
-          <PublicChrome footer={<Footer settings={settings} />}>
-            {children}
-          </PublicChrome>
-          <SocialDock
-            telegramUrl={settings.telegramUrl}
-            maxUrl={settings.maxUrl}
-          />
-        </BookingProvider>
+        <AccountProvider>
+          <BookingProvider>
+            <PublicChrome footer={<Footer settings={settings} />}>
+              {children}
+            </PublicChrome>
+            <SocialDock
+              telegramUrl={settings.telegramUrl}
+              maxUrl={settings.maxUrl}
+            />
+          </BookingProvider>
+        </AccountProvider>
       </body>
     </html>
   );

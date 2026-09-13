@@ -16,8 +16,9 @@ const groups = [
       { href: "/admin/steps", label: "Шаги «Начни уже сегодня»" },
       { href: "/admin/formats", label: "Форматы" },
       { href: "/admin/survey", label: "Опрос (противопоказания)" },
+      { href: "/admin/photos", label: "Фотографии студии" },
       { href: "/admin/settings", label: "Контакты студии" },
-      { href: "/admin/agreement", label: "Пользовательское соглашение" },
+      { href: "/admin/documents", label: "Документы студии" },
     ],
   },
   {
@@ -25,7 +26,7 @@ const groups = [
     items: [
       { href: "/admin/booking", label: "Запись" },
       { href: "/admin/trainers", label: "Тренеры" },
-      { href: "/admin/rent", label: "Аренда студии" },
+      { href: "/admin/services", label: "Дополнительные услуги" },
       { href: "/admin/promo", label: "Промокоды" },
       { href: "/admin/reviews", label: "Отзывы" },
     ],
@@ -61,8 +62,7 @@ export default function AdminLayout({
         e.preventDefault();
         return;
       }
-      const msg =
-        reason instanceof Error ? reason.message : "Произошла ошибка";
+      const msg = reason instanceof Error ? reason.message : "Произошла ошибка";
       setErrorMsg(msg);
       e.preventDefault();
     };

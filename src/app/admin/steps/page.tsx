@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { HomeStep } from "@/lib/api";
-import {
-  adminStepList,
-  createStep,
-  deleteStep,
-  updateStep,
-} from "@/lib/admin";
+import { adminStepList, createStep, deleteStep, updateStep } from "@/lib/admin";
 import {
   ImageField,
   PageTitle,

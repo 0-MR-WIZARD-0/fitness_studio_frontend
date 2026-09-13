@@ -67,7 +67,6 @@ export default async function HomePage() {
             <CoursePromo
               threshold={settings.courseThreshold}
               price={settings.pricePerSession}
-              coursePrice={settings.priceCourse}
             />
           </Container>
         </Reveal>

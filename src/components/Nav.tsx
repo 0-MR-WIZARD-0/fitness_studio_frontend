@@ -2,21 +2,19 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useBooking } from "./BookingProvider";
+import { useAccount } from "./account/AccountProvider";
 import { Container } from "./Container";
 import { clsx } from "@/lib/clsx";
 import Logo from "../../public/logo.svg"
 import Image from "next/image";
 
-const links = [
-  { href: "/formats", label: "Форматы" },
-  { href: "/reviews", label: "Отзывы" },
-];
-
 export function Nav() {
   const pathname = usePathname();
+  const router = useRouter();
   const { open } = useBooking();
+  const { user, openAuth } = useAccount();
   const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -32,6 +30,48 @@ export function Nav() {
     };
   }, [menuOpen]);
 
+  const openAccount = () => {
+    setMenuOpen(false);
+    if (user) router.push("/account");
+    else openAuth("login");
+  };
+
+  const items: {
+    label: string;
+    href?: string;
+    onClick?: () => void;
+    active: boolean;
+  }[] = [
+    {
+      label: "Форматы",
+      href: "/formats",
+      active: pathname.startsWith("/formats"),
+    },
+    {
+      label: "Запись",
+      onClick: () => {
+        setMenuOpen(false);
+        open();
+      },
+      active: pathname.startsWith("/booking"),
+    },
+    {
+      label: "Дополнительные услуги",
+      href: "/services",
+      active: pathname.startsWith("/services"),
+    },
+    {
+      label: "Отзывы",
+      href: "/reviews",
+      active: pathname.startsWith("/reviews"),
+    },
+    {
+      label: "Кабинет",
+      onClick: openAccount,
+      active: pathname.startsWith("/account"),
+    },
+  ];
+
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-40 border-b border-white/5 bg-bg/55 backdrop-blur-md transition-colors">
@@ -46,37 +86,25 @@ export function Nav() {
           </Link>
 
           <nav className="hidden items-center gap-6 font-sub text-sm md:flex md:gap-10 md:text-base">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                className={clsx(
-                  "transition hover:text-accent",
-                  pathname.startsWith(l.href)
-                    ? "text-accent"
-                    : "text-heading/85",
-                )}
-              >
-                {l.label}
-              </Link>
-            ))}
-            <button
-              onClick={() => open()}
-              className="text-heading/85 transition hover:text-accent"
-            >
-              Запись
-            </button>
-            <Link
-              href="/rent"
-              className={clsx(
+            {items.map((item) => {
+              const className = clsx(
                 "transition hover:text-accent",
-                pathname.startsWith("/rent")
-                  ? "text-accent"
-                  : "text-heading/85",
-              )}
-            >
-              Аренда студии
-            </Link>
+                item.active ? "text-accent" : "text-heading/85",
+              );
+              return item.href ? (
+                <Link key={item.label} href={item.href} className={className}>
+                  {item.label}
+                </Link>
+              ) : (
+                <button
+                  key={item.label}
+                  onClick={item.onClick}
+                  className={className}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
           </nav>
 
           <button
@@ -115,39 +143,31 @@ export function Nav() {
         aria-hidden={!menuOpen}
       >
         <Container className="flex h-full flex-col gap-2 pt-8">
-          {links.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              tabIndex={menuOpen ? undefined : -1}
-              className={clsx(
-                "border-b border-white/10 py-3.5 font-sub text-lg transition",
-                pathname.startsWith(l.href) ? "text-accent" : "text-heading/90",
-              )}
-            >
-              {l.label}
-            </Link>
-          ))}
-          <button
-            onClick={() => {
-              setMenuOpen(false);
-              open();
-            }}
-            tabIndex={menuOpen ? undefined : -1}
-            className="border-b border-white/10 py-3.5 text-left font-sub text-lg text-heading/90"
-          >
-            Запись
-          </button>
-          <Link
-            href="/rent"
-            tabIndex={menuOpen ? undefined : -1}
-            className={clsx(
-              "border-b border-white/10 py-3.5 font-sub text-lg transition",
-              pathname.startsWith("/rent") ? "text-accent" : "text-heading/90",
-            )}
-          >
-            Аренда студии
-          </Link>
+          {items.map((item) => {
+            const className = clsx(
+              "border-b border-white/10 py-3.5 text-left font-sub text-lg transition",
+              item.active ? "text-accent" : "text-heading/90",
+            );
+            return item.href ? (
+              <Link
+                key={item.label}
+                href={item.href}
+                tabIndex={menuOpen ? undefined : -1}
+                className={className}
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <button
+                key={item.label}
+                onClick={item.onClick}
+                tabIndex={menuOpen ? undefined : -1}
+                className={className}
+              >
+                {item.label}
+              </button>
+            );
+          })}
         </Container>
       </div>
     </>

@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useState } from "react";
+import Image from "next/image";
 import { Container } from "../Container";
 import { useBooking } from "../BookingProvider";
 import { mediaUrl, type HomeStep } from "@/lib/api";
@@ -17,10 +18,12 @@ export function StepsShowcase({ steps }: { steps: HomeStep[] }) {
   return (
     <section className="relative min-h-screen w-full overflow-hidden">
       {bg ? (
-        <img
+        <Image
           src={bg}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-500"
+          fill
+          sizes="100vw"
+          className="object-cover transition-opacity duration-500"
         />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-[#5a4a3a] via-[#3a3026] to-[#211b16]" />

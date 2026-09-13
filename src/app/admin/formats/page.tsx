@@ -16,7 +16,6 @@ export default function AdminFormats() {
   const [items, setItems] = useState<Format[]>([]);
   const [threshold, setThreshold] = useState(3);
   const [price, setPrice] = useState(0);
-  const [coursePrice, setCoursePrice] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
   const reload = () => adminFormatList().then(setItems);
@@ -25,7 +24,6 @@ export default function AdminFormats() {
     getSettings().then((s) => {
       setThreshold(s.courseThreshold);
       setPrice(s.pricePerSession);
-      setCoursePrice(s.priceCourse);
     });
   }, []);
 
@@ -38,7 +36,6 @@ export default function AdminFormats() {
     await updateSettings({
       courseThreshold: Math.max(1, threshold),
       pricePerSession: Math.max(0, price),
-      priceCourse: Math.max(0, coursePrice),
     });
     flash("Цены сохранены");
   }
@@ -112,18 +109,12 @@ export default function AdminFormats() {
 
       <div className="mt-8 max-w-xxl rounded-xl border-gold bg-surface/40 p-4">
         <p className="mb-3 font-sub text-heading">Цены и курс</p>
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <TextField
             label="Цена за занятие, ₽"
             type="number"
             value={price}
             onChange={(v) => setPrice(Math.max(0, Number(v)))}
-          />
-          <TextField
-            label="Цена занятия в курсе, ₽"
-            type="number"
-            value={coursePrice}
-            onChange={(v) => setCoursePrice(Math.max(0, Number(v)))}
           />
           <TextField
             label="Занятий = курс"
@@ -133,8 +124,9 @@ export default function AdminFormats() {
           />
         </div>
         <p className="mt-2 text-xs text-text/50">
-          Цена одна для всех форматов. Набрал столько занятий за 7 дней — они
-          считаются по курсовой цене, и клиент получает ещё одно в подарок.
+          Цена одна для всех форматов. Набрал столько занятий за 7 дней — платит
+          за них полную цену и получает промокод на бесплатное занятие, которым
+          можно воспользоваться в течение месяца.
         </p>
         <button onClick={savePrices} className="btn-gold mt-3">
           Сохранить

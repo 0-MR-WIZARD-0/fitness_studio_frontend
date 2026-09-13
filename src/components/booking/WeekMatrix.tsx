@@ -117,7 +117,6 @@ export function WeekMatrix({
   const todayKey = toKey(new Date());
   const weekEnd = days[6];
 
-  // дальше листать некуда, если после текущей недели занятий нет
   const lastEvent = [...slots, ...announcements].reduce(
     (max, item) => Math.max(max, +new Date(item.startsAt)),
     0,
@@ -177,7 +176,6 @@ export function WeekMatrix({
         </button>
       </div>
 
-      {/* Десктоп: форматы × дни */}
       <div className="hidden md:block">
         <div className="grid grid-cols-[minmax(120px,150px)_repeat(7,minmax(0,1fr))]">
           <div className={clsx("border-b", LINE)} />
@@ -252,7 +250,6 @@ export function WeekMatrix({
         </div>
       </div>
 
-      {/* Мобильный: по дням */}
       <div className="space-y-4 md:hidden">
         {days.map((date) => {
           const key = toKey(date);

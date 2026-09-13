@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Container, Grid } from "../Container";
 import { FormatsCarousel } from "../formats/FormatsCarousel";
 import { mediaUrl, type Format } from "@/lib/api";
@@ -72,10 +73,12 @@ function FormatCard({
       className="group relative col-span-12 h-60 overflow-hidden rounded-2xl border-gold bg-surface md:col-span-4"
     >
       {img ? (
-        <img
+        <Image
           src={img}
           alt={format.name}
-          className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+          fill
+          sizes="(max-width: 768px) 72vw, 33vw"
+          className="object-cover transition duration-500 group-hover:scale-105"
         />
       ) : (
         highlight && (

@@ -19,8 +19,7 @@ export default function AdminReviews() {
   const [toast, setToast] = useState<string | null>(null);
 
   const reload = useCallback(
-    () =>
-      adminReviews(filter === "ALL" ? undefined : filter).then(setItems),
+    () => adminReviews(filter === "ALL" ? undefined : filter).then(setItems),
     [filter],
   );
   useEffect(() => {

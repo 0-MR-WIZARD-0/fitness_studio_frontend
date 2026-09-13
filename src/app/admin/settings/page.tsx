@@ -62,6 +62,32 @@ export default function AdminSettings() {
         </p>
       </div>
 
+      <div className="space-y-2 border-t border-white/10 pt-4">
+        <p className="font-sub text-heading">Личный кабинет</p>
+        <label className="block text-sm">
+          <span className="mb-1 block text-text/80">
+            Перенос и отмена — не позднее чем за, ч
+          </span>
+          <input
+            type="number"
+            inputMode="numeric"
+            className="field w-40"
+            min={0}
+            value={data.bookingEditHours}
+            onChange={(e) =>
+              setData({
+                ...data,
+                bookingEditHours: Math.max(0, Number(e.target.value)),
+              })
+            }
+          />
+        </label>
+        <p className="text-sm text-text/60">
+          За этот срок до начала клиент ещё может перенести или отменить запись
+          сам. Позже — только через студию. По умолчанию 4 часа.
+        </p>
+      </div>
+
       <button onClick={save} className="btn-gold">
         Сохранить
       </button>

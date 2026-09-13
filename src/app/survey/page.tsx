@@ -22,6 +22,11 @@ const FALLBACK_SETTINGS: SiteSettings = {
   userAgreementUrl: "",
   telegramUrl: "",
   maxUrl: "",
+  rentPricePerHour: 0,
+  rentDayStart: "09:00",
+  rentDayEnd: "17:30",
+  rentBufferMin: 30,
+  bookingEditHours: 12,
 };
 
 export default async function SurveyPage() {

@@ -4,16 +4,12 @@ import { clsx } from "@/lib/clsx";
 export function CoursePromo({
   threshold,
   price,
-  coursePrice,
   className,
 }: {
   threshold: number;
   price: number;
-  coursePrice: number;
   className?: string;
 }) {
-  const discounted = coursePrice > 0 && coursePrice < price;
-
   return (
     <div
       className={clsx(
@@ -26,14 +22,14 @@ export function CoursePromo({
         {plural(threshold, ["занятие", "занятия", "занятий"])} в неделю —{" "}
         {threshold + 1}-е в подарок!
       </p>
-      {discounted && (
+      {price > 0 && (
         <p className="mt-2 text-sm leading-relaxed text-text/85">
-          Цена каждого занятия снижается до{" "}
+          {threshold} {plural(threshold, ["занятие", "занятия", "занятий"])} —{" "}
           <span className="font-sub text-emerald-300">
-            {coursePrice.toLocaleString("ru-RU")} ₽
-          </span>{" "}
-          (вместо {price.toLocaleString("ru-RU")} ₽). Действует на любые
-          тренировки из расписания студии.
+            {(price * threshold).toLocaleString("ru-RU")} ₽
+          </span>
+          . Промокод на бесплатное занятие придёт в личный кабинет, выбрать
+          время можно в течение месяца.
         </p>
       )}
     </div>

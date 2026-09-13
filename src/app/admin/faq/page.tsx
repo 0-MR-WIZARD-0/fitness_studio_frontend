@@ -2,12 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { HomeFaq } from "@/lib/api";
-import {
-  adminFaqList,
-  createFaq,
-  deleteFaq,
-  updateFaq,
-} from "@/lib/admin";
+import { adminFaqList, createFaq, deleteFaq, updateFaq } from "@/lib/admin";
 import {
   ImageField,
   PageTitle,

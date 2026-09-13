@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Container } from "../Container";
 import { mediaUrl, type HomeHero, type Sphere } from "@/lib/api";
 import { clsx } from "@/lib/clsx";
@@ -11,10 +12,13 @@ export function Hero({ hero }: { hero: HomeHero }) {
   return (
     <section className="relative flex min-h-[100svh] w-full flex-col overflow-hidden">
       {bg ? (
-        <img
+        <Image
           src={bg}
           alt=""
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
         />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-b from-[#3a2d24] via-[#2a2122] to-bg" />
@@ -31,7 +35,7 @@ export function Hero({ hero }: { hero: HomeHero }) {
               {hero.subtitle}
             </p>
             {hero.subtitle2 && (
-              <p className="mt-2 font-sub text-sm text-emerald-300 sm:text-base md:hidden">
+              <p className="mt-2 font-sub text-base text-emerald-300 sm:text-lg md:hidden">
                 {hero.subtitle2}
               </p>
             )}
@@ -142,7 +146,7 @@ function Spheres({
       )}
 
       {subtitle2 && (
-        <p className="mt-5 hidden max-w-sm text-center font-sub text-base md:block">
+        <p className="mt-5 hidden max-w-md text-center font-sub text-emerald-300 md:block md:text-lg">
           {subtitle2}
         </p>
       )}

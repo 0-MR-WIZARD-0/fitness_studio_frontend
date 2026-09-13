@@ -111,9 +111,7 @@ export default function AdminPromo() {
                     onClick={() =>
                       setEditing({
                         id: p.id,
-                        value: new Date(p.expiresAt)
-                          .toISOString()
-                          .slice(0, 10),
+                        value: new Date(p.expiresAt).toISOString().slice(0, 10),
                       })
                     }
                     className="text-text/70 hover:text-heading"

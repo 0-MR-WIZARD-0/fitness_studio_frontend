@@ -12,7 +12,11 @@ import {
   type ReviewStatus,
   type SiteSettings,
   type Slot,
+  type Hall,
   type RentalSlot,
+  type Service,
+  type StudioDocument,
+  type StudioPhoto,
   type Trainer,
 } from "./api";
 
@@ -23,7 +27,8 @@ export type UploadFolder =
   | "formats"
   | "mechanisms"
   | "announcements"
-  | "trainers";
+  | "trainers"
+  | "studio";
 
 const authOpts = (
   method: string,
@@ -134,6 +139,8 @@ export interface AdminSlot {
   format: Format | null;
   trainerId: number | null;
   trainer: Trainer | null;
+  hallId: number | null;
+  hall: Hall | null;
   bookings: { id: number; name: string }[];
   _count: { bookings: number };
 }
@@ -142,6 +149,7 @@ export const adminSlots = () =>
 export const createSlot = (data: {
   formatId?: number;
   trainerId?: number | null;
+  hallId?: number | null;
   startsAt: string;
   durationMin?: number;
   capacity?: number;
@@ -150,6 +158,7 @@ export const createSlot = (data: {
 export const createWeekdaySlots = (data: {
   formatId?: number;
   trainerId?: number | null;
+  hallId?: number | null;
   time: string;
   weeks: number;
   fromDate?: string;
@@ -187,6 +196,8 @@ export const createRentSlot = (data: {
   price?: number;
   comment?: string;
   isActive?: boolean;
+  serviceId?: number | null;
+  hallId?: number | null;
 }) => api<RentalSlot>("/rent/slots", authOpts("POST", data));
 export const updateRentSlot = (
   id: number,
@@ -196,10 +207,72 @@ export const updateRentSlot = (
     price?: number;
     comment?: string;
     isActive?: boolean;
+    serviceId?: number | null;
+    hallId?: number | null;
   },
 ) => api<RentalSlot>(`/rent/slots/${id}`, authOpts("PUT", data));
+
+export interface HallInput {
+  title: string;
+  description?: string;
+  priceSingle?: number;
+  price4?: number;
+  price8?: number;
+  price12?: number;
+  isMain?: boolean;
+  bookingUrl?: string;
+  dayStart?: string;
+  dayEnd?: string;
+  bufferMin?: number;
+  order?: number;
+  isActive?: boolean;
+}
+export const adminHalls = () => api<Hall[]>("/halls/admin", { auth: true });
+export const createHall = (data: HallInput) =>
+  api<Hall>("/halls", authOpts("POST", data));
+export const updateHall = (id: number, data: HallInput) =>
+  api<Hall>(`/halls/${id}`, authOpts("PUT", data));
+export const deleteHall = (id: number) =>
+  api(`/halls/${id}`, authOpts("DELETE"));
+
+export interface ServiceInput {
+  title: string;
+  description?: string;
+  price?: number;
+  durationMin?: number | null;
+  order?: number;
+  isActive?: boolean;
+}
+export const adminServices = () =>
+  api<Service[]>("/services/admin", { auth: true });
+export const createService = (data: ServiceInput) =>
+  api<Service>("/services", authOpts("POST", data));
+export const updateService = (id: number, data: ServiceInput) =>
+  api<Service>(`/services/${id}`, authOpts("PUT", data));
+export const deleteService = (id: number) =>
+  api(`/services/${id}`, authOpts("DELETE"));
+export const addStudioPhoto = (data: {
+  url: string;
+  caption?: string;
+  order?: number;
+}) => api<StudioPhoto>("/rent/photos", authOpts("POST", data));
+export const updateStudioPhoto = (
+  id: number,
+  data: { url: string; caption?: string; order?: number },
+) => api<StudioPhoto>(`/rent/photos/${id}`, authOpts("PUT", data));
+export const deleteStudioPhoto = (id: number) =>
+  api(`/rent/photos/${id}`, authOpts("DELETE"));
+
 export const deleteRentSlot = (id: number) =>
-  api(`/rent/slots/${id}`, authOpts("DELETE"));
+  api<{ ok: boolean; closed: boolean }>(
+    `/rent/slots/${id}`,
+    authOpts("DELETE"),
+  );
+export const syncRentSlots = (days?: number) =>
+  api<{ created: number; removed: number }>(
+    "/rent/sync",
+    authOpts("POST", days ? { days } : {}),
+  );
 
 export const adminTrainers = () =>
   api<Trainer[]>("/trainers/admin", { auth: true });
@@ -209,8 +282,14 @@ export const updateTrainer = (id: number, data: Partial<Trainer>) =>
   api<Trainer>(`/trainers/${id}`, authOpts("PUT", data));
 export const deleteTrainer = (id: number) =>
   api(`/trainers/${id}`, authOpts("DELETE"));
-export const deleteSlot = (id: number) =>
-  api(`/booking/slots/${id}`, authOpts("DELETE"));
+export const deleteSlot = (
+  id: number,
+  confirm?: { password: string; notified: boolean },
+) =>
+  api<{ ok: boolean; cancelled: number }>(
+    `/booking/slots/${id}`,
+    authOpts("DELETE", confirm ?? {}),
+  );
 export interface AdminBooking {
   id: number;
   name: string;
@@ -227,6 +306,8 @@ export interface AdminBooking {
   announcement: { id: number; title: string } | null;
   promoCode: { code: string; kind: string } | null;
 }
+export const moveClientBooking = (bookingId: number, slotId: number) =>
+  api(`/booking/admin/bookings/${bookingId}/move`, authOpts("POST", { slotId }));
 export const adminBookings = () =>
   api<AdminBooking[]>("/booking/admin/bookings", { auth: true });
 
@@ -263,10 +344,25 @@ export const deleteAnnouncement = (id: number) =>
 export const updateSettings = (data: Partial<SiteSettings>) =>
   api<SiteSettings>("/settings", authOpts("PUT", data));
 
-export async function uploadAgreement(file: File): Promise<SiteSettings> {
+export const adminDocuments = () =>
+  api<StudioDocument[]>("/documents/admin", { auth: true });
+export const createDocument = (data: {
+  title: string;
+  fileUrl: string;
+  order?: number;
+  isActive?: boolean;
+}) => api<StudioDocument>("/documents", authOpts("POST", data));
+export const updateDocument = (
+  id: number,
+  data: { title: string; fileUrl: string; order?: number; isActive?: boolean },
+) => api<StudioDocument>(`/documents/${id}`, authOpts("PUT", data));
+export const deleteDocument = (id: number) =>
+  api(`/documents/${id}`, authOpts("DELETE"));
+
+export async function uploadDocumentFile(file: File): Promise<{ url: string }> {
   const fd = new FormData();
   fd.append("file", file);
-  const res = await fetch(`${API_BASE}/settings/agreement`, {
+  const res = await fetch(`${API_BASE}/documents/file`, {
     method: "POST",
     body: fd,
     credentials: "include",
@@ -284,6 +380,3 @@ export async function uploadAgreement(file: File): Promise<SiteSettings> {
   }
   return res.json();
 }
-
-export const deleteAgreement = () =>
-  api<SiteSettings>("/settings/agreement", authOpts("DELETE"));

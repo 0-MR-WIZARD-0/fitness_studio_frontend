@@ -6,8 +6,19 @@ import { Container } from "../Container";
 import { WeekGrid } from "../booking/WeekGrid";
 import { toKey } from "../Calendar";
 import { clsx } from "@/lib/clsx";
-import { bookRent, getRentSlots, type RentalSlot } from "@/lib/api";
-import { formatPhone, isValidEmail, isValidPhone } from "@/lib/phone";
+import {
+  bookRent,
+  getDocuments,
+  getRentSlots,
+  type RentalSlot,
+  type StudioDocument,
+} from "@/lib/api";
+import { useAccount } from "../account/AccountProvider";
+import {
+  ClientCard,
+  DocumentConsents,
+  LoginRequired,
+} from "../account/BookingGate";
 
 const timeOf = (iso: string) =>
   new Date(iso).toLocaleTimeString("ru-RU", {
@@ -23,13 +34,16 @@ export function RentFlow() {
 
   const [slots, setSlots] = useState<RentalSlot[]>([]);
   const [picked, setPicked] = useState<RentalSlot | null>(null);
-  const [form, setForm] = useState({ name: "", phone: "", email: "" });
+  const [documents, setDocuments] = useState<StudioDocument[]>([]);
+  const [accepted, setAccepted] = useState<number[]>([]);
+  const { user } = useAccount();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<{ total: number } | null>(null);
 
   useEffect(() => {
     getRentSlots().then(setSlots).catch(() => {});
+    getDocuments().then(setDocuments).catch(() => {});
   }, []);
 
   const byDay = useMemo(() => {
@@ -57,11 +71,8 @@ export function RentFlow() {
     );
   }
 
-  const canSubmit =
-    !!picked &&
-    !!form.name.trim() &&
-    isValidPhone(form.phone) &&
-    isValidEmail(form.email);
+  const docsAccepted = documents.every((d) => accepted.includes(d.id));
+  const canSubmit = !!picked && !!user && docsAccepted;
 
   async function submit() {
     if (!picked) return;
@@ -70,9 +81,7 @@ export function RentFlow() {
     try {
       const res = await bookRent({
         rentalSlotId: picked.id,
-        name: form.name,
-        phone: form.phone,
-        email: form.email,
+        documentIds: accepted,
       });
       setDone({ total: res.total });
     } catch (e) {
@@ -86,7 +95,7 @@ export function RentFlow() {
     return (
       <Container>
         <div className="mx-auto mt-10 max-w-lg rounded-2xl border-gold bg-surface/60 p-8 text-center">
-          <p className="text-2xl text-heading">Студия забронирована!</p>
+          <p className="text-2xl text-heading">Время забронировано!</p>
           <p className="mt-4 text-sm">
             {done.total > 0 ? (
               <>
@@ -111,14 +120,15 @@ export function RentFlow() {
   return (
     <Container>
       <p className="rounded-xl bg-surface-2/60 px-4 py-3 text-sm leading-relaxed text-text/85">
-        В расписании указаны свободные часы для аренды студии. Выберите слот — время и стоимость
-        указаны на карточке.
+        Здесь отображены услуги, которые занимают студию по времени: аренда зала по часам и
+        услуги с записью. Между занятиями оставлен перерыв, поэтому в расписании
+        отображено только свободное время.
       </p>
 
       <div className="mt-6">
         {slots.length === 0 ? (
           <p className="rounded-2xl border-gold bg-surface/40 p-5 text-sm text-text/70">
-            Свободных слотов для аренды пока нет.
+            Свободного времени пока нет.
           </p>
         ) : (
           <WeekGrid
@@ -153,7 +163,8 @@ export function RentFlow() {
                     </span>
                   </span>
                   <span className="mt-0.5 block text-xs text-text/60">
-                    {s.durationMin} мин
+                    {s.hallTitle ? `${s.hallTitle} · ` : ""}
+                    {s.serviceTitle} · {s.durationMin} мин
                   </span>
                   <span className="block text-sm text-accent">
                     {s.price > 0
@@ -186,11 +197,13 @@ export function RentFlow() {
         {picked && (
           <>
             <h2 className="mt-10 font-sub text-lg text-heading md:text-xl">
-              Бронирование студии:
+              Бронирование:
             </h2>
             <div className="mt-4 max-w-2xl rounded-2xl border-gold bg-surface/40 p-4 text-sm">
-              {dayOf(picked.startsAt)} · {timeOf(picked.startsAt)}–
-              {timeOf(picked.endsAt)} · {picked.durationMin} мин ·{" "}
+              {picked.hallTitle ? `${picked.hallTitle} · ` : ""}
+              {picked.serviceTitle} · {dayOf(picked.startsAt)} ·{" "}
+              {timeOf(picked.startsAt)}–{timeOf(picked.endsAt)} ·{" "}
+              {picked.durationMin} мин ·{" "}
               {picked.price > 0
                 ? `стоимость: ${picked.price.toLocaleString("ru-RU")} ₽`
                 : "бесплатно"}
@@ -206,36 +219,21 @@ export function RentFlow() {
         )}
       </div>
 
-      {picked && (
+      {picked && !user && <LoginRequired what="Бронирование времени" />}
+
+      {picked && user && (
         <div className="mt-6 max-w-md space-y-3">
-          <input
-            className="field"
-            placeholder="ФИО полностью"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <input
-            className="field"
-            inputMode="tel"
-            placeholder="+7 (999) 999-99-99"
-            value={form.phone}
-            onChange={(e) =>
-              setForm({ ...form, phone: formatPhone(e.target.value) })
+          <ClientCard user={user} />
+
+          <DocumentConsents
+            documents={documents}
+            accepted={accepted}
+            onToggle={(id, value) =>
+              setAccepted((prev) =>
+                value ? [...prev, id] : prev.filter((x) => x !== id),
+              )
             }
           />
-          {form.phone && !isValidPhone(form.phone) && (
-            <p className="text-xs text-red-400">Введите телефон полностью</p>
-          )}
-          <input
-            className="field"
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
-          {form.email && !isValidEmail(form.email) && (
-            <p className="text-xs text-red-400">Email должен содержать «@»</p>
-          )}
 
           {error && <p className="text-sm text-red-400">{error}</p>}
 

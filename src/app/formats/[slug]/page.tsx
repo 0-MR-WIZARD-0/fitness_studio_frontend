@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container, Grid } from "@/components/Container";
@@ -57,10 +58,13 @@ export default async function FormatPage({
     <article>
       <section className="relative min-h-[88vh] w-full overflow-hidden">
         {heroImg ? (
-          <img
+          <Image
             src={heroImg}
             alt=""
-            className="absolute inset-0 h-full w-full object-cover"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
           />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#5a4632] via-[#3a2d24] to-bg" />

@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { clsx } from "@/lib/clsx";
 import { mediaUrl } from "@/lib/api";
 
@@ -24,10 +25,12 @@ export function Placeholder({
       )}
     >
       {url ? (
-        <img
+        <Image
           src={url}
           alt={alt}
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          sizes="(max-width: 768px) 100vw, 40vw"
+          className="object-cover"
         />
       ) : (
         <div className="absolute inset-0 grid place-items-center text-text/40">

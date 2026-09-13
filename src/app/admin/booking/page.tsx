@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { Announcement, Format, Slot, Trainer } from "@/lib/api";
+import {
+  getHalls,
+  type Announcement,
+  type Format,
+  type Hall,
+  type Slot,
+  type Trainer,
+} from "@/lib/api";
 import {
   adminAnnouncements,
   adminBookings,
@@ -13,6 +20,7 @@ import {
   createWeekdaySlots,
   deleteAnnouncement,
   deleteSlot,
+  moveClientBooking,
   updateAnnouncement,
   updateSlot,
   type AdminBooking,
@@ -22,6 +30,7 @@ import { PageTitle, Toast } from "@/components/admin/ui";
 import { WeekMatrix } from "@/components/booking/WeekMatrix";
 import { toKey } from "@/components/Calendar";
 import { Select } from "@/components/Select";
+import { clsx } from "@/lib/clsx";
 
 export default function AdminBooking() {
   const [formats, setFormats] = useState<Format[]>([]);
@@ -29,6 +38,8 @@ export default function AdminBooking() {
   const [diag, setDiag] = useState(false);
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [trainerId, setTrainerId] = useState<number | null>(null);
+  const [halls, setHalls] = useState<Hall[]>([]);
+  const [hallId, setHallId] = useState<number | "">("");
   const [slots, setSlots] = useState<AdminSlot[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
@@ -42,11 +53,14 @@ export default function AdminBooking() {
   const [editing, setEditing] = useState<{ id: number; value: string } | null>(
     null,
   );
-  const [confirmMove, setConfirmMove] = useState<AdminSlot | null>(null);
+  const [dialog, setDialog] = useState<{
+    slot: AdminSlot;
+    mode: "move" | "cancel";
+  } | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
+  const [movingBooking, setMovingBooking] = useState<AdminBooking | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
-  // анонс отдельного занятия
   const [asAnnouncement, setAsAnnouncement] = useState(false);
   const [annTitle, setAnnTitle] = useState("");
   const [annDescription, setAnnDescription] = useState("");
@@ -59,6 +73,9 @@ export default function AdminBooking() {
       setFormats(fs);
       if (fs[0]) setFormatId(fs[0].id);
     });
+    getHalls()
+      .then(setHalls)
+      .catch(() => {});
     adminTrainers().then((ts) => {
       const active = ts.filter((t) => t.isActive);
       setTrainers(active);
@@ -80,7 +97,6 @@ export default function AdminBooking() {
     setTimeout(() => setToast(null), 2500);
   };
 
-  // AdminSlot -> форма, понятная календарю
   const matrixSlots: Slot[] = useMemo(
     () =>
       slots.map((s) => ({
@@ -164,6 +180,7 @@ export default function AdminBooking() {
       const res = await createWeekdaySlots({
         formatId: diag ? undefined : formatId!,
         trainerId,
+        hallId: hallId === "" ? null : hallId,
         time,
         weeks,
         fromDate: selected,
@@ -179,6 +196,7 @@ export default function AdminBooking() {
       await createSlot({
         formatId: diag ? undefined : formatId!,
         trainerId,
+        hallId: hallId === "" ? null : hallId,
         startsAt: startsAtIso(),
         capacity,
         isDiagnostic: diag,
@@ -189,24 +207,42 @@ export default function AdminBooking() {
     reload();
   }
 
-  async function reschedule(password: string) {
-    if (!editing) return;
+  async function reschedule(value: string, password: string) {
+    if (!dialog) return;
     setMoveError(null);
     try {
       await updateSlot(
-        editing.id,
-        new Date(editing.value).toISOString(),
+        dialog.slot.id,
+        new Date(value).toISOString(),
         undefined,
-        { password, notified: true },
+        {
+          password,
+          notified: true,
+        },
       );
     } catch (e) {
       setMoveError(e instanceof Error ? e.message : "Не удалось перенести");
       return;
     }
     setEditing(null);
-    setConfirmMove(null);
+    setDialog(null);
     reload();
-    flash("Занятие перенесено");
+    flash("Занятие перенесено. Свободные часы ушли под аренду");
+  }
+
+  async function cancelLesson(password: string) {
+    if (!dialog) return;
+    setMoveError(null);
+    try {
+      await deleteSlot(dialog.slot.id, { password, notified: true });
+    } catch (e) {
+      setMoveError(e instanceof Error ? e.message : "Не удалось отменить");
+      return;
+    }
+    setDialog(null);
+    setOpenSlotId(null);
+    reload();
+    flash("Занятие отменено, клиентские записи помечены отменёнными");
   }
 
   const fmtTime = (iso: string) =>
@@ -236,6 +272,8 @@ export default function AdminBooking() {
           День берётся из календаря ниже — кликните по дате нужного дня.
           Продолжительность занятия подставляется из формата, у диагностики — 30
           минут. Одного тренера нельзя поставить на два пересекающихся занятия.
+          Свободные часы дня с занятиями автоматически уходят под почасовую
+          аренду студии — кроме получаса до и после каждого занятия.
         </p>
 
         <label className="mb-4 flex items-center gap-2 text-sm">
@@ -287,6 +325,7 @@ export default function AdminBooking() {
                 </span>
                 <input
                   type="number"
+                  inputMode="numeric"
                   className="field"
                   min={5}
                   value={annDuration}
@@ -299,6 +338,7 @@ export default function AdminBooking() {
                 <span className="mb-1 block h-5 text-text/80">Мест</span>
                 <input
                   type="number"
+                  inputMode="numeric"
                   className="field"
                   min={1}
                   max={7}
@@ -334,6 +374,7 @@ export default function AdminBooking() {
                   <span className="mb-1 block text-text/80">Цена, ₽</span>
                   <input
                     type="number"
+                    inputMode="numeric"
                     className="field w-40"
                     min={0}
                     value={annPrice}
@@ -394,6 +435,20 @@ export default function AdminBooking() {
                 />
               </div>
 
+              {halls.length > 0 && (
+                <div className="text-sm">
+                  <span className="mb-1 block h-5 text-text/80">Зал</span>
+                  <Select
+                    value={hallId}
+                    onChange={(v) => setHallId(v === "" ? "" : Number(v))}
+                    options={[
+                      { value: "", label: "Вся студия" },
+                      ...halls.map((h) => ({ value: h.id, label: h.title })),
+                    ]}
+                  />
+                </div>
+              )}
+
               <label className="text-sm">
                 <span className="mb-1 block h-5 text-text/80">Время</span>
                 <input
@@ -408,6 +463,7 @@ export default function AdminBooking() {
                 <span className="mb-1 block h-5 text-text/80">Мест</span>
                 <input
                   type="number"
+                  inputMode="numeric"
                   className="field"
                   value={capacity}
                   min={1}
@@ -438,6 +494,7 @@ export default function AdminBooking() {
                   Недель:
                   <input
                     type="number"
+                    inputMode="numeric"
                     className="field w-20"
                     value={weeks}
                     min={1}
@@ -505,7 +562,8 @@ export default function AdminBooking() {
                 {openSlot.isDiagnostic
                   ? "Диагностика"
                   : (openSlot.format?.name ?? "—")}{" "}
-                · {openSlot._count.bookings}/{openSlot.capacity} записей
+                · {openSlot.hall?.title ?? "вся студия"} ·{" "}
+                {openSlot._count.bookings}/{openSlot.capacity} записей
               </p>
             </div>
             <button
@@ -553,7 +611,7 @@ export default function AdminBooking() {
                 <button
                   onClick={() => {
                     setMoveError(null);
-                    setConfirmMove(openSlot);
+                    setDialog({ slot: openSlot, mode: "move" });
                   }}
                   disabled={editing?.id !== openSlot.id}
                   className="btn-gold disabled:opacity-40"
@@ -575,15 +633,23 @@ export default function AdminBooking() {
 
           <button
             onClick={async () => {
-              if (!confirm("Удалить занятие? Записи сохранятся в списке.")) return;
+              if (openSlot._count.bookings > 0) {
+                setMoveError(null);
+                setDialog({ slot: openSlot, mode: "cancel" });
+                return;
+              }
+              if (!confirm("Удалить занятие? Час уйдёт под аренду студии."))
+                return;
               await deleteSlot(openSlot.id);
               setOpenSlotId(null);
               reload();
-              flash("Занятие удалено");
+              flash("Занятие удалено, час ушёл под аренду");
             }}
             className="mt-5 text-sm text-red-400"
           >
-            Удалить занятие
+            {openSlot._count.bookings > 0
+              ? "Отменить занятие"
+              : "Удалить занятие"}
           </button>
         </div>
       )}
@@ -620,6 +686,16 @@ export default function AdminBooking() {
               {b.isCourse ? " · курс" : ""}
               {b.isFree ? " · бесплатно" : ""}
               {b.promoCode ? ` · промокод ${b.promoCode.code}` : ""}
+              {b.status === "CANCELLED" ? (
+                <span className="ml-2 text-red-400">отменена</span>
+              ) : (
+                <button
+                  onClick={() => setMovingBooking(b)}
+                  className="ml-3 text-accent underline underline-offset-4"
+                >
+                  Перенести клиента
+                </button>
+              )}
             </div>
           ))}
           {dayBookings.length === 0 && (
@@ -628,16 +704,39 @@ export default function AdminBooking() {
         </div>
       </div>
 
-      {confirmMove && editing && (
-        <MoveDialog
-          slot={confirmMove}
-          newValue={editing.value}
+      {movingBooking && (
+        <ClientMoveDialog
+          booking={movingBooking}
+          slots={slots}
+          onClose={() => setMovingBooking(null)}
+          onDone={() => {
+            setMovingBooking(null);
+            reload();
+            flash("Запись клиента перенесена");
+          }}
+        />
+      )}
+
+      {dialog && (
+        <SlotActionDialog
+          slot={dialog.slot}
+          mode={dialog.mode}
+          onModeChange={(mode) => {
+            setMoveError(null);
+            setDialog({ slot: dialog.slot, mode });
+          }}
+          defaultValue={
+            editing?.id === dialog.slot.id
+              ? editing.value
+              : new Date(dialog.slot.startsAt).toISOString().slice(0, 16)
+          }
           error={moveError}
-          onCancel={() => {
-            setConfirmMove(null);
+          onClose={() => {
+            setDialog(null);
             setMoveError(null);
           }}
-          onConfirm={reschedule}
+          onMove={reschedule}
+          onCancelLesson={cancelLesson}
         />
       )}
 
@@ -646,54 +745,115 @@ export default function AdminBooking() {
   );
 }
 
-function MoveDialog({
+function SlotActionDialog({
   slot,
-  newValue,
+  mode,
+  onModeChange,
+  defaultValue,
   error,
-  onCancel,
-  onConfirm,
+  onClose,
+  onMove,
+  onCancelLesson,
 }: {
-  slot: AdminSlot | null;
-  newValue: string;
+  slot: AdminSlot;
+  mode: "move" | "cancel";
+  onModeChange: (mode: "move" | "cancel") => void;
+  defaultValue: string;
   error: string | null;
-  onCancel: () => void;
-  onConfirm: (password: string) => void;
+  onClose: () => void;
+  onMove: (value: string, password: string) => Promise<void>;
+  onCancelLesson: (password: string) => Promise<void>;
 }) {
+  const [value, setValue] = useState(defaultValue);
   const [notified, setNotified] = useState(false);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const when = (value: string | Date) =>
-    new Date(value).toLocaleString("ru-RU", {
+  const when = (v: string | Date) =>
+    new Date(v).toLocaleString("ru-RU", {
       day: "numeric",
       month: "long",
       hour: "2-digit",
       minute: "2-digit",
     });
 
-  const booked = slot?._count.bookings ?? 0;
+  const booked = slot._count.bookings;
+  const moving = mode === "move";
 
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"
-      onClick={onCancel}
+      onClick={onClose}
     >
       <div
         className="w-full max-w-md rounded-2xl border-gold bg-surface p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="font-sub text-xl text-heading">Перенос занятия</h3>
+        <h3 className="font-sub text-xl text-heading">
+          {moving ? "Перенос занятия" : "Отмена занятия"}
+        </h3>
 
-        {slot && (
-          <p className="mt-3 text-sm leading-relaxed">
-            {when(slot.startsAt)} →{" "}
-            <span className="text-accent">{when(newValue)}</span>
-            <br />
-            {booked > 0
-              ? `На занятие записаны ${booked} чел.: ${slot.bookings
-                  .map((b) => b.name)
-                  .join(", ")}`
-              : "Записей на это занятие пока нет."}
+        <p className="mt-3 text-sm leading-relaxed">
+          {when(slot.startsAt)}
+          {moving && (
+            <>
+              {" → "}
+              <span className="text-accent">{when(value)}</span>
+            </>
+          )}
+          <br />
+          {booked > 0
+            ? `Записаны ${booked} чел.: ${slot.bookings
+                .map((b) => b.name)
+                .join(", ")}`
+            : "Записей на это занятие пока нет."}
+        </p>
+
+        {booked > 0 && (
+          <div className="mt-4 flex gap-2 text-sm">
+            <button
+              type="button"
+              onClick={() => onModeChange("move")}
+              className={clsx(
+                "flex-1 rounded-xl border px-3 py-2 transition",
+                moving
+                  ? "border-accent bg-accent/15 text-heading"
+                  : "border-white/15 text-text/70 hover:bg-surface-2/50",
+              )}
+            >
+              Перенести занятие
+            </button>
+            <button
+              type="button"
+              onClick={() => onModeChange("cancel")}
+              className={clsx(
+                "flex-1 rounded-xl border px-3 py-2 transition",
+                !moving
+                  ? "border-red-400 bg-red-500/10 text-red-300"
+                  : "border-white/15 text-text/70 hover:bg-surface-2/50",
+              )}
+            >
+              Отменить занятие
+            </button>
+          </div>
+        )}
+
+        {moving && (
+          <label className="mt-4 block text-sm">
+            <span className="mb-1 block text-text/80">Новое время</span>
+            <input
+              type="datetime-local"
+              className="field"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+            />
+          </label>
+        )}
+
+        {!moving && (
+          <p className="mt-4 rounded-xl bg-surface-2/60 px-3 py-2 text-xs leading-relaxed text-text/70">
+            Занятие удалится, записи клиентов останутся в списке со статусом
+            «отменено». Освободившиеся часы уйдут под аренду студии.
           </p>
         )}
 
@@ -705,7 +865,9 @@ function MoveDialog({
             onChange={(e) => setNotified(e.target.checked)}
           />
           <span>
-            Подтверждаю, что все записанные клиенты уведомлены о переносе
+            {moving
+              ? "Подтверждаю, что все записанные клиенты уведомлены о переносе"
+              : "Подтверждаю, что все записанные клиенты уведомлены об отмене"}
           </span>
         </label>
 
@@ -728,16 +890,28 @@ function MoveDialog({
           <button
             onClick={async () => {
               setBusy(true);
-              await onConfirm(password);
+              if (moving) await onMove(value, password);
+              else await onCancelLesson(password);
               setBusy(false);
             }}
             disabled={!notified || !password || busy}
-            className="btn-gold disabled:opacity-40"
+            className={clsx(
+              "disabled:opacity-40",
+              moving
+                ? "btn-gold"
+                : "rounded-xl border border-red-400 px-5 py-2 text-sm text-red-300",
+            )}
           >
-            {busy ? "Переносим…" : "Перенести"}
+            {busy
+              ? moving
+                ? "Переносим…"
+                : "Отменяем…"
+              : moving
+                ? "Перенести"
+                : "Отменить занятие"}
           </button>
-          <button onClick={onCancel} className="text-sm text-text/70">
-            Отмена
+          <button onClick={onClose} className="text-sm text-text/70">
+            Закрыть
           </button>
         </div>
       </div>
@@ -802,6 +976,7 @@ function AnnouncementEditor({
           <span className="mb-1 block h-5 text-text/80">Длительность, мин</span>
           <input
             type="number"
+            inputMode="numeric"
             className="field"
             min={5}
             value={draft.durationMin}
@@ -817,6 +992,7 @@ function AnnouncementEditor({
           <span className="mb-1 block h-5 text-text/80">Мест</span>
           <input
             type="number"
+            inputMode="numeric"
             className="field"
             min={1}
             max={7}
@@ -855,6 +1031,7 @@ function AnnouncementEditor({
             <span className="mb-1 block text-text/80">Цена, ₽</span>
             <input
               type="number"
+              inputMode="numeric"
               className="field w-40"
               min={0}
               value={draft.price}
@@ -898,6 +1075,120 @@ function AnnouncementEditor({
         >
           Удалить анонс
         </button>
+      </div>
+    </div>
+  );
+}
+
+function ClientMoveDialog({
+  booking,
+  slots,
+  onClose,
+  onDone,
+}: {
+  booking: AdminBooking;
+  slots: AdminSlot[];
+  onClose: () => void;
+  onDone: () => void;
+}) {
+  const [picked, setPicked] = useState<number | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const when = (iso: string) =>
+    new Date(iso).toLocaleString("ru-RU", {
+      day: "numeric",
+      month: "long",
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const options = slots
+    .filter(
+      (s) =>
+        s.id !== booking.slot?.id &&
+        new Date(s.startsAt).getTime() > Date.now() &&
+        s._count.bookings < s.capacity,
+    )
+    .sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt))
+    .slice(0, 60);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[80vh] w-full max-w-lg overflow-y-auto rounded-2xl border-gold bg-surface p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="font-sub text-xl text-heading">Перенос записи клиента</h3>
+        <p className="mt-2 text-sm text-text/75">
+          {booking.name} · {booking.phone}
+          <br />
+          {booking.slot ? when(booking.slot.startsAt) : "время не указано"}
+        </p>
+        <p className="mt-2 text-xs text-text/50">
+          Студия переносит запись без ограничений по сроку — например, когда
+          клиент заболел.
+        </p>
+
+        {options.length === 0 ? (
+          <p className="mt-4 text-sm text-text/60">
+            Свободных занятий впереди нет.
+          </p>
+        ) : (
+          <div className="mt-4 space-y-2">
+            {options.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setPicked(s.id)}
+                className={clsx(
+                  "block w-full rounded-xl border px-3 py-2 text-left text-sm transition",
+                  picked === s.id
+                    ? "border-accent bg-accent/15 text-heading"
+                    : "border-white/15 text-text/80 hover:bg-surface-2/50",
+                )}
+              >
+                {when(s.startsAt)} ·{" "}
+                {s.isDiagnostic ? "Диагностика" : (s.format?.name ?? "занятие")}
+                {s.trainer ? ` · ${s.trainer.name}` : ""} · мест{" "}
+                {Math.max(0, s.capacity - s._count.bookings)}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+
+        <div className="mt-5 flex gap-3">
+          <button
+            onClick={async () => {
+              if (!picked) return;
+              setBusy(true);
+              setError(null);
+              try {
+                await moveClientBooking(booking.id, picked);
+                onDone();
+              } catch (e) {
+                setError(
+                  e instanceof Error ? e.message : "Не удалось перенести",
+                );
+              } finally {
+                setBusy(false);
+              }
+            }}
+            disabled={!picked || busy}
+            className="btn-gold disabled:opacity-40"
+          >
+            {busy ? "Переносим…" : "Перенести"}
+          </button>
+          <button onClick={onClose} className="text-sm text-text/70">
+            Закрыть
+          </button>
+        </div>
       </div>
     </div>
   );

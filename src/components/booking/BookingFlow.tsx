@@ -11,14 +11,20 @@ import {
   getAnnouncements,
   getAvailableSlots,
   getDiagnosticSlots,
+  getDocuments,
   getFormats,
   getSettings,
-  mediaUrl,
   type Announcement,
   type Format,
   type Slot,
+  type StudioDocument,
 } from "@/lib/api";
-import { formatPhone, isValidEmail, isValidPhone } from "@/lib/phone";
+import { useAccount } from "../account/AccountProvider";
+import {
+  ClientCard,
+  DocumentConsents,
+  LoginRequired,
+} from "../account/BookingGate";
 
 const timeOf = (iso: string) =>
   new Date(iso).toLocaleTimeString("ru-RU", {
@@ -44,7 +50,6 @@ export function BookingFlow({
   );
   const [filterDiagnostic, setFilterDiagnostic] = useState(initialDiagnostic);
   const [threshold, setThreshold] = useState(3);
-  const [coursePrice, setCoursePrice] = useState(0);
   const [lessons, setLessons] = useState<Slot[]>([]);
   const [diagSlots, setDiagSlots] = useState<Slot[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
@@ -53,9 +58,9 @@ export function BookingFlow({
   const [annSlot, setAnnSlot] = useState<Announcement | null>(null);
   const [usePromo, setUsePromo] = useState(false);
   const [promo, setPromo] = useState("");
-  const [agreementUrl, setAgreementUrl] = useState("");
-  const [agreed, setAgreed] = useState(false);
-  const [form, setForm] = useState({ name: "", phone: "", email: "" });
+  const [documents, setDocuments] = useState<StudioDocument[]>([]);
+  const [accepted, setAccepted] = useState<number[]>([]);
+  const { user } = useAccount();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<null | {
@@ -69,9 +74,8 @@ export function BookingFlow({
     getFormats().then(setFormats);
     getSettings().then((s) => {
       setThreshold(s.courseThreshold);
-      setCoursePrice(s.priceCourse);
-      setAgreementUrl(s.userAgreementUrl);
     });
+    getDocuments().then(setDocuments).catch(() => {});
     getAvailableSlots().then(setLessons).catch(() => {});
     getDiagnosticSlots().then(setDiagSlots).catch(() => {});
     getAnnouncements().then(setAnnouncements).catch(() => {});
@@ -105,15 +109,8 @@ export function BookingFlow({
     [cart, threshold],
   );
   const courses = groups.length;
-  const total = cart.reduce(
-    (sum, s) =>
-      sum +
-      (countedIds.has(s.id) && coursePrice > 0 ? coursePrice : s.pricePerSession),
-    0,
-  );
-  const fullTotal = cart.reduce((sum, s) => sum + s.pricePerSession, 0);
-  const needsAgreement =
-    !diagSlot && !!agreementUrl && (total > 0 || (!!annSlot && !annSlot.isFree));
+  const total = cart.reduce((sum, s) => sum + s.pricePerSession, 0);
+  const docsAccepted = documents.every((d) => accepted.includes(d.id));
 
   function scrollToSummary() {
     setTimeout(
@@ -159,18 +156,18 @@ export function BookingFlow({
     setError(null);
     try {
       const promoCode = usePromo && promo ? promo : undefined;
+      const documentIds = accepted;
 
       if (annSlot) {
         const res = await api<{ free: boolean; total: number }>(
           "/booking/announcement",
           {
             method: "POST",
+            auth: true,
             body: JSON.stringify({
               announcementId: annSlot.id,
-              name: form.name,
-              phone: form.phone,
-              email: form.email,
               promoCode,
+              documentIds,
             }),
           },
         );
@@ -181,12 +178,11 @@ export function BookingFlow({
       if (diagSlot) {
         await api("/booking/single", {
           method: "POST",
+          auth: true,
           body: JSON.stringify({
             slotId: diagSlot.id,
-            name: form.name,
-            phone: form.phone,
-            email: form.email,
             promoCode,
+            documentIds,
           }),
         });
         setDone({ free: true });
@@ -198,12 +194,11 @@ export function BookingFlow({
           "/booking/single",
           {
             method: "POST",
+            auth: true,
             body: JSON.stringify({
               slotId: cart[0].id,
-              name: form.name,
-              phone: form.phone,
-              email: form.email,
               promoCode,
+              documentIds,
             }),
           },
         );
@@ -216,11 +211,10 @@ export function BookingFlow({
           giftCodes: string[];
         }>("/booking/cart", {
           method: "POST",
+          auth: true,
           body: JSON.stringify({
             slotIds: cart.map((s) => s.id),
-            name: form.name,
-            phone: form.phone,
-            email: form.email,
+            documentIds,
           }),
         });
         setDone({
@@ -237,12 +231,7 @@ export function BookingFlow({
   }
 
   const hasSelection = !!diagSlot || !!annSlot || cart.length > 0;
-  const canSubmit =
-    hasSelection &&
-    !!form.name.trim() &&
-    isValidPhone(form.phone) &&
-    isValidEmail(form.email) &&
-    (!needsAgreement || agreed);
+  const canSubmit = hasSelection && !!user && docsAccepted;
 
   if (done) {
     return (
@@ -392,12 +381,7 @@ export function BookingFlow({
                   <span className="ml-2 text-xs text-accent">курс</span>
                 )}
                 <span className="ml-2 text-text/60">
-                  · стоимость:{" "}
-                  {(countedIds.has(s.id) && coursePrice > 0
-                    ? coursePrice
-                    : s.pricePerSession
-                  ).toLocaleString("ru-RU")}{" "}
-                  ₽
+                  · стоимость: {s.pricePerSession.toLocaleString("ru-RU")} ₽
                 </span>
               </span>
               <button
@@ -410,60 +394,36 @@ export function BookingFlow({
             </div>
           ))}
           <div className="mt-3 border-t border-white/10 pt-3">
-            {fullTotal > total && (
-              <span className="mr-2 text-text/50 line-through">
-                {fullTotal.toLocaleString("ru-RU")} ₽
-              </span>
-            )}
             <span className="text-heading">
               Итого: {total.toLocaleString("ru-RU")} ₽
             </span>
             {courses > 0 && (
               <span className="ml-2 text-accent">
-                + {courses}{" "}
+                + промокод на {courses}{" "}
                 {plural(courses, [
-                  "занятие в подарок",
-                  "занятия в подарок",
-                  "занятий в подарок",
+                  "бесплатное занятие",
+                  "бесплатных занятия",
+                  "бесплатных занятий",
                 ])}{" "}
                 🎁
               </span>
             )}
           </div>
+          {courses > 0 && (
+            <p className="mt-2 text-xs text-text/55">
+              Промокод придёт в личный кабинет, записаться по нему можно в
+              течение месяца — потом он сгорает.
+            </p>
+          )}
         </div>
         )}
       </div>
 
-      {hasSelection && (
+      {hasSelection && !user && <LoginRequired what="Запись на занятия" />}
+
+      {hasSelection && user && (
         <div className="mt-6 max-w-md space-y-3">
-          <input
-            className="field"
-            placeholder="ФИО полностью"
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-          />
-          <input
-            className="field"
-            inputMode="tel"
-            placeholder="+7 (999) 999-99-99"
-            value={form.phone}
-            onChange={(e) =>
-              setForm({ ...form, phone: formatPhone(e.target.value) })
-            }
-          />
-          {form.phone && !isValidPhone(form.phone) && (
-            <p className="text-xs text-red-400">Введите телефон полностью</p>
-          )}
-          <input
-            className="field"
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-          />
-          {form.email && !isValidEmail(form.email) && (
-            <p className="text-xs text-red-400">Email должен содержать «@»</p>
-          )}
+          <ClientCard user={user} />
 
           {(!!diagSlot || !!annSlot || cart.length === 1) && (
             <>
@@ -486,27 +446,15 @@ export function BookingFlow({
             </>
           )}
 
-          {needsAgreement && (
-            <label className="flex items-start gap-2 text-sm text-text/80">
-              <input
-                type="checkbox"
-                className="mt-1"
-                checked={agreed}
-                onChange={(e) => setAgreed(e.target.checked)}
-              />
-              <span>
-                Я ознакомлен(а) с{" "}
-                <a
-                  href={mediaUrl(agreementUrl) ?? "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-accent underline"
-                >
-                  пользовательским соглашением
-                </a>
-              </span>
-            </label>
-          )}
+          <DocumentConsents
+            documents={documents}
+            accepted={accepted}
+            onToggle={(id, value) =>
+              setAccepted((prev) =>
+                value ? [...prev, id] : prev.filter((x) => x !== id),
+              )
+            }
+          />
 
           {error && <p className="text-sm text-red-400">{error}</p>}
 

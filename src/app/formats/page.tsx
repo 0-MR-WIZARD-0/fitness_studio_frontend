@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Container, Grid } from "@/components/Container";
 import { Reveal } from "@/components/Reveal";
@@ -53,7 +54,6 @@ export default async function FormatsPage() {
             className="mt-12"
             threshold={settings.courseThreshold}
             price={settings.pricePerSession}
-            coursePrice={settings.priceCourse}
           />
         )}
 
@@ -84,10 +84,12 @@ function FormatCard({
         className="group relative h-72 overflow-hidden rounded-2xl border-gold bg-surface"
       >
         {img ? (
-          <img
+          <Image
             src={img}
             alt={format.name}
-            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            fill
+            sizes="(max-width: 768px) 72vw, 33vw"
+            className="object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
           highlight && (

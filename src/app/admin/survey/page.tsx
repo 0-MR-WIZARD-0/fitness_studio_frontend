@@ -47,7 +47,10 @@ export default function AdminSurvey() {
 
   const pages = Math.max(1, Math.ceil(found.length / PER_PAGE));
   const current = Math.min(page, pages - 1);
-  const visible = found.slice(current * PER_PAGE, current * PER_PAGE + PER_PAGE);
+  const visible = found.slice(
+    current * PER_PAGE,
+    current * PER_PAGE + PER_PAGE,
+  );
 
   async function add() {
     const minOrder = items.reduce((m, i) => Math.min(m, i.order), 0);
@@ -173,16 +176,16 @@ function ConditionCard({
 }) {
   const [name, setName] = useState(item.name);
   const [isActive, setIsActive] = useState(item.isActive);
-  const [rules, setRules] = useState<Record<number, { risk: RiskLevel; note: string }>>(
-    () => {
-      const map: Record<number, { risk: RiskLevel; note: string }> = {};
-      for (const f of formats) {
-        const rule = item.rules.find((r) => r.formatId === f.id);
-        map[f.id] = { risk: rule?.risk ?? "ALLOWED", note: rule?.note ?? "" };
-      }
-      return map;
-    },
-  );
+  const [rules, setRules] = useState<
+    Record<number, { risk: RiskLevel; note: string }>
+  >(() => {
+    const map: Record<number, { risk: RiskLevel; note: string }> = {};
+    for (const f of formats) {
+      const rule = item.rules.find((r) => r.formatId === f.id);
+      map[f.id] = { risk: rule?.risk ?? "ALLOWED", note: rule?.note ?? "" };
+    }
+    return map;
+  });
 
   const payload = (): ConditionInput => ({
     name,
@@ -197,11 +200,18 @@ function ConditionCard({
 
   return (
     <div className="rounded-2xl border-gold bg-surface/50 p-5 space-y-4">
-      <TextField label="Состояние / заболевание" value={name} onChange={setName} />
+      <TextField
+        label="Состояние / заболевание"
+        value={name}
+        onChange={setName}
+      />
 
       <div className="space-y-3">
         {formats.map((f) => (
-          <div key={f.id} className="grid gap-2 md:grid-cols-[1fr_auto] md:items-center">
+          <div
+            key={f.id}
+            className="grid gap-2 md:grid-cols-[1fr_auto] md:items-center"
+          >
             <div className="font-sub text-sm text-heading">{f.name}</div>
             <Select
               className="w-full md:w-56"
@@ -295,7 +305,9 @@ function ImportPanel({
     setError(null);
     const parsed = parseCsv(csv);
     if (parsed.length < 2) {
-      setError("Не удалось разобрать таблицу: нужны заголовок и хотя бы одна строка");
+      setError(
+        "Не удалось разобрать таблицу: нужны заголовок и хотя бы одна строка",
+      );
       setRows(null);
       return;
     }
@@ -384,8 +396,13 @@ function ImportPanel({
                 форматами:
               </p>
               {rows[0].slice(1).map((cell, i) => (
-                <div key={i} className="grid gap-2 md:grid-cols-2 md:items-center">
-                  <span className="text-sm text-text/80">{cleanCell(cell)}</span>
+                <div
+                  key={i}
+                  className="grid gap-2 md:grid-cols-2 md:items-center"
+                >
+                  <span className="text-sm text-text/80">
+                    {cleanCell(cell)}
+                  </span>
                   <Select
                     value={mapping[i]}
                     onChange={(v) => {
