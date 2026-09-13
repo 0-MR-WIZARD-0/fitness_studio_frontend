@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Format } from "@/lib/api";
 import { createFormat, updateFormat } from "@/lib/admin";
 import { slugify } from "@/lib/slug";
+import { NumberInput } from "./NumberInput";
 import {
   ImageField,
   Labeled,
@@ -126,12 +127,13 @@ export function FormatEditor({ initial }: { initial?: Format }) {
       />
 
       <div className="grid grid-cols-2 gap-3">
-        <TextField
-          label="Продолжительность занятия, мин"
-          type="number"
-          value={d.durationMin}
-          onChange={(v) => set({ durationMin: Math.max(5, Number(v)) })}
-        />
+        <Labeled label="Продолжительность занятия, мин">
+          <NumberInput
+            value={d.durationMin}
+            onChange={(v) => set({ durationMin: v })}
+            min={5}
+          />
+        </Labeled>
       </div>
       <p className="-mt-2 text-xs text-text/50">
         Подставляется при создании слотов в разделе «Запись» и показывается
@@ -203,14 +205,14 @@ export function FormatEditor({ initial }: { initial?: Format }) {
                   disableUp={i === 0}
                   disableDown={i === d.mechanisms.length - 1}
                 />
-                <input
-                  className="field w-20"
-                  type="number"
+                <NumberInput
+                  className="w-20"
                   placeholder="№"
+                  min={1}
                   value={m.number ?? i + 1}
-                  onChange={(e) => {
+                  onChange={(v) => {
                     const next = [...d.mechanisms];
-                    next[i] = { ...m, number: Number(e.target.value) };
+                    next[i] = { ...m, number: v };
                     set({ mechanisms: next });
                   }}
                 />

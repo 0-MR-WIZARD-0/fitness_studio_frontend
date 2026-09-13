@@ -9,7 +9,8 @@ import {
   updateFormat,
   updateSettings,
 } from "@/lib/admin";
-import { PageTitle, TextField, Toast } from "@/components/admin/ui";
+import { Labeled, PageTitle, Toast } from "@/components/admin/ui";
+import { NumberInput } from "@/components/admin/NumberInput";
 import { MoveButtons } from "@/components/admin/MoveButtons";
 
 export default function AdminFormats() {
@@ -110,18 +111,12 @@ export default function AdminFormats() {
       <div className="mt-8 max-w-xxl rounded-xl border-gold bg-surface/40 p-4">
         <p className="mb-3 font-sub text-heading">Цены и курс</p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <TextField
-            label="Цена за занятие, ₽"
-            type="number"
-            value={price}
-            onChange={(v) => setPrice(Math.max(0, Number(v)))}
-          />
-          <TextField
-            label="Занятий = курс"
-            type="number"
-            value={threshold}
-            onChange={(v) => setThreshold(Math.max(1, Number(v)))}
-          />
+          <Labeled label="Цена за занятие, ₽">
+            <NumberInput value={price} onChange={setPrice} min={0} />
+          </Labeled>
+          <Labeled label="Занятий = курс">
+            <NumberInput value={threshold} onChange={setThreshold} min={1} />
+          </Labeled>
         </div>
         <p className="mt-2 text-xs text-text/50">
           Цена одна для всех форматов. Набрал столько занятий за 7 дней — платит

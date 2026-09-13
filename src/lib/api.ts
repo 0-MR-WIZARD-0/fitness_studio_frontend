@@ -356,6 +356,7 @@ export interface SiteSettings {
   rentDayEnd: string;
   rentBufferMin: number;
   bookingEditHours: number;
+  courseCancelHours: number;
 }
 export interface Announcement {
   id: number;

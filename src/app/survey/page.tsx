@@ -26,7 +26,8 @@ const FALLBACK_SETTINGS: SiteSettings = {
   rentDayStart: "09:00",
   rentDayEnd: "17:30",
   rentBufferMin: 30,
-  bookingEditHours: 12,
+  bookingEditHours: 4,
+  courseCancelHours: 12,
 };
 
 export default async function SurveyPage() {

@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { getSettings, type SiteSettings } from "@/lib/api";
 import { updateSettings } from "@/lib/admin";
-import { PageTitle, TextField, Toast } from "@/components/admin/ui";
+import { Labeled, PageTitle, TextField, Toast } from "@/components/admin/ui";
+import { formatPhone, isValidPhone } from "@/lib/phone";
 
 export default function AdminSettings() {
   const [data, setData] = useState<SiteSettings | null>(null);
@@ -30,11 +31,20 @@ export default function AdminSettings() {
         value={data.address}
         onChange={(v) => setData({ ...data, address: v })}
       />
-      <TextField
-        label="Телефон"
-        value={data.phone}
-        onChange={(v) => setData({ ...data, phone: v })}
-      />
+      <Labeled label="Телефон">
+        <input
+          className="field"
+          inputMode="tel"
+          placeholder="+7 (999) 999-99-99"
+          value={data.phone}
+          onChange={(e) =>
+            setData({ ...data, phone: formatPhone(e.target.value) })
+          }
+        />
+      </Labeled>
+      {data.phone && !isValidPhone(data.phone) && (
+        <p className="-mt-2 text-xs text-red-400">Введите телефон полностью</p>
+      )}
       <TextField
         label="Email"
         value={data.email}
@@ -59,32 +69,6 @@ export default function AdminSettings() {
         <p className="text-sm text-text/60">
           Появятся в футере и кружками справа внизу на десктопе. Пустое поле —
           канал не показывается.
-        </p>
-      </div>
-
-      <div className="space-y-2 border-t border-white/10 pt-4">
-        <p className="font-sub text-heading">Личный кабинет</p>
-        <label className="block text-sm">
-          <span className="mb-1 block text-text/80">
-            Перенос и отмена — не позднее чем за, ч
-          </span>
-          <input
-            type="number"
-            inputMode="numeric"
-            className="field w-40"
-            min={0}
-            value={data.bookingEditHours}
-            onChange={(e) =>
-              setData({
-                ...data,
-                bookingEditHours: Math.max(0, Number(e.target.value)),
-              })
-            }
-          />
-        </label>
-        <p className="text-sm text-text/60">
-          За этот срок до начала клиент ещё может перенести или отменить запись
-          сам. Позже — только через студию. По умолчанию 4 часа.
         </p>
       </div>
 

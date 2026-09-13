@@ -61,7 +61,7 @@ export function StudioGallery({ photos }: { photos: StudioPhoto[] }) {
             <img
               src={mediaUrl(open.url) ?? ""}
               alt={open.caption}
-              className="max-h-[80vh] w-full rounded-2xl object-contain"
+              className="mx-auto block max-h-[80vh] w-auto max-w-full rounded-2xl"
             />
             {open.caption && (
               <figcaption className="mt-3 text-center text-sm text-heading/85">

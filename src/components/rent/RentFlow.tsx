@@ -159,7 +159,7 @@ export function RentFlow() {
                       )}
                     />
                     <span className="font-sub text-heading">
-                      {timeOf(s.startsAt)}–{timeOf(s.endsAt)}
+                      {timeOf(s.startsAt)} – {timeOf(s.endsAt)}
                     </span>
                   </span>
                   <span className="mt-0.5 block text-xs text-text/60">
@@ -202,7 +202,7 @@ export function RentFlow() {
             <div className="mt-4 max-w-2xl rounded-2xl border-gold bg-surface/40 p-4 text-sm">
               {picked.hallTitle ? `${picked.hallTitle} · ` : ""}
               {picked.serviceTitle} · {dayOf(picked.startsAt)} ·{" "}
-              {timeOf(picked.startsAt)}–{timeOf(picked.endsAt)} ·{" "}
+              {timeOf(picked.startsAt)} – {timeOf(picked.endsAt)} ·{" "}
               {picked.durationMin} мин ·{" "}
               {picked.price > 0
                 ? `стоимость: ${picked.price.toLocaleString("ru-RU")} ₽`

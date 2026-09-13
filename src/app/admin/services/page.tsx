@@ -27,6 +27,7 @@ import {
 import { WeekGrid } from "@/components/booking/WeekGrid";
 import { toKey } from "@/components/Calendar";
 import { clsx } from "@/lib/clsx";
+import { NumberInput } from "@/components/admin/NumberInput";
 
 type Scope = "main" | "extra";
 type Kind = "timed" | "plain";
@@ -115,16 +116,18 @@ export default function AdminServices() {
         ]}
       />
 
-      <Tabs
-        value={kind}
-        onChange={setKind}
-        items={[
-          ["timed", "С расписанием"],
-          ["plain", "Без расписания"],
-        ]}
-        className="mb-8 mt-3"
-        small
-      />
+      {scope === "main" && (
+        <Tabs
+          value={kind}
+          onChange={setKind}
+          items={[
+            ["timed", "С расписанием"],
+            ["plain", "Без расписания"],
+          ]}
+          className="mb-8 mt-3"
+          small
+        />
+      )}
 
       {scope === "main" && kind === "timed" && (
         <>
@@ -187,40 +190,30 @@ export default function AdminServices() {
                       <span className="mb-1 block h-5 text-text/80">
                         Цена часа, ₽
                       </span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        className="field"
-                        min={0}
-                        value={rules.rentPricePerHour}
-                        onChange={(e) =>
-                          setRules({
+                      <NumberInput
+              value={rules.rentPricePerHour}
+              onChange={(v) => setRules({
                             ...rules,
                             rentPricePerHour: Math.max(
                               0,
-                              Number(e.target.value),
+                              v,
                             ),
-                          })
-                        }
-                      />
+                          })}
+              min={0}
+            />
                     </label>
                     <label className="text-sm">
                       <span className="mb-1 block h-5 text-text/80">
                         Перерыв у занятия, мин
                       </span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        className="field"
-                        min={0}
-                        value={rules.rentBufferMin}
-                        onChange={(e) =>
-                          setRules({
+                      <NumberInput
+              value={rules.rentBufferMin}
+              onChange={(v) => setRules({
                             ...rules,
-                            rentBufferMin: Math.max(0, Number(e.target.value)),
-                          })
-                        }
-                      />
+                            rentBufferMin: v,
+                          })}
+              min={0}
+            />
                     </label>
                   </div>
 
@@ -278,56 +271,12 @@ export default function AdminServices() {
         </>
       )}
 
-      {scope === "extra" && kind === "timed" && (
+      {scope === "extra" && (
         <ExtraHallsBlock
           halls={extraHalls}
           total={halls.length}
           onChanged={hallsChanged}
         />
-      )}
-
-      {scope === "extra" && kind === "plain" && (
-        <div className="mb-8 rounded-2xl border-gold bg-surface/50 p-5">
-          <p className="mb-1 font-sub text-heading">Залы без расписания</p>
-          <p className="mb-4 text-xs text-text/50">
-            Эти залы сдаются по ссылке: расписание для них не ведётся, клиент
-            пишет в мессенджер. Ссылка задаётся у зала на вкладке «С
-            расписанием».
-          </p>
-          {extraHalls.filter((h) => !h.bookingUrl).length === 0 &&
-          extraHalls.some((h) => h.bookingUrl) ? (
-            <p className="text-sm text-text/60">
-              У всех дополнительных залов указана ссылка.
-            </p>
-          ) : null}
-          <div className="space-y-2 text-sm">
-            {extraHalls.map((h) => (
-              <div
-                key={h.id}
-                className="rounded-xl border border-white/10 bg-surface/30 px-4 py-3"
-              >
-                <span className="text-heading">{h.title}</span>
-                {h.bookingUrl ? (
-                  <a
-                    href={h.bookingUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-2 text-accent underline underline-offset-4"
-                  >
-                    ссылка на бронирование
-                  </a>
-                ) : (
-                  <span className="ml-2 text-text/60">
-                    ссылка не указана — клиент не сможет забронировать
-                  </span>
-                )}
-              </div>
-            ))}
-            {extraHalls.length === 0 && (
-              <p className="text-text/60">Дополнительных залов пока нет.</p>
-            )}
-          </div>
-        </div>
       )}
 
       {scope === "main" && kind === "plain" && (
@@ -341,12 +290,10 @@ export default function AdminServices() {
         />
       )}
 
-      {kind === "timed" && (
+      {scope === "main" && kind === "timed" && (
         <>
           <p className="mb-3 font-sub text-heading">
-            {scope === "main"
-              ? "Расписание основного зала"
-              : "Расписание доп. залов"}
+            Расписание основного зала
           </p>
           <WeekGrid
             selectedDay={selected}
@@ -378,7 +325,7 @@ export default function AdminServices() {
                       )}
                     />
                     <span className="font-sub text-heading">
-                      {fmtTime(s.startsAt)}–{fmtTime(s.endsAt)}
+                      {fmtTime(s.startsAt)} – {fmtTime(s.endsAt)}
                     </span>
                   </span>
                   <span className="block text-xs text-text/70">
@@ -402,7 +349,7 @@ export default function AdminServices() {
         </>
       )}
 
-      {openSlot && kind === "timed" && (
+      {openSlot && scope === "main" && kind === "timed" && (
         <div className="mt-8 rounded-2xl border-gold bg-surface/50 p-5">
           <div className="mb-4 flex items-start justify-between gap-4">
             <div>
@@ -719,10 +666,9 @@ function ExtraHallsBlock({
     <div className="mb-8 rounded-2xl border-gold bg-surface/50 p-5">
       <p className="mb-1 font-sub text-heading">Залы студии</p>
       <p className="mb-4 text-xs text-text/50">
-        Залы независимы: бронь одного не занимает время другого. Автоматические
-        слоты собираются только в основном зале — дополнительные сдаются по
-        ссылке. Первый созданный зал становится основным, дальше основной
-        выбирается переключателем.
+        Залы независимы: бронь одного не занимает время другого. Расписание и
+        автоматические слоты есть только у основного зала, дополнительные
+        бронируются по ссылке в соцсети.
       </p>
 
       <div className="grid items-start gap-4 md:grid-cols-3 lg:grid-cols-6">
@@ -745,18 +691,13 @@ function ExtraHallsBlock({
         ).map(([key, label]) => (
           <label key={key} className="text-sm">
             <span className="mb-1 block h-9 text-text/80">{label}, ₽/час</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              className="field"
-              min={0}
+            <NumberInput
               value={draft[key]}
-              onChange={(e) =>
-                setDraft({
+              onChange={(v) => setDraft({
                   ...draft,
-                  [key]: Math.max(0, Number(e.target.value)),
-                })
-              }
+                  [key]: v,
+                })}
+              min={0}
             />
           </label>
         ))}
@@ -785,19 +726,14 @@ function ExtraHallsBlock({
           <span className="mb-1 block h-5 text-text/80">
             Перерыв у занятия, мин
           </span>
-          <input
-            type="number"
-            inputMode="numeric"
-            className="field"
-            min={0}
-            value={draft.bufferMin}
-            onChange={(e) =>
-              setDraft({
+          <NumberInput
+              value={draft.bufferMin}
+              onChange={(v) => setDraft({
                 ...draft,
-                bufferMin: Math.max(0, Number(e.target.value)),
-              })
-            }
-          />
+                bufferMin: v,
+              })}
+              min={0}
+            />
         </label>
       </div>
 
@@ -963,19 +899,15 @@ function HallRow({
         </label>
         <label className="text-xs text-text/60">
           Перерыв, мин
-          <input
-            type="number"
-            inputMode="numeric"
-            className="field mt-1"
-            min={0}
-            value={draft.bufferMin}
-            onChange={(e) =>
-              setDraft({
+          <NumberInput
+              value={draft.bufferMin}
+              onChange={(v) => setDraft({
                 ...draft,
-                bufferMin: Math.max(0, Number(e.target.value)),
-              })
-            }
-          />
+                bufferMin: v,
+              })}
+              min={0}
+              className="mt-1"
+            />
         </label>
       </div>
 
@@ -1000,23 +932,6 @@ function HallRow({
           {benefit(hall.price8, 8).toLocaleString("ru-RU")} ₽ ·{" "}
           {benefit(hall.price12, 12).toLocaleString("ru-RU")} ₽
         </span>
-        <label className="flex items-center gap-2 text-text/80">
-          <input
-            type="radio"
-            name="main-hall"
-            checked={hall.isMain}
-            onChange={() => save({ isMain: true })}
-          />
-          Основной зал (автослоты)
-        </label>
-        <label className="flex items-center gap-2 text-text/80">
-          <input
-            type="checkbox"
-            checked={hall.isActive}
-            onChange={(e) => save({ isActive: e.target.checked })}
-          />
-          Показывать на сайте
-        </label>
         <button
           onClick={() => save()}
           disabled={!changed || busy || !draft.title.trim()}
@@ -1078,16 +993,11 @@ function PlainServicesBlock({
         </label>
         <label className="text-sm">
           <span className="mb-1 block h-5 text-text/80">Цена, ₽</span>
-          <input
-            type="number"
-            inputMode="numeric"
-            className="field"
-            min={0}
-            value={draft.price}
-            onChange={(e) =>
-              setDraft({ ...draft, price: Math.max(0, Number(e.target.value)) })
-            }
-          />
+          <NumberInput
+              value={draft.price}
+              onChange={(v) => setDraft({ ...draft, price: v })}
+              min={0}
+            />
         </label>
         <label className="text-sm">
           <span className="mb-1 block h-5 text-text/80">Комментарий</span>
@@ -1197,31 +1107,21 @@ function ServiceRow({
           value={draft.title}
           onChange={(e) => setDraft({ ...draft, title: e.target.value })}
         />
-        <input
-          type="number"
-          inputMode="numeric"
-          className="field"
-          min={0}
-          value={draft.price}
-          onChange={(e) =>
-            setDraft({ ...draft, price: Math.max(0, Number(e.target.value)) })
-          }
-        />
+        <NumberInput
+              value={draft.price}
+              onChange={(v) => setDraft({ ...draft, price: v })}
+              min={0}
+            />
         {withDuration && (
-          <input
-            type="number"
-            inputMode="numeric"
-            className="field"
-            min={15}
-            step={15}
-            value={draft.durationMin}
-            onChange={(e) =>
-              setDraft({
+          <NumberInput
+              value={draft.durationMin}
+              onChange={(v) => setDraft({
                 ...draft,
-                durationMin: Math.max(15, Number(e.target.value)),
-              })
-            }
-          />
+                durationMin: v,
+              })}
+              min={15}
+              step={15}
+            />
         )}
         <input
           className="field"

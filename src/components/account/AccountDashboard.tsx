@@ -597,7 +597,7 @@ function MoveDialog({
         id: s.id,
         startsAt: s.startsAt,
         title: s.hallTitle ? `${s.hallTitle} · ${s.serviceTitle}` : s.serviceTitle,
-        note: `${timeOf(s.startsAt)}–${timeOf(s.endsAt)}`,
+        note: `${timeOf(s.startsAt)} – ${timeOf(s.endsAt)}`,
         extra:
           s.price > 0 ? `${s.price.toLocaleString("ru-RU")} ₽` : "бесплатно",
       }))

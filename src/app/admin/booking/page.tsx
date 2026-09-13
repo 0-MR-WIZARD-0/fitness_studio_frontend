@@ -3,9 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   getHalls,
+  getSettings,
   type Announcement,
   type Format,
   type Hall,
+  type SiteSettings,
   type Slot,
   type Trainer,
 } from "@/lib/api";
@@ -22,6 +24,7 @@ import {
   deleteSlot,
   moveClientBooking,
   updateAnnouncement,
+  updateSettings,
   updateSlot,
   type AdminBooking,
   type AdminSlot,
@@ -31,6 +34,7 @@ import { WeekMatrix } from "@/components/booking/WeekMatrix";
 import { toKey } from "@/components/Calendar";
 import { Select } from "@/components/Select";
 import { clsx } from "@/lib/clsx";
+import { NumberInput } from "@/components/admin/NumberInput";
 
 export default function AdminBooking() {
   const [formats, setFormats] = useState<Format[]>([]);
@@ -59,6 +63,8 @@ export default function AdminBooking() {
   } | null>(null);
   const [moveError, setMoveError] = useState<string | null>(null);
   const [movingBooking, setMovingBooking] = useState<AdminBooking | null>(null);
+  const [rules, setRules] = useState<SiteSettings | null>(null);
+  const [savingRules, setSavingRules] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const [asAnnouncement, setAsAnnouncement] = useState(false);
@@ -75,6 +81,9 @@ export default function AdminBooking() {
     });
     getHalls()
       .then(setHalls)
+      .catch(() => {});
+    getSettings()
+      .then(setRules)
       .catch(() => {});
     adminTrainers().then((ts) => {
       const active = ts.filter((t) => t.isActive);
@@ -264,6 +273,58 @@ export default function AdminBooking() {
     <div className="max-w-6xl">
       <PageTitle>Расписание и записи</PageTitle>
 
+      {rules && (
+        <div className="mb-8 rounded-2xl border-gold bg-surface/50 p-5">
+          <p className="mb-1 font-sub text-heading">Правила для клиента</p>
+          <p className="mb-4 text-xs text-text/50">
+            До этого срока клиент сам переносит и отменяет записи в личном
+            кабинете. Позже — только через студию: кнопка «Перенести клиента» в
+            списке записей ниже работает без ограничений.
+          </p>
+          <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <label className="text-sm">
+              <span className="mb-1 block h-9 text-text/80">
+                Перенос и отмена занятия — за, ч
+              </span>
+              <NumberInput
+                value={rules.bookingEditHours}
+                onChange={(v) => setRules({ ...rules, bookingEditHours: v })}
+                min={0}
+              />
+            </label>
+            <label className="text-sm">
+              <span className="mb-1 block h-9 text-text/80">
+                Отказ от курса — за, ч
+              </span>
+              <NumberInput
+                value={rules.courseCancelHours}
+                onChange={(v) => setRules({ ...rules, courseCancelHours: v })}
+                min={0}
+              />
+            </label>
+          </div>
+          <button
+            onClick={async () => {
+              setSavingRules(true);
+              try {
+                const saved = await updateSettings({
+                  bookingEditHours: rules.bookingEditHours,
+                  courseCancelHours: rules.courseCancelHours,
+                });
+                setRules(saved);
+                flash("Правила сохранены");
+              } finally {
+                setSavingRules(false);
+              }
+            }}
+            disabled={savingRules}
+            className="btn-gold mt-4 disabled:opacity-40"
+          >
+            {savingRules ? "Сохраняем…" : "Сохранить правила"}
+          </button>
+        </div>
+      )}
+
       <div className="mb-8 rounded-2xl border-gold bg-surface/50 p-5">
         <p className="mb-1 font-sub text-heading">
           Создать на: {fmtDay(selected)}
@@ -323,30 +384,20 @@ export default function AdminBooking() {
                 <span className="mb-1 block h-5 text-text/80">
                   Длительность, мин
                 </span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  className="field"
-                  min={5}
-                  value={annDuration}
-                  onChange={(e) =>
-                    setAnnDuration(Math.max(5, Number(e.target.value)))
-                  }
-                />
+                <NumberInput
+              value={annDuration}
+              onChange={(v) => setAnnDuration(v)}
+              min={5}
+            />
               </label>
               <label className="text-sm">
                 <span className="mb-1 block h-5 text-text/80">Мест</span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  className="field"
-                  min={1}
-                  max={7}
-                  value={capacity}
-                  onChange={(e) =>
-                    setCapacity(Math.min(7, Number(e.target.value)))
-                  }
-                />
+                <NumberInput
+              value={capacity}
+              onChange={(v) => setCapacity(v)}
+              min={1}
+              max={7}
+            />
               </label>
             </div>
 
@@ -372,14 +423,12 @@ export default function AdminBooking() {
               {!annFree && (
                 <label className="mt-3 block text-sm">
                   <span className="mb-1 block text-text/80">Цена, ₽</span>
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    className="field w-40"
-                    min={0}
-                    value={annPrice}
-                    onChange={(e) => setAnnPrice(Number(e.target.value))}
-                  />
+                  <NumberInput
+              value={annPrice}
+              onChange={(v) => setAnnPrice(v)}
+              min={0}
+              className="w-40"
+            />
                 </label>
               )}
             </div>
@@ -461,17 +510,12 @@ export default function AdminBooking() {
 
               <label className="text-sm">
                 <span className="mb-1 block h-5 text-text/80">Мест</span>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  className="field"
-                  value={capacity}
-                  min={1}
-                  max={7}
-                  onChange={(e) =>
-                    setCapacity(Math.min(7, Number(e.target.value)))
-                  }
-                />
+                <NumberInput
+              value={capacity}
+              onChange={(v) => setCapacity(v)}
+              min={1}
+              max={7}
+            />
               </label>
             </div>
 
@@ -492,14 +536,12 @@ export default function AdminBooking() {
               {weekdayMode && (
                 <label className="flex items-center gap-2 text-sm">
                   Недель:
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    className="field w-20"
-                    value={weeks}
-                    min={1}
-                    onChange={(e) => setWeeks(Number(e.target.value))}
-                  />
+                  <NumberInput
+              value={weeks}
+              onChange={(v) => setWeeks(v)}
+              min={1}
+              className="w-20"
+            />
                 </label>
               )}
               <button
@@ -974,36 +1016,26 @@ function AnnouncementEditor({
         </div>
         <label className="text-sm">
           <span className="mb-1 block h-5 text-text/80">Длительность, мин</span>
-          <input
-            type="number"
-            inputMode="numeric"
-            className="field"
-            min={5}
-            value={draft.durationMin}
-            onChange={(e) =>
-              setDraft({
+          <NumberInput
+              value={draft.durationMin}
+              onChange={(v) => setDraft({
                 ...draft,
-                durationMin: Math.max(5, Number(e.target.value)),
-              })
-            }
-          />
+                durationMin: v,
+              })}
+              min={5}
+            />
         </label>
         <label className="text-sm">
           <span className="mb-1 block h-5 text-text/80">Мест</span>
-          <input
-            type="number"
-            inputMode="numeric"
-            className="field"
-            min={1}
-            max={7}
-            value={draft.capacity}
-            onChange={(e) =>
-              setDraft({
+          <NumberInput
+              value={draft.capacity}
+              onChange={(v) => setDraft({
                 ...draft,
-                capacity: Math.min(7, Number(e.target.value)),
-              })
-            }
-          />
+                capacity: v,
+              })}
+              min={1}
+              max={7}
+            />
         </label>
       </div>
 
@@ -1029,15 +1061,11 @@ function AnnouncementEditor({
         {!draft.isFree && (
           <label className="block text-sm">
             <span className="mb-1 block text-text/80">Цена, ₽</span>
-            <input
-              type="number"
-              inputMode="numeric"
-              className="field w-40"
-              min={0}
+            <NumberInput
               value={draft.price}
-              onChange={(e) =>
-                setDraft({ ...draft, price: Number(e.target.value) })
-              }
+              onChange={(v) => setDraft({ ...draft, price: v })}
+              min={0}
+              className="w-40"
             />
           </label>
         )}
