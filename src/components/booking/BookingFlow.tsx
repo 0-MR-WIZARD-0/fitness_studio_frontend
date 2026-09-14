@@ -238,7 +238,6 @@ export function BookingFlow({
   }
 
   const hasSelection = !!diagSlot || !!annSlot || cart.length > 0;
-  // диагностику и бесплатный анонс можно взять без входа — по ФИО и телефону
   const freeSelection =
     (!!diagSlot && !annSlot && cart.length === 0) ||
     (!!annSlot && annSlot.isFree && cart.length === 0);

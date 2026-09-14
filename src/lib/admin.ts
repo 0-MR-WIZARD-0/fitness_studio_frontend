@@ -44,8 +44,12 @@ export interface AdminUser {
   username: string;
 }
 export const adminLogin = (username: string, password: string) =>
-  api<{ user: AdminUser }>("/auth/login", authOpts("POST", { username, password }));
-export const adminMe = () => api<{ user: AdminUser }>("/auth/me", { auth: true });
+  api<{ user: AdminUser }>(
+    "/auth/login",
+    authOpts("POST", { username, password }),
+  );
+export const adminMe = () =>
+  api<{ user: AdminUser }>("/auth/me", { auth: true });
 export const adminLogout = () => api("/auth/logout", authOpts("POST"));
 
 export async function uploadFile(
@@ -71,7 +75,8 @@ export async function deleteUpload(url?: string | null): Promise<void> {
 export const updateHero = (data: Partial<HomeHero>) =>
   api<HomeHero>("/home/hero", authOpts("PUT", data));
 
-export const adminFaqList = () => api<HomeFaq[]>("/home/admin/faq", { auth: true });
+export const adminFaqList = () =>
+  api<HomeFaq[]>("/home/admin/faq", { auth: true });
 export const createFaq = (data: Partial<HomeFaq>) =>
   api<HomeFaq>("/home/faq", authOpts("POST", data));
 export const updateFaq = (id: number, data: Partial<HomeFaq>) =>
@@ -120,10 +125,9 @@ export const importConditions = (items: ConditionInput[]) =>
   );
 
 export const adminReviews = (status?: ReviewStatus) =>
-  api<Review[]>(
-    `/reviews/admin/all${status ? `?status=${status}` : ""}`,
-    { auth: true },
-  );
+  api<Review[]>(`/reviews/admin/all${status ? `?status=${status}` : ""}`, {
+    auth: true,
+  });
 export const moderateReview = (id: number, status: ReviewStatus) =>
   api<Review>(`/reviews/${id}/status`, authOpts("PUT", { status }));
 export const deleteReview = (id: number) =>
@@ -304,11 +308,20 @@ export interface AdminBooking {
   createdAt: string;
   slot: Slot | null;
   format: Format | null;
-  announcement: { id: number; title: string } | null;
+  announcement: {
+    id: number;
+    title: string;
+    startsAt: string;
+    isFree: boolean;
+  } | null;
+  rentalSlot: { id: number; startsAt: string } | null;
   promoCode: { code: string; kind: string } | null;
 }
 export const moveClientBooking = (bookingId: number, slotId: number) =>
-  api(`/booking/admin/bookings/${bookingId}/move`, authOpts("POST", { slotId }));
+  api(
+    `/booking/admin/bookings/${bookingId}/move`,
+    authOpts("POST", { slotId }),
+  );
 export const adminBookings = () =>
   api<AdminBooking[]>("/booking/admin/bookings", { auth: true });
 

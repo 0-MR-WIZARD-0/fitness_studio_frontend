@@ -29,8 +29,7 @@ export async function api<T>(path: string, opts: FetchOpts = {}): Promise<T> {
         message = Array.isArray(body.message)
           ? body.message.join(", ")
           : body.message;
-    } catch {
-    }
+    } catch {}
     throw new ApiError(message, res.status);
   }
   if (res.status === 204) return undefined as T;
@@ -195,11 +194,7 @@ export interface AccountUser {
   phone: string;
 }
 export type BookingKind =
-  | "LESSON"
-  | "DIAGNOSTIC"
-  | "ANNOUNCEMENT"
-  | "RENT"
-  | "SERVICE";
+  "LESSON" | "DIAGNOSTIC" | "ANNOUNCEMENT" | "RENT" | "SERVICE";
 export interface AccountBooking {
   id: number;
   kind: BookingKind;
@@ -273,7 +268,8 @@ export const accountRegister = (data: {
   password: string;
   name: string;
   phone: string;
-}) => api<{ user: AccountUser }>("/account/register", accountOpts("POST", data));
+}) =>
+  api<{ user: AccountUser }>("/account/register", accountOpts("POST", data));
 export const accountLogout = () =>
   api<{ ok: boolean }>("/account/logout", accountOpts("POST"));
 export const accountProfile = (data: { name: string; phone: string }) =>
@@ -357,6 +353,8 @@ export interface SiteSettings {
   rentBufferMin: number;
   bookingEditHours: number;
   courseCancelHours: number;
+  mapLat: number | null;
+  mapLng: number | null;
 }
 export interface Announcement {
   id: number;
@@ -367,6 +365,8 @@ export interface Announcement {
   trainerId: number | null;
   trainerName: string | null;
   capacity: number;
+  taken: number;
+  remaining: number;
   price: number;
   isFree: boolean;
   isActive: boolean;
@@ -376,8 +376,7 @@ export const getHero = () => api<HomeHero>("/home/hero");
 export const getFaq = () => api<HomeFaq[]>("/home/faq");
 export const getSteps = () => api<HomeStep[]>("/home/steps");
 export const getFormats = () => api<Format[]>("/formats");
-export const getFormat = (slug: string) =>
-  api<Format>(`/formats/slug/${slug}`);
+export const getFormat = (slug: string) => api<Format>(`/formats/slug/${slug}`);
 export const getConditions = () => api<Condition[]>("/survey/conditions");
 export const getTrainers = () => api<Trainer[]>("/trainers");
 export const getRentSlots = () => api<RentalSlot[]>("/rent/slots");

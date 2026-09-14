@@ -118,18 +118,26 @@ export default function AdminBooking() {
         formatName: s.format?.name ?? null,
         trainerId: s.trainerId,
         trainerName: s.trainer?.name ?? null,
-        pricePerSession: 0,
+        pricePerSession: s.isDiagnostic ? 0 : (rules?.pricePerSession ?? -1),
         taken: s._count.bookings,
         remaining: Math.max(0, s.capacity - s._count.bookings),
       })),
-    [slots],
+    [slots, rules],
   );
 
   const openSlot = slots.find((s) => s.id === openSlotId) ?? null;
   const openAnn = announcements.find((a) => a.id === openAnnId) ?? null;
-  const dayBookings = bookings.filter(
-    (b) => b.slot && toKey(new Date(b.slot.startsAt)) === selected,
-  );
+  const startOf = (b: AdminBooking) =>
+    b.slot?.startsAt ??
+    b.announcement?.startsAt ??
+    b.rentalSlot?.startsAt ??
+    null;
+  const dayBookings = bookings
+    .filter((b) => {
+      const at = startOf(b);
+      return !!at && toKey(new Date(at)) === selected;
+    })
+    .sort((a, b) => +new Date(startOf(a)!) - +new Date(startOf(b)!));
 
   const duration = diag
     ? 30
@@ -720,13 +728,15 @@ export default function AdminBooking() {
               className="rounded-xl border-gold bg-surface/40 px-4 py-2 text-sm"
             >
               <span className="text-accent">
-                {b.slot ? fmtTime(b.slot.startsAt) : "—"}
+                {startOf(b) ? fmtTime(startOf(b)!) : "—"}
               </span>{" "}
               — <span className="text-heading">{b.name}</span> · {b.phone}
               {!b.userId && (
                 <span className="ml-1 text-text/50">(не авторизован)</span>
               )}
               {b.format ? ` · ${b.format.name}` : ""}
+              {b.announcement ? ` · анонс «${b.announcement.title}»` : ""}
+              {b.rentalSlot ? " · аренда" : ""}
               {b.isDiagnostic ? " · диагностика" : ""}
               {b.isCourse ? " · курс" : ""}
               {b.isFree ? " · бесплатно" : ""}
@@ -734,12 +744,14 @@ export default function AdminBooking() {
               {b.status === "CANCELLED" ? (
                 <span className="ml-2 text-red-400">отменена</span>
               ) : (
-                <button
-                  onClick={() => setMovingBooking(b)}
-                  className="ml-3 text-accent underline underline-offset-4"
-                >
-                  Перенести клиента
-                </button>
+                b.slot && (
+                  <button
+                    onClick={() => setMovingBooking(b)}
+                    className="ml-3 text-accent underline underline-offset-4"
+                  >
+                    Перенести клиента
+                  </button>
+                )
               )}
             </div>
           ))}

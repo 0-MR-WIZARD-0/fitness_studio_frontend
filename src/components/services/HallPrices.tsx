@@ -78,7 +78,7 @@ export function HallPrices({ hall }: { hall: Hall }) {
         Аренда с {hall.dayStart} до {hall.dayEnd}.{" "}
         {hall.isMain
           ? "Свободные часы видны в расписании ниже."
-          : "Забронировать можно через студию."}
+          : ""}
       </p>
       {link}
     </div>

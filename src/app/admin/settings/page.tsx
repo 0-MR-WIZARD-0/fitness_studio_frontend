@@ -8,17 +8,25 @@ import { formatPhone, isValidPhone } from "@/lib/phone";
 
 export default function AdminSettings() {
   const [data, setData] = useState<SiteSettings | null>(null);
+  const [point, setPoint] = useState("");
   const [toast, setToast] = useState<string | null>(null);
 
   useEffect(() => {
-    getSettings().then(setData);
+    getSettings().then((s) => {
+      setData(s);
+      setPoint(s.mapLat && s.mapLng ? `${s.mapLat}, ${s.mapLng}` : "");
+    });
   }, []);
 
   if (!data) return <p>Загрузка…</p>;
 
   async function save() {
     if (!data) return;
-    await updateSettings(data);
+    const saved = await updateSettings(data);
+    setData(saved);
+    setPoint(
+      saved.mapLat && saved.mapLng ? `${saved.mapLat}, ${saved.mapLng}` : "",
+    );
     setToast("Сохранено");
     setTimeout(() => setToast(null), 2000);
   }
@@ -50,8 +58,31 @@ export default function AdminSettings() {
         value={data.email}
         onChange={(v) => setData({ ...data, email: v })}
       />
+      <Labeled label="Координаты метки">
+        <input
+          className="field"
+          placeholder="55.760100, 37.593800"
+          value={point}
+          onChange={(e) => {
+            const raw = e.target.value;
+            setPoint(raw);
+            const [lat, lng] = raw
+              .split(/[,;\s]+/)
+              .filter(Boolean)
+              .map(Number);
+            const ok = Number.isFinite(lat) && Number.isFinite(lng);
+            setData({
+              ...data,
+              mapLat: ok ? lat : null,
+              mapLng: ok ? lng : null,
+            });
+          }}
+        />
+      </Labeled>
       <p className="text-sm text-text/60">
-        Карта и точка на сайте формируются автоматически из адреса.
+        Карта в футере открывается по адресу, метка ставится по этим
+        координатам. После смены адреса они подбираются сами. Если метка встала
+        неточно, скопируйте координаты из Яндекс Карт и вставьте сюда.
       </p>
 
       <div className="border-t border-white/10 pt-4 space-y-4">

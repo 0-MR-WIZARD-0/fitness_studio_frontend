@@ -19,7 +19,6 @@ function weekOffsetOf(date: Date, base: Date): number {
   return Math.round((target.getTime() - base.getTime()) / (7 * 86400000));
 }
 
-
 const timeOf = (iso: string) =>
   new Date(iso).toLocaleTimeString("ru-RU", {
     hour: "2-digit",
@@ -105,9 +104,19 @@ export function WeekMatrix({
         slots.filter((s) => !s.isDiagnostic && s.formatId === f.id),
       );
       if (!own.length) continue;
+      const prices = [...new Set(own.map((s) => s.pricePerSession))];
+      const from = Math.min(...prices);
       list.push({
         key: `f-${f.id}`,
         label: f.name,
+        hint:
+          from < 0
+            ? undefined
+            : from === 0
+              ? "бесплатно"
+              : prices.length > 1
+                ? `от ${money(from)}`
+                : money(from),
         slots: own,
         announcements: [],
       });
@@ -240,9 +249,7 @@ export function WeekMatrix({
             <div key={row.key} className="contents">
               <div className={clsx("border-b py-3 pr-3", LINE)}>
                 <p className="font-sub text-sm text-heading">{row.label}</p>
-                {row.hint && (
-                  <p className="text-xs text-text/60">{row.hint}</p>
-                )}
+                {row.hint && <p className="text-xs text-text/60">{row.hint}</p>}
               </div>
               {dayKeys.map((dayKey) => (
                 <div
@@ -277,7 +284,9 @@ export function WeekMatrix({
           const key = toKey(date);
           const daySlots = rows.flatMap((r) => cellSlots(r, key));
           const dayAnn = rows.flatMap((r) => cellAnnouncements(r, key));
-          daySlots.sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt));
+          daySlots.sort(
+            (a, b) => +new Date(a.startsAt) - +new Date(b.startsAt),
+          );
           return (
             <div key={`m-${key}`}>
               <div
@@ -331,11 +340,7 @@ export function WeekMatrix({
         })}
       </div>
 
-      {weekEmpty && (
-        <p className="mt-5 text-sm text-text/60">
-          {emptyText}
-        </p>
-      )}
+      {weekEmpty && <p className="mt-5 text-sm text-text/60">{emptyText}</p>}
     </div>
   );
 }
@@ -393,15 +398,17 @@ function SlotChip({
           >
             {slot.isDiagnostic ? "Диагностика" : slot.formatName}
           </span>
-          <span className="block text-xs text-text/60">
-            {slot.isDiagnostic || slot.pricePerSession === 0
-              ? "бесплатно"
-              : `${slot.pricePerSession.toLocaleString("ru-RU")} ₽`}
-          </span>
+          {slot.pricePerSession >= 0 && (
+            <span className="block text-xs text-text/60">
+              {slot.isDiagnostic || slot.pricePerSession === 0
+                ? "бесплатно"
+                : `${slot.pricePerSession.toLocaleString("ru-RU")} ₽`}
+            </span>
+          )}
         </>
       )}
       <span className="mt-0.5 block text-xs text-text/70">
-        {slot.trainerName ?? "тренер уточняется"}
+        {slot.trainerName ? `Тренер: ${slot.trainerName}` : "тренер уточняется"}
       </span>
       <span className="block text-xs text-text/50">
         {full ? "мест нет" : `свободно: ${slot.remaining}/${slot.capacity}`}
@@ -421,19 +428,23 @@ function AnnouncementChip({
   onPick: () => void;
   withTitle?: boolean;
 }) {
+  const full = announcement.remaining <= 0;
   return (
     <button
       type="button"
       onClick={onPick}
+      disabled={full}
       className={clsx(
         "block w-full rounded-lg border px-2.5 py-2 text-left transition",
-        picked
-          ? "border-accent bg-accent/20"
-          : "border-accent/40 bg-accent/5 hover:bg-accent/15",
+        full
+          ? "cursor-not-allowed border-white/10 bg-surface/20 opacity-60"
+          : picked
+            ? "border-accent bg-accent/20"
+            : "border-accent/40 bg-accent/5 hover:bg-accent/15",
       )}
     >
       <span className="flex items-center gap-1.5">
-        <Dot free />
+        <Dot free={!full} />
         <span className="font-sub text-heading">
           {timeOf(announcement.startsAt)}
         </span>
@@ -454,7 +465,14 @@ function AnnouncementChip({
         </>
       )}
       <span className="mt-0.5 block text-xs text-text/70">
-        {announcement.trainerName ?? "тренер уточняется"}
+        {announcement.trainerName
+          ? `Тренер: ${announcement.trainerName}`
+          : "тренер уточняется"}
+      </span>
+      <span className="block text-xs text-text/50">
+        {full
+          ? "мест нет"
+          : `свободно: ${announcement.remaining}/${announcement.capacity}`}
       </span>
     </button>
   );

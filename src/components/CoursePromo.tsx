@@ -14,7 +14,6 @@ export function CoursePromo({
 }) {
   const total = price * threshold;
   const full = price * (threshold + 1);
-  // цена занятия с учётом подарка, округлённая до десятков
   const perLesson = Math.round(total / (threshold + 1) / 10) * 10;
 
   return (

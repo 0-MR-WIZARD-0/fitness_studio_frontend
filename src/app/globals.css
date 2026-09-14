@@ -102,7 +102,6 @@ h4 {
   }
 }
 
-/* затемнение страницы под модалкой — одинаковое для всех окон */
 @utility overlay-dim {
   background: color-mix(in srgb, #000 82%, transparent);
 }

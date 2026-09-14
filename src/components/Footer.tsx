@@ -2,6 +2,16 @@ import { Container, Grid } from "./Container";
 import { MaxIcon, TelegramIcon } from "./SocialIcons";
 import type { SiteSettings } from "@/lib/api";
 
+function mapSrc({ address, mapLat, mapLng }: SiteSettings) {
+  if (mapLat != null && mapLng != null) {
+    const point = `${mapLng},${mapLat}`;
+    return `https://yandex.ru/map-widget/v1/?ll=${point}&z=17&pt=${point},pm2rdm`;
+  }
+  return `https://yandex.ru/map-widget/v1/?mode=search&text=${encodeURIComponent(
+    address,
+  )}&z=17`;
+}
+
 export function Footer({ settings }: { settings: SiteSettings }) {
   return (
     <footer className="mt-0 border-t border-white/10 py-10 md:mt-20">
@@ -9,9 +19,7 @@ export function Footer({ settings }: { settings: SiteSettings }) {
         <Grid className="items-start gap-y-8">
           <div className="col-span-12 md:col-span-4">
             <iframe
-              src={`https://yandex.ru/map-widget/v1/?mode=search&text=${encodeURIComponent(
-                settings.address,
-              )}&z=17`}
+              src={mapSrc(settings)}
               className="h-56 w-full rounded-xl border-gold"
               loading="lazy"
               title="Карта"

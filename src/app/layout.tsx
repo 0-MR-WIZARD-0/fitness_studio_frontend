@@ -43,6 +43,8 @@ const FALLBACK_SETTINGS: SiteSettings = {
   rentBufferMin: 30,
   bookingEditHours: 4,
   courseCancelHours: 12,
+  mapLat: null,
+  mapLng: null,
 };
 
 export default async function RootLayout({
@@ -51,8 +53,7 @@ export default async function RootLayout({
   let settings = FALLBACK_SETTINGS;
   try {
     settings = await getSettings();
-  } catch {
-  }
+  } catch {}
 
   return (
     <html

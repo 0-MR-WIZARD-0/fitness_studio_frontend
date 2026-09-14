@@ -28,6 +28,8 @@ const FALLBACK_SETTINGS: SiteSettings = {
   rentBufferMin: 30,
   bookingEditHours: 4,
   courseCancelHours: 12,
+  mapLat: null,
+  mapLng: null,
 };
 
 export default async function SurveyPage() {
@@ -41,8 +43,7 @@ export default async function SurveyPage() {
       getFormats(),
       getSettings(),
     ]);
-  } catch {
-  }
+  } catch {}
 
   return (
     <div className="pt-28 pb-14 md:pt-32">
