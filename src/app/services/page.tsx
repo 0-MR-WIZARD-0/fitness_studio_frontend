@@ -29,10 +29,22 @@ export default async function ServicesPage() {
         <h1 className="text-4xl md:text-6xl font-bold">
           Дополнительные услуги
         </h1>
-        <p className="mt-4 max-w-2xl text-sm md:text-base leading-relaxed">
-          Аренда зала на свободные часы и услуги студии: разбор питания,
-          сопровождение и другие форматы вне расписания занятий.
-        </p>
+        <div className="mt-4 max-w-2xl space-y-3 text-sm md:text-base leading-relaxed">
+          <p>Помимо групповых занятий, студия предлагает:</p>
+          <div>
+            <p>Доступ к залу и оборудованию по часам.</p>
+            <ol className="mt-1 list-decimal space-y-1 pl-6 marker:text-accent">
+              <li>Выбираете удобное время в расписании.</li>
+              <li>Бронируете слот.</li>
+              <li>Проводите свою тренировку или мероприятие.</li>
+              <li>Оплачиваете услугу по тарифу.</li>
+            </ol>
+          </div>
+          <p>
+            Составление индивидуального плана питания под ваши запросы и
+            потребности.
+          </p>
+        </div>
       </Container>
 
       {photos.length > 0 && (
@@ -59,7 +71,9 @@ export default async function ServicesPage() {
       {withoutTime.length > 0 && (
         <div className="mt-10">
           <Container>
-            <h2 className="font-sub text-2xl text-heading">Услуги без записи по времени</h2>
+            <h2 className="font-sub text-2xl text-heading">
+              Услуги без записи по времени
+            </h2>
             <p className="mt-2 max-w-2xl text-sm text-text/70">
               Оставьте заявку — студия свяжется с вами и договорится о деталях.
             </p>
@@ -70,7 +84,9 @@ export default async function ServicesPage() {
 
       <div className="mt-12">
         <Container>
-          <h2 className="font-sub text-2xl text-heading">Расписание по часам</h2>
+          <h2 className="font-sub text-2xl text-heading">
+            Расписание по часам
+          </h2>
         </Container>
         <div className="mt-4">
           <RentFlow />

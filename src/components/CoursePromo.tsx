@@ -34,11 +34,13 @@ export function CoursePromo({
           <span className="font-sub text-emerald-300">{money(total)} ₽</span>{" "}
           вместо{" "}
           <span className="text-text/60 line-through">{money(full)} ₽</span>.
-          Цена за одно занятие —{" "}
+          Цена за одно занятие снижается до{" "}
           <span className="font-sub text-emerald-300">
             {money(perLesson)} ₽
-          </span>
-          . Промокод на бесплатное занятие придёт в личный кабинет. Действует на
+          </span>{" "}
+          вместо{" "}
+          <span className="text-text/60 line-through">{money(price)} ₽</span>.
+          Промокод на бесплатное занятие придёт в личный кабинет. Действует на
           любые тренировки из расписания студии.
         </p>
       )}
