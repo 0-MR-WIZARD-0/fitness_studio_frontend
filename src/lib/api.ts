@@ -149,7 +149,7 @@ export interface Hall {
   price4: number;
   price8: number;
   price12: number;
-  isMain: boolean;
+  autoSchedule: boolean;
   bookingUrl: string;
   dayStart: string;
   dayEnd: string;
@@ -167,6 +167,7 @@ export interface Service {
   durationMin: number | null;
   order: number;
   isActive: boolean;
+  createdById?: number | null;
 }
 export const getServices = () => api<Service[]>("/services");
 export const orderService = (data: {
@@ -335,6 +336,7 @@ export interface Slot {
   pricePerSession: number;
   taken: number;
   remaining: number;
+  createdById?: number | null;
 }
 export interface SiteSettings {
   id: number;
@@ -370,6 +372,7 @@ export interface Announcement {
   price: number;
   isFree: boolean;
   isActive: boolean;
+  createdById?: number | null;
 }
 
 export const getHero = () => api<HomeHero>("/home/hero");

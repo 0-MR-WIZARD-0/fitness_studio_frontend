@@ -34,7 +34,10 @@ export default async function ServicesPage() {
           <div>
             <p>Доступ к залу и оборудованию по часам.</p>
             <ol className="mt-1 list-decimal space-y-1 pl-6 marker:text-accent">
-              <li>Выбираете удобное время в расписании.</li>
+              <li>
+                Выбираете удобное время в расписании или приложенной к залу
+                ссылке.
+              </li>
               <li>Бронируете слот.</li>
               <li>Проводите свою тренировку или мероприятие.</li>
               <li>Оплачиваете услугу по тарифу.</li>
@@ -82,16 +85,18 @@ export default async function ServicesPage() {
         </div>
       )}
 
-      <div className="mt-12">
-        <Container>
-          <h2 className="font-sub text-2xl text-heading">
-            Расписание по часам
-          </h2>
-        </Container>
-        <div className="mt-4">
-          <RentFlow />
+      {halls.some((h) => h.autoSchedule) && (
+        <div className="mt-12">
+          <Container>
+            <h2 className="font-sub text-2xl text-heading">
+              Расписание по часам
+            </h2>
+          </Container>
+          <div className="mt-4">
+            <RentFlow />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

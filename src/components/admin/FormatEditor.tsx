@@ -99,12 +99,20 @@ export function FormatEditor({ initial }: { initial?: Format }) {
 
   return (
     <div className="max-w-3xl space-y-4">
-      <PageTitle>{initial ? `Формат: ${initial.name}` : "Новый формат"}</PageTitle>
+      <PageTitle>
+        {initial ? `Формат: ${initial.name}` : "Новый формат"}
+      </PageTitle>
 
-      <TextField label="Название" value={d.name} onChange={(v) => set({ name: v })} />
+      <TextField
+        label="Название"
+        value={d.name}
+        onChange={(v) => set({ name: v })}
+      />
       <p className="-mt-2 text-xs text-text/50">
         Адрес страницы:{" "}
-        <span className="text-accent">/formats/{d.slug || slugify(d.name) || "…"}</span>{" "}
+        <span className="text-accent">
+          /formats/{d.slug || slugify(d.name) || "…"}
+        </span>{" "}
         (формируется автоматически из названия)
       </p>
       <TextField
@@ -140,14 +148,9 @@ export function FormatEditor({ initial }: { initial?: Format }) {
         посетителю в расписании.
       </p>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={d.isActive}
-          onChange={(e) => set({ isActive: e.target.checked })}
-        />
-        Активен (порядок задаётся стрелками в списке форматов)
-      </label>
+      <p className="text-xs text-text/50">
+        Порядок форматов задаётся стрелками в их списке.
+      </p>
 
       <Labeled label="Для кого этот формат">
         <div className="space-y-3">
@@ -175,7 +178,9 @@ export function FormatEditor({ initial }: { initial?: Format }) {
               />
               <button
                 type="button"
-                onClick={() => set({ forWhom: d.forWhom.filter((_, x) => x !== i) })}
+                onClick={() =>
+                  set({ forWhom: d.forWhom.filter((_, x) => x !== i) })
+                }
                 className="text-xs text-red-400"
               >
                 Удалить карточку

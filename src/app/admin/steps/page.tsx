@@ -12,8 +12,11 @@ import {
 } from "@/components/admin/ui";
 import { MoveButtons } from "@/components/admin/MoveButtons";
 
+type StepDraft = Pick<HomeStep, "label" | "title" | "description" | "imageUrl">;
+
 export default function AdminSteps() {
   const [items, setItems] = useState<HomeStep[]>([]);
+  const [adding, setAdding] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const reload = () => adminStepList().then(setItems);
@@ -25,18 +28,6 @@ export default function AdminSteps() {
     setToast(m);
     setTimeout(() => setToast(null), 2000);
   };
-
-  async function add() {
-    await createStep({
-      label: `${items.length + 1} шаг`,
-      title: "Новый шаг",
-      description: "",
-      order: items.length + 1,
-      isActive: true,
-    });
-    await reload();
-    flash("Добавлено");
-  }
 
   async function move(index: number, dir: -1 | 1) {
     const target = index + dir;
@@ -54,10 +45,34 @@ export default function AdminSteps() {
     <div className="max-w-2xl">
       <div className="mb-6 flex items-center justify-between">
         <PageTitle>Шаги «Начни уже сегодня»</PageTitle>
-        <button onClick={add} className="btn-gold">
+        <button
+          onClick={() => setAdding(true)}
+          disabled={adding}
+          className="btn-gold disabled:opacity-40"
+        >
           + Добавить
         </button>
       </div>
+
+      {adding && (
+        <div className="mb-5">
+          <StepCard
+            initial={{
+              label: `${items.length + 1} шаг`,
+              title: "",
+              description: "",
+              imageUrl: null,
+            }}
+            onSave={async (draft) => {
+              await createStep({ ...draft, order: items.length + 1 });
+              setAdding(false);
+              await reload();
+              flash("Добавлено");
+            }}
+            onCancel={() => setAdding(false)}
+          />
+        </div>
+      )}
 
       <div className="space-y-5">
         {items.map((item, i) => (
@@ -72,16 +87,25 @@ export default function AdminSteps() {
             </div>
             <div className="flex-1">
               <StepCard
-                item={item}
-                onSaved={(m) => {
-                  reload();
-                  flash(m);
+                initial={item}
+                onSave={async (draft) => {
+                  await updateStep(item.id, { ...draft, order: item.order });
+                  await reload();
+                  flash("Сохранено");
+                }}
+                onDelete={async () => {
+                  if (!confirm("Удалить шаг?")) return;
+                  await deleteStep(item.id);
+                  await reload();
+                  flash("Удалено");
                 }}
               />
             </div>
           </div>
         ))}
-        {items.length === 0 && <p className="text-text/60">Пока пусто.</p>}
+        {items.length === 0 && !adding && (
+          <p className="text-text/60">Пока пусто.</p>
+        )}
       </div>
       <Toast message={toast} />
     </div>
@@ -89,13 +113,23 @@ export default function AdminSteps() {
 }
 
 function StepCard({
-  item,
-  onSaved,
+  initial,
+  onSave,
+  onDelete,
+  onCancel,
 }: {
-  item: HomeStep;
-  onSaved: (m: string) => void;
+  initial: StepDraft;
+  onSave: (draft: StepDraft) => Promise<void>;
+  onDelete?: () => Promise<void>;
+  onCancel?: () => void;
 }) {
-  const [draft, setDraft] = useState(item);
+  const [draft, setDraft] = useState<StepDraft>({
+    label: initial.label,
+    title: initial.title,
+    description: initial.description,
+    imageUrl: initial.imageUrl,
+  });
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="rounded-2xl border-gold bg-surface/50 p-5 space-y-3">
@@ -122,36 +156,32 @@ function StepCard({
         onChange={(url) => setDraft({ ...draft, imageUrl: url })}
         folder="steps"
       />
-      <div className="flex items-center gap-4">
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={draft.isActive}
-            onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })}
-          />
-          Активен
-        </label>
-      </div>
-      <div className="flex gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={async () => {
-            await updateStep(item.id, draft);
-            onSaved("Сохранено");
+            setError(null);
+            try {
+              await onSave({ ...draft, title: draft.title.trim() });
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Не удалось сохранить");
+            }
           }}
-          className="btn-gold"
+          disabled={!draft.title.trim()}
+          className="btn-gold disabled:opacity-40"
         >
           Сохранить
         </button>
-        <button
-          onClick={async () => {
-            if (!confirm("Удалить шаг?")) return;
-            await deleteStep(item.id);
-            onSaved("Удалено");
-          }}
-          className="text-sm text-red-400"
-        >
-          Удалить
-        </button>
+        {onCancel && (
+          <button onClick={onCancel} className="text-sm text-text/70">
+            Отмена
+          </button>
+        )}
+        {onDelete && (
+          <button onClick={onDelete} className="text-sm text-red-400">
+            Удалить
+          </button>
+        )}
+        {error && <p className="text-sm text-red-400">{error}</p>}
       </div>
     </div>
   );

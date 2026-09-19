@@ -12,8 +12,13 @@ import {
 } from "@/components/admin/ui";
 import { MoveButtons } from "@/components/admin/MoveButtons";
 
+type FaqDraft = Pick<HomeFaq, "question" | "answer" | "imageUrl">;
+
+const EMPTY: FaqDraft = { question: "", answer: "", imageUrl: null };
+
 export default function AdminFaq() {
   const [items, setItems] = useState<HomeFaq[]>([]);
+  const [adding, setAdding] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   const reload = () => adminFaqList().then(setItems);
@@ -25,17 +30,6 @@ export default function AdminFaq() {
     setToast(m);
     setTimeout(() => setToast(null), 2000);
   };
-
-  async function add() {
-    await createFaq({
-      question: "Новый вопрос",
-      answer: "",
-      order: items.length + 1,
-      isActive: true,
-    });
-    await reload();
-    flash("Добавлено");
-  }
 
   async function move(index: number, dir: -1 | 1) {
     const target = index + dir;
@@ -53,10 +47,29 @@ export default function AdminFaq() {
     <div className="max-w-2xl">
       <div className="mb-6 flex items-center justify-between">
         <PageTitle>Вопросы (табы на главной)</PageTitle>
-        <button onClick={add} className="btn-gold">
+        <button
+          onClick={() => setAdding(true)}
+          disabled={adding}
+          className="btn-gold disabled:opacity-40"
+        >
           + Добавить
         </button>
       </div>
+
+      {adding && (
+        <div className="mb-5">
+          <FaqCard
+            initial={EMPTY}
+            onSave={async (draft) => {
+              await createFaq({ ...draft, order: items.length + 1 });
+              setAdding(false);
+              await reload();
+              flash("Добавлено");
+            }}
+            onCancel={() => setAdding(false)}
+          />
+        </div>
+      )}
 
       <div className="space-y-5">
         {items.map((item, i) => (
@@ -71,16 +84,25 @@ export default function AdminFaq() {
             </div>
             <div className="flex-1">
               <FaqCard
-                item={item}
-                onSaved={(m) => {
-                  reload();
-                  flash(m);
+                initial={item}
+                onSave={async (draft) => {
+                  await updateFaq(item.id, { ...draft, order: item.order });
+                  await reload();
+                  flash("Сохранено");
+                }}
+                onDelete={async () => {
+                  if (!confirm("Удалить вопрос?")) return;
+                  await deleteFaq(item.id);
+                  await reload();
+                  flash("Удалено");
                 }}
               />
             </div>
           </div>
         ))}
-        {items.length === 0 && <p className="text-text/60">Пока пусто.</p>}
+        {items.length === 0 && !adding && (
+          <p className="text-text/60">Пока пусто.</p>
+        )}
       </div>
       <Toast message={toast} />
     </div>
@@ -88,13 +110,22 @@ export default function AdminFaq() {
 }
 
 function FaqCard({
-  item,
-  onSaved,
+  initial,
+  onSave,
+  onDelete,
+  onCancel,
 }: {
-  item: HomeFaq;
-  onSaved: (m: string) => void;
+  initial: FaqDraft;
+  onSave: (draft: FaqDraft) => Promise<void>;
+  onDelete?: () => Promise<void>;
+  onCancel?: () => void;
 }) {
-  const [draft, setDraft] = useState(item);
+  const [draft, setDraft] = useState<FaqDraft>({
+    question: initial.question,
+    answer: initial.answer,
+    imageUrl: initial.imageUrl,
+  });
+  const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="rounded-2xl border-gold bg-surface/50 p-5 space-y-3">
@@ -114,34 +145,32 @@ function FaqCard({
         onChange={(url) => setDraft({ ...draft, imageUrl: url })}
         folder="faq"
       />
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={draft.isActive}
-          onChange={(e) => setDraft({ ...draft, isActive: e.target.checked })}
-        />
-        Активен
-      </label>
-      <div className="flex gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={async () => {
-            await updateFaq(item.id, draft);
-            onSaved("Сохранено");
+            setError(null);
+            try {
+              await onSave({ ...draft, question: draft.question.trim() });
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Не удалось сохранить");
+            }
           }}
-          className="btn-gold"
+          disabled={!draft.question.trim()}
+          className="btn-gold disabled:opacity-40"
         >
           Сохранить
         </button>
-        <button
-          onClick={async () => {
-            if (!confirm("Удалить вопрос?")) return;
-            await deleteFaq(item.id);
-            onSaved("Удалено");
-          }}
-          className="text-sm text-red-400"
-        >
-          Удалить
-        </button>
+        {onCancel && (
+          <button onClick={onCancel} className="text-sm text-text/70">
+            Отмена
+          </button>
+        )}
+        {onDelete && (
+          <button onClick={onDelete} className="text-sm text-red-400">
+            Удалить
+          </button>
+        )}
+        {error && <p className="text-sm text-red-400">{error}</p>}
       </div>
     </div>
   );

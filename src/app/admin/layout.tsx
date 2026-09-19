@@ -3,11 +3,16 @@
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import { adminLogout, adminMe } from "@/lib/admin";
+import { adminLogout, adminMe, type AdminUser } from "@/lib/admin";
 import { ApiError } from "@/lib/api";
 import { clsx } from "@/lib/clsx";
+import { AdminProvider, TRAINER_PATHS } from "@/components/admin/AdminContext";
 
 const groups = [
+  {
+    title: null,
+    items: [{ href: "/admin/profile", label: "Профиль" }],
+  },
   {
     title: "Содержимое сайта",
     items: [
@@ -26,6 +31,7 @@ const groups = [
     items: [
       { href: "/admin/booking", label: "Расписание и запись" },
       { href: "/admin/trainers", label: "Тренеры" },
+      { href: "/admin/halls", label: "Залы" },
       { href: "/admin/services", label: "Дополнительные услуги" },
       { href: "/admin/promo", label: "Промокоды" },
       { href: "/admin/reviews", label: "Отзывы" },
@@ -41,18 +47,31 @@ export default function AdminLayout({
   const pathname = usePathname();
   const router = useRouter();
   const isLogin = pathname === "/admin/login";
-  const [checked, setChecked] = useState(false);
+  const [me, setMe] = useState<AdminUser | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isLogin) {
-      setChecked(true);
-      return;
-    }
+    if (isLogin) return;
     adminMe()
-      .then(() => setChecked(true))
+      .then(({ user }) => {
+        setMe(user);
+        const allowed = TRAINER_PATHS.some((p) => pathname.startsWith(p));
+        if (user.role === "TRAINER" && !allowed)
+          router.replace("/admin/booking");
+      })
       .catch(() => router.replace("/admin/login"));
   }, [isLogin, pathname, router]);
+
+  const visibleGroups = groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) =>
+          me?.role === "OWNER" ||
+          TRAINER_PATHS.some((p) => item.href.startsWith(p)),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
 
   useEffect(() => {
     const handler = (e: PromiseRejectionEvent) => {
@@ -78,7 +97,10 @@ export default function AdminLayout({
 
   if (isLogin) return <>{children}</>;
 
-  if (!checked) {
+  const blocked =
+    me?.role === "TRAINER" &&
+    !TRAINER_PATHS.some((p) => pathname.startsWith(p));
+  if (!me || blocked) {
     return (
       <div className="grid min-h-screen place-items-center text-text/70">
         Проверка доступа…
@@ -92,12 +114,17 @@ export default function AdminLayout({
         <Link href="/admin" className="font-sub text-lg text-heading">
           Админка
         </Link>
+        <p className="mt-1 text-xs text-text/50">
+          {me.username} · {me.role === "OWNER" ? "главный админ" : "тренер"}
+        </p>
         <nav className="mt-6 space-y-6">
-          {groups.map((group) => (
-            <div key={group.title}>
-              <p className="mb-2 px-3 font-sub text-xs uppercase tracking-wider text-text/45">
-                {group.title}
-              </p>
+          {visibleGroups.map((group) => (
+            <div key={group.title ?? "account"}>
+              {group.title && (
+                <p className="mb-2 px-3 font-sub text-xs uppercase tracking-wider text-text/45">
+                  {group.title}
+                </p>
+              )}
               <div className="space-y-1">
                 {group.items.map((s) => (
                   <Link
@@ -133,7 +160,9 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      <div className="flex-1 overflow-x-hidden p-6 md:p-10">{children}</div>
+      <div className="flex-1 overflow-x-hidden p-6 md:p-10">
+        <AdminProvider value={me}>{children}</AdminProvider>
+      </div>
 
       {errorMsg && (
         <div className="fixed bottom-6 right-6 z-50 max-w-sm rounded-lg border border-red-500/60 bg-surface px-4 py-3 text-sm text-red-300 shadow-lg">

@@ -9,9 +9,11 @@ import {
   type PromoCode,
 } from "@/lib/admin";
 import { PageTitle, Toast } from "@/components/admin/ui";
+import { useAdmin } from "@/components/admin/AdminContext";
 import { clsx } from "@/lib/clsx";
 
 export default function AdminPromo() {
+  const { canEdit } = useAdmin();
   const [items, setItems] = useState<PromoCode[]>([]);
   const [editing, setEditing] = useState<{ id: number; value: string } | null>(
     null,
@@ -124,7 +126,13 @@ export default function AdminPromo() {
                       await deletePromo(p.id);
                       reload();
                     }}
-                    className="text-red-400"
+                    disabled={!canEdit(p)}
+                    title={
+                      canEdit(p)
+                        ? undefined
+                        : "Промокод выпустил другой сотрудник"
+                    }
+                    className="text-red-400 disabled:opacity-40"
                   >
                     удалить
                   </button>

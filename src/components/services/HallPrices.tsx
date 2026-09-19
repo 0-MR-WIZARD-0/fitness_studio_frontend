@@ -76,9 +76,7 @@ export function HallPrices({ hall }: { hall: Hall }) {
 
       <p className="mt-3 text-xs text-text/55">
         Аренда с {hall.dayStart} до {hall.dayEnd}.{" "}
-        {hall.isMain
-          ? "Свободные часы видны в расписании ниже."
-          : ""}
+        {hall.autoSchedule ? "Свободные часы видны в расписании ниже." : ""}
       </p>
       {link}
     </div>

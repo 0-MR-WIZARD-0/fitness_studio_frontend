@@ -35,6 +35,8 @@ import { toKey } from "@/components/Calendar";
 import { Select } from "@/components/Select";
 import { clsx } from "@/lib/clsx";
 import { NumberInput } from "@/components/admin/NumberInput";
+import { useAdmin } from "@/components/admin/AdminContext";
+import Link from "next/link";
 
 export default function AdminBooking() {
   const [formats, setFormats] = useState<Format[]>([]);
@@ -44,6 +46,7 @@ export default function AdminBooking() {
   const [trainerId, setTrainerId] = useState<number | null>(null);
   const [halls, setHalls] = useState<Hall[]>([]);
   const [hallId, setHallId] = useState<number | "">("");
+  const { isOwner, canEdit, admin } = useAdmin();
   const [slots, setSlots] = useState<AdminSlot[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
@@ -80,7 +83,10 @@ export default function AdminBooking() {
       if (fs[0]) setFormatId(fs[0].id);
     });
     getHalls()
-      .then(setHalls)
+      .then((hs) => {
+        setHalls(hs);
+        setHallId((prev) => (prev === "" && hs[0] ? hs[0].id : prev));
+      })
       .catch(() => {});
     getSettings()
       .then(setRules)
@@ -281,7 +287,7 @@ export default function AdminBooking() {
     <div className="max-w-6xl">
       <PageTitle>Расписание и записи</PageTitle>
 
-      {rules && (
+      {rules && isOwner && (
         <div className="mb-8 rounded-2xl border-gold bg-surface/50 p-5">
           <p className="mb-1 font-sub text-heading">Правила для клиента</p>
           <p className="mb-4 text-xs text-text/50">
@@ -492,19 +498,16 @@ export default function AdminBooking() {
                 />
               </div>
 
-              {halls.length > 0 && (
-                <div className="text-sm">
-                  <span className="mb-1 block h-5 text-text/80">Зал</span>
-                  <Select
-                    value={hallId}
-                    onChange={(v) => setHallId(v === "" ? "" : Number(v))}
-                    options={[
-                      { value: "", label: "Вся студия" },
-                      ...halls.map((h) => ({ value: h.id, label: h.title })),
-                    ]}
-                  />
-                </div>
-              )}
+              <div className="text-sm">
+                <span className="mb-1 block h-5 text-text/80">Зал</span>
+                <Select
+                  value={hallId}
+                  onChange={(v) => setHallId(v === "" ? "" : Number(v))}
+                  placeholder="Выберите зал"
+                  disabled={halls.length === 0}
+                  options={halls.map((h) => ({ value: h.id, label: h.title }))}
+                />
+              </div>
 
               <label className="text-sm">
                 <span className="mb-1 block h-5 text-text/80">Время</span>
@@ -554,13 +557,26 @@ export default function AdminBooking() {
               )}
               <button
                 onClick={create}
-                disabled={trainers.length === 0}
+                disabled={trainers.length === 0 || hallId === ""}
                 className="btn-gold disabled:opacity-40"
               >
                 {weekdayMode
                   ? `Создать Пн–Пт × ${weeks} нед.`
                   : "Создать занятие"}
               </button>
+              {halls.length === 0 && (
+                <p className="text-xs text-red-400">
+                  Занятие всегда проходит в зале.{" "}
+                  {isOwner ? (
+                    <Link href="/admin/halls" className="underline">
+                      Заведите зал в разделе «Залы»
+                    </Link>
+                  ) : (
+                    "Попросите главного администратора завести зал"
+                  )}
+                  .
+                </p>
+              )}
             </div>
 
             {trainers.length === 0 && (
@@ -612,7 +628,7 @@ export default function AdminBooking() {
                 {openSlot.isDiagnostic
                   ? "Диагностика"
                   : (openSlot.format?.name ?? "—")}{" "}
-                · {openSlot.hall?.title ?? "вся студия"} ·{" "}
+                · {openSlot.hall?.title ?? "зал не указан"} ·{" "}
                 {openSlot._count.bookings}/{openSlot.capacity} записей
               </p>
             </div>
@@ -625,52 +641,64 @@ export default function AdminBooking() {
             </button>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="text-sm">
-              <span className="mb-1 block text-text/80">
-                Тренер этого занятия
-              </span>
-              <Select
-                value={openSlot.trainerId ?? ""}
-                onChange={async (v) => {
-                  await updateSlot(openSlot.id, openSlot.startsAt, Number(v));
-                  reload();
-                  flash("Тренер обновлён");
-                }}
-                placeholder="Укажите тренера"
-                disabled={trainers.length === 0}
-                options={trainers.map((t) => ({ value: t.id, label: t.name }))}
-              />
-            </div>
+          {!canEdit(openSlot) && (
+            <p className="mb-4 rounded-xl border border-white/10 bg-surface/40 px-4 py-3 text-sm text-text/60">
+              Занятие поставил другой сотрудник. Менять и удалять его может
+              только он или главный администратор.
+            </p>
+          )}
 
-            <div className="text-sm">
-              <span className="mb-1 block text-text/80">Перенести</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="datetime-local"
-                  className="field"
-                  value={
-                    editing?.id === openSlot.id
-                      ? editing.value
-                      : new Date(openSlot.startsAt).toISOString().slice(0, 16)
-                  }
-                  onChange={(e) =>
-                    setEditing({ id: openSlot.id, value: e.target.value })
-                  }
-                />
-                <button
-                  onClick={() => {
-                    setMoveError(null);
-                    setDialog({ slot: openSlot, mode: "move" });
+          {canEdit(openSlot) && (
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="text-sm">
+                <span className="mb-1 block text-text/80">
+                  Тренер этого занятия
+                </span>
+                <Select
+                  value={openSlot.trainerId ?? ""}
+                  onChange={async (v) => {
+                    await updateSlot(openSlot.id, openSlot.startsAt, Number(v));
+                    reload();
+                    flash("Тренер обновлён");
                   }}
-                  disabled={editing?.id !== openSlot.id}
-                  className="btn-gold disabled:opacity-40"
-                >
-                  Перенести
-                </button>
+                  placeholder="Укажите тренера"
+                  disabled={trainers.length === 0}
+                  options={trainers.map((t) => ({
+                    value: t.id,
+                    label: t.name,
+                  }))}
+                />
+              </div>
+
+              <div className="text-sm">
+                <span className="mb-1 block text-text/80">Перенести</span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="datetime-local"
+                    className="field"
+                    value={
+                      editing?.id === openSlot.id
+                        ? editing.value
+                        : new Date(openSlot.startsAt).toISOString().slice(0, 16)
+                    }
+                    onChange={(e) =>
+                      setEditing({ id: openSlot.id, value: e.target.value })
+                    }
+                  />
+                  <button
+                    onClick={() => {
+                      setMoveError(null);
+                      setDialog({ slot: openSlot, mode: "move" });
+                    }}
+                    disabled={editing?.id !== openSlot.id}
+                    className="btn-gold disabled:opacity-40"
+                  >
+                    Перенести
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {openSlot.bookings.length > 0 && (
             <div className="mt-4 text-sm">
@@ -681,26 +709,28 @@ export default function AdminBooking() {
             </div>
           )}
 
-          <button
-            onClick={async () => {
-              if (openSlot._count.bookings > 0) {
-                setMoveError(null);
-                setDialog({ slot: openSlot, mode: "cancel" });
-                return;
-              }
-              if (!confirm("Удалить занятие? Час уйдёт под аренду студии."))
-                return;
-              await deleteSlot(openSlot.id);
-              setOpenSlotId(null);
-              reload();
-              flash("Занятие удалено, час ушёл под аренду");
-            }}
-            className="mt-5 text-sm text-red-400"
-          >
-            {openSlot._count.bookings > 0
-              ? "Отменить занятие"
-              : "Удалить занятие"}
-          </button>
+          {canEdit(openSlot) && (
+            <button
+              onClick={async () => {
+                if (openSlot._count.bookings > 0) {
+                  setMoveError(null);
+                  setDialog({ slot: openSlot, mode: "cancel" });
+                  return;
+                }
+                if (!confirm("Удалить занятие? Час уйдёт под аренду студии."))
+                  return;
+                await deleteSlot(openSlot.id);
+                setOpenSlotId(null);
+                reload();
+                flash("Занятие удалено, час ушёл под аренду");
+              }}
+              className="mt-5 text-sm text-red-400"
+            >
+              {openSlot._count.bookings > 0
+                ? "Отменить занятие"
+                : "Удалить занятие"}
+            </button>
+          )}
         </div>
       )}
 
@@ -744,7 +774,8 @@ export default function AdminBooking() {
               {b.status === "CANCELLED" ? (
                 <span className="ml-2 text-red-400">отменена</span>
               ) : (
-                b.slot && (
+                b.slot &&
+                (isOwner || b.slot.createdById === admin?.id) && (
                   <button
                     onClick={() => setMovingBooking(b)}
                     className="ml-3 text-accent underline underline-offset-4"
@@ -987,6 +1018,8 @@ function AnnouncementEditor({
   onClose: () => void;
   onSaved: (m: string) => void;
 }) {
+  const { canEdit } = useAdmin();
+  const mine = canEdit(item);
   const [draft, setDraft] = useState(item);
 
   return (
@@ -1098,6 +1131,13 @@ function AnnouncementEditor({
         </label>
       </div>
 
+      {!mine && (
+        <p className="mt-4 rounded-xl border border-white/10 bg-surface/40 px-4 py-3 text-sm text-text/60">
+          Анонс поставил другой сотрудник. Менять и удалять его может только он
+          или главный администратор.
+        </p>
+      )}
+
       <div className="mt-5 flex gap-3">
         <button
           onClick={async () => {
@@ -1107,7 +1147,8 @@ function AnnouncementEditor({
             });
             onSaved("Анонс сохранён");
           }}
-          className="btn-gold"
+          disabled={!mine}
+          className="btn-gold disabled:opacity-40"
         >
           Сохранить
         </button>
@@ -1118,7 +1159,8 @@ function AnnouncementEditor({
             onClose();
             onSaved("Анонс удалён");
           }}
-          className="text-sm text-red-400"
+          disabled={!mine}
+          className="text-sm text-red-400 disabled:opacity-40"
         >
           Удалить анонс
         </button>

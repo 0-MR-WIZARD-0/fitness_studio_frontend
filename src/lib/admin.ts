@@ -39,9 +39,13 @@ const authOpts = (
   body: body !== undefined ? JSON.stringify(body) : undefined,
 });
 
+export type AdminRole = "OWNER" | "TRAINER";
+
 export interface AdminUser {
   id: number;
   username: string;
+  role: AdminRole;
+  trainerId: number | null;
 }
 export const adminLogin = (username: string, password: string) =>
   api<{ user: AdminUser }>(
@@ -93,16 +97,19 @@ export const updateStep = (id: number, data: Partial<HomeStep>) =>
 export const deleteStep = (id: number) =>
   api(`/home/steps/${id}`, authOpts("DELETE"));
 
+export interface AdminFormat extends Format {
+  upcomingLessons: number;
+}
 export const adminFormatList = () =>
-  api<Format[]>("/formats/admin/all", { auth: true });
+  api<AdminFormat[]>("/formats/admin/all", { auth: true });
 export const adminFormat = (id: number) =>
   api<Format>(`/formats/admin/${id}`, { auth: true });
 export const createFormat = (data: unknown) =>
   api<Format>("/formats", authOpts("POST", data));
 export const updateFormat = (id: number, data: unknown) =>
   api<Format>(`/formats/${id}`, authOpts("PUT", data));
-export const deleteFormat = (id: number) =>
-  api(`/formats/${id}`, authOpts("DELETE"));
+export const deleteFormat = (id: number, password: string) =>
+  api(`/formats/${id}`, authOpts("DELETE", { password }));
 
 export interface ConditionInput {
   name: string;
@@ -145,6 +152,7 @@ export interface AdminSlot {
   trainer: Trainer | null;
   hallId: number | null;
   hall: Hall | null;
+  createdById: number | null;
   bookings: { id: number; name: string }[];
   _count: { bookings: number };
 }
@@ -223,7 +231,7 @@ export interface HallInput {
   price4?: number;
   price8?: number;
   price12?: number;
-  isMain?: boolean;
+  autoSchedule?: boolean;
   bookingUrl?: string;
   dayStart?: string;
   dayEnd?: string;
@@ -243,7 +251,6 @@ export interface ServiceInput {
   title: string;
   description?: string;
   price?: number;
-  durationMin?: number | null;
   order?: number;
   isActive?: boolean;
 }
@@ -278,8 +285,45 @@ export const syncRentSlots = (days?: number) =>
     authOpts("POST", days ? { days } : {}),
   );
 
+export interface AdminTrainer extends Trainer {
+  admin: { id: number; username: string; role: AdminRole } | null;
+}
 export const adminTrainers = () =>
-  api<Trainer[]>("/trainers/admin", { auth: true });
+  api<AdminTrainer[]>("/trainers/admin", { auth: true });
+export const createTrainerAccount = (data: {
+  username: string;
+  password: string;
+  name: string;
+}) => api<AdminTrainer>("/trainers/accounts", authOpts("POST", data));
+export const grantTrainerAccess = (
+  trainerId: number,
+  data: { username: string; password: string },
+) => api(`/trainers/${trainerId}/account`, authOpts("POST", data));
+export const resetTrainerPassword = (trainerId: number, password: string) =>
+  api(`/trainers/${trainerId}/account/password`, authOpts("PUT", { password }));
+export const revokeTrainerAccess = (trainerId: number) =>
+  api(`/trainers/${trainerId}/account`, authOpts("DELETE"));
+
+export interface AdminProfile {
+  username: string;
+  role: AdminRole;
+  isTrainer: boolean;
+  trainer: Trainer | null;
+}
+export const getProfile = () =>
+  api<AdminProfile>("/trainers/profile", { auth: true });
+export const updateProfile = (data: {
+  isTrainer: boolean;
+  name?: string;
+  role?: string;
+  description?: string;
+  photoUrl?: string | null;
+}) => api<AdminProfile>("/trainers/profile", authOpts("PUT", data));
+export const updateCredentials = (data: {
+  currentPassword: string;
+  username?: string;
+  newPassword?: string;
+}) => api<AdminProfile>("/trainers/profile/credentials", authOpts("PUT", data));
 export const createTrainer = (data: Partial<Trainer>) =>
   api<Trainer>("/trainers", authOpts("POST", data));
 export const updateTrainer = (id: number, data: Partial<Trainer>) =>
@@ -336,6 +380,7 @@ export interface PromoCode {
   createdAt: string;
   expiresAt: string;
   usedAt: string | null;
+  createdById: number | null;
 }
 export const adminPromos = () =>
   api<PromoCode[]>("/promo/admin", { auth: true });

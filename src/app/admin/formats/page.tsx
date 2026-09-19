@@ -2,19 +2,22 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getSettings, type Format } from "@/lib/api";
+import { getSettings } from "@/lib/api";
 import {
   adminFormatList,
   deleteFormat,
   updateFormat,
   updateSettings,
+  type AdminFormat,
 } from "@/lib/admin";
 import { Labeled, PageTitle, Toast } from "@/components/admin/ui";
+import { PasswordDialog } from "@/components/admin/PasswordDialog";
 import { NumberInput } from "@/components/admin/NumberInput";
 import { MoveButtons } from "@/components/admin/MoveButtons";
 
 export default function AdminFormats() {
-  const [items, setItems] = useState<Format[]>([]);
+  const [items, setItems] = useState<AdminFormat[]>([]);
+  const [removing, setRemoving] = useState<AdminFormat | null>(null);
   const [threshold, setThreshold] = useState(3);
   const [price, setPrice] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
@@ -78,8 +81,10 @@ export default function AdminFormats() {
               <div>
                 <span className="text-heading">{f.name}</span>{" "}
                 <span className="text-xs text-text/50">/{f.slug}</span>
-                {!f.isActive && (
-                  <span className="ml-2 text-xs text-red-400">скрыт</span>
+                {f.upcomingLessons > 0 && (
+                  <span className="ml-2 text-xs text-text/50">
+                    занятий в расписании: {f.upcomingLessons}
+                  </span>
                 )}
               </div>
             </div>
@@ -91,14 +96,14 @@ export default function AdminFormats() {
                 Редактировать
               </Link>
               <button
-                onClick={async () => {
-                  if (!confirm(`Удалить формат «${f.name}»?`)) return;
-                  await deleteFormat(f.id);
-                  reload();
-                  setToast("Удалено");
-                  setTimeout(() => setToast(null), 2000);
-                }}
-                className="text-red-400"
+                onClick={() => setRemoving(f)}
+                disabled={f.upcomingLessons > 0}
+                title={
+                  f.upcomingLessons > 0
+                    ? "Сначала удалите или перенесите занятия этого формата"
+                    : undefined
+                }
+                className="text-red-400 disabled:opacity-40"
               >
                 Удалить
               </button>
@@ -127,6 +132,20 @@ export default function AdminFormats() {
           Сохранить
         </button>
       </div>
+
+      {removing && (
+        <PasswordDialog
+          title={`Удалить формат «${removing.name}»?`}
+          description="Формат исчезнет с сайта вместе со своими карточками и механикой. Подтвердите паролем."
+          onConfirm={async (password) => {
+            await deleteFormat(removing.id, password);
+            setRemoving(null);
+            reload();
+            flash("Формат удалён");
+          }}
+          onClose={() => setRemoving(null)}
+        />
+      )}
 
       <Toast message={toast} />
     </div>
