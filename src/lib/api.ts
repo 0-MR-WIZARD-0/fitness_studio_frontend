@@ -259,6 +259,9 @@ const accountOpts = (method: string, body?: unknown): FetchOpts => ({
 
 export const accountMe = () =>
   api<{ user: AccountUser }>("/account/me", { auth: true });
+/** Гостю отвечает 200 и null, чтобы в консоли не мелькал 401 */
+export const accountSession = () =>
+  api<{ user: AccountUser | null }>("/account/session", { auth: true });
 export const accountLogin = (email: string, password: string) =>
   api<{ user: AccountUser }>(
     "/account/login",

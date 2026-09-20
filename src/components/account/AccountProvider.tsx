@@ -7,7 +7,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import { accountMe, type AccountUser } from "@/lib/api";
+import { accountSession, type AccountUser } from "@/lib/api";
 import { AccountAuthForm } from "./AccountAuthForm";
 
 interface AccountCtx {
@@ -31,7 +31,7 @@ export function AccountProvider({ children }: { children: React.ReactNode }) {
   const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
 
   const refresh = useCallback(() => {
-    accountMe()
+    accountSession()
       .then((res) => setUser(res.user))
       .catch(() => setUser(null));
   }, []);

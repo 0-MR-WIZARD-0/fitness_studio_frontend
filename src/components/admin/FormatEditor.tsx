@@ -148,10 +148,6 @@ export function FormatEditor({ initial }: { initial?: Format }) {
         посетителю в расписании.
       </p>
 
-      <p className="text-xs text-text/50">
-        Порядок форматов задаётся стрелками в их списке.
-      </p>
-
       <Labeled label="Для кого этот формат">
         <div className="space-y-3">
           {d.forWhom.map((it, i) => (

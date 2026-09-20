@@ -12,6 +12,18 @@ function mapSrc({ address, mapLat, mapLng }: SiteSettings) {
   )}&z=17`;
 }
 
+/** Адрес открывает Яндекс Карты: по координатам метки, иначе поиском */
+function mapLink({ address, mapLat, mapLng }: SiteSettings) {
+  if (mapLat != null && mapLng != null) {
+    const point = `${mapLng},${mapLat}`;
+    return `https://yandex.ru/maps/?ll=${point}&z=17&pt=${point},pm2rdm`;
+  }
+  return `https://yandex.ru/maps/?text=${encodeURIComponent(address)}`;
+}
+
+/** Телефон для ссылки tel: только из цифр и плюса */
+const telHref = (phone: string) => phone.replace(/[^\d+]/g, "");
+
 export function Footer({ settings }: { settings: SiteSettings }) {
   return (
     <footer className="mt-0 border-t border-white/10 py-10 md:mt-20">
@@ -28,13 +40,33 @@ export function Footer({ settings }: { settings: SiteSettings }) {
 
           <div className="col-span-12 md:col-span-4 space-y-1">
             <p className="font-sub text-heading">Адрес:</p>
-            <p>{settings.address}</p>
+            <a
+              href={mapLink(settings)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-heading"
+            >
+              {settings.address}
+            </a>
             <p className="font-sub text-heading mt-4">Телефон:</p>
-            <p>{settings.phone}</p>
+            <a
+              href={`tel:${telHref(settings.phone)}`}
+              className="hover:text-heading"
+            >
+              {settings.phone}
+            </a>
           </div>
 
           <div className="col-span-12 md:col-span-4">
-            <p className="font-sub text-heading">Email: {settings.email}</p>
+            <p className="font-sub text-heading">
+              Email:{" "}
+              <a
+                href={`mailto:${settings.email}`}
+                className="font-body text-text hover:text-heading"
+              >
+                {settings.email}
+              </a>
+            </p>
 
             {(settings.telegramUrl || settings.maxUrl) && (
               <div className="mt-4 space-y-2">

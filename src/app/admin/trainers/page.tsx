@@ -25,7 +25,10 @@ export default function AdminTrainers() {
   const [adding, setAdding] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
-  const reload = () => adminTrainers().then(setItems);
+  const reload = () =>
+    adminTrainers().then((list) =>
+      setItems(list.filter((t) => t.admin?.role !== "OWNER")),
+    );
   useEffect(() => {
     reload();
   }, []);
