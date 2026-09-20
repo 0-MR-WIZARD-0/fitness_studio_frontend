@@ -257,9 +257,24 @@ const accountOpts = (method: string, body?: unknown): FetchOpts => ({
   body: body !== undefined ? JSON.stringify(body) : undefined,
 });
 
+export interface PaymentStatus {
+  bookingId: number;
+  paid: boolean;
+  free: boolean;
+  total: number;
+  status: string;
+  paymentStatus: string | null;
+  items: {
+    title: string;
+    startsAt: string | null;
+    durationMin: number | null;
+  }[];
+}
+export const paymentStatus = (bookingId: number) =>
+  api<PaymentStatus>(`/payments/status/${bookingId}`);
+
 export const accountMe = () =>
   api<{ user: AccountUser }>("/account/me", { auth: true });
-/** Гостю отвечает 200 и null, чтобы в консоли не мелькал 401 */
 export const accountSession = () =>
   api<{ user: AccountUser | null }>("/account/session", { auth: true });
 export const accountLogin = (email: string, password: string) =>

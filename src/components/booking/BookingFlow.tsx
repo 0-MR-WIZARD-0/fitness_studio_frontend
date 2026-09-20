@@ -28,6 +28,12 @@ import {
   LoginRequired,
 } from "../account/BookingGate";
 
+interface Booked {
+  free: boolean;
+  total: number;
+  payment?: { redirectUrl?: string | null };
+}
+
 const timeOf = (iso: string) =>
   new Date(iso).toLocaleTimeString("ru-RU", {
     hour: "2-digit",
@@ -189,7 +195,6 @@ export function BookingFlow({
       ? diagSlot?.id === slot.id
       : cart.some((x) => x.id === slot.id);
 
-  /** Что человек выбрал — чтобы показать это после записи */
   function pickedItems() {
     if (annSlot)
       return [
@@ -216,6 +221,13 @@ export function BookingFlow({
       .sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt));
   }
 
+  function toPayment(res: { payment?: { redirectUrl?: string | null } }) {
+    const url = res.payment?.redirectUrl;
+    if (!url) return false;
+    window.location.href = url;
+    return true;
+  }
+
   async function submit() {
     setSubmitting(true);
     setError(null);
@@ -228,19 +240,17 @@ export function BookingFlow({
         : { name: guest.name.trim(), phone: guest.phone };
 
       if (annSlot) {
-        const res = await api<{ free: boolean; total: number }>(
-          "/booking/announcement",
-          {
-            method: "POST",
-            auth: true,
-            body: JSON.stringify({
-              announcementId: annSlot.id,
-              promoCode,
-              documentIds,
-              ...guestData,
-            }),
-          },
-        );
+        const res = await api<Booked>("/booking/announcement", {
+          method: "POST",
+          auth: true,
+          body: JSON.stringify({
+            announcementId: annSlot.id,
+            promoCode,
+            documentIds,
+            ...guestData,
+          }),
+        });
+        if (toPayment(res)) return;
         setDone({ free: res.free, total: res.total, items });
         return;
       }
@@ -261,18 +271,16 @@ export function BookingFlow({
       }
 
       if (cart.length === 1) {
-        const res = await api<{ free: boolean; total: number }>(
-          "/booking/single",
-          {
-            method: "POST",
-            auth: true,
-            body: JSON.stringify({
-              slotId: cart[0].id,
-              promoCode,
-              documentIds,
-            }),
-          },
-        );
+        const res = await api<Booked>("/booking/single", {
+          method: "POST",
+          auth: true,
+          body: JSON.stringify({
+            slotId: cart[0].id,
+            promoCode,
+            documentIds,
+          }),
+        });
+        if (toPayment(res)) return;
         setDone({ free: res.free, total: res.total, items });
       } else {
         const res = await api<{
@@ -280,6 +288,7 @@ export function BookingFlow({
           courses: number;
           total: number;
           giftCodes: string[];
+          payment?: { redirectUrl?: string | null };
         }>("/booking/cart", {
           method: "POST",
           auth: true,
@@ -288,6 +297,7 @@ export function BookingFlow({
             documentIds,
           }),
         });
+        if (toPayment(res)) return;
         setDone({
           courses: res.courses,
           gifts: res.giftCodes,

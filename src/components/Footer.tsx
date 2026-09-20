@@ -12,7 +12,6 @@ function mapSrc({ address, mapLat, mapLng }: SiteSettings) {
   )}&z=17`;
 }
 
-/** Адрес открывает Яндекс Карты: по координатам метки, иначе поиском */
 function mapLink({ address, mapLat, mapLng }: SiteSettings) {
   if (mapLat != null && mapLng != null) {
     const point = `${mapLng},${mapLat}`;
@@ -21,7 +20,6 @@ function mapLink({ address, mapLat, mapLng }: SiteSettings) {
   return `https://yandex.ru/maps/?text=${encodeURIComponent(address)}`;
 }
 
-/** Телефон для ссылки tel: только из цифр и плюса */
 const telHref = (phone: string) => phone.replace(/[^\d+]/g, "");
 
 export function Footer({ settings }: { settings: SiteSettings }) {
