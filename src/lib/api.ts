@@ -211,6 +211,8 @@ export interface AccountBooking {
   isFree: boolean;
   isCourse: boolean;
   status: "PENDING" | "PAID" | "CANCELLED";
+  awaitingPayment: boolean;
+  paymentUrl: string | null;
   promoCode: string | null;
   canMove: boolean;
   canCancel: boolean;

@@ -530,6 +530,22 @@ function BookingRow({
             {booking.isCourse ? " · в составе курса" : ""}
             {booking.promoCode ? ` · промокод ${booking.promoCode}` : ""}
           </p>
+          {booking.awaitingPayment && (
+            <p className="mt-1 text-amber-300">
+              Ожидает оплаты
+              {booking.paymentUrl && (
+                <>
+                  {" · "}
+                  <a
+                    href={booking.paymentUrl}
+                    className="underline underline-offset-4"
+                  >
+                    оплатить
+                  </a>
+                </>
+              )}
+            </p>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-3">
