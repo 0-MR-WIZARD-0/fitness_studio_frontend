@@ -48,6 +48,7 @@ export default function AdminLayout({
   const router = useRouter();
   const isLogin = pathname === "/admin/login";
   const [me, setMe] = useState<AdminUser | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
@@ -61,6 +62,10 @@ export default function AdminLayout({
       })
       .catch(() => router.replace("/admin/login"));
   }, [isLogin, pathname, router]);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   const visibleGroups = groups
     .map((group) => ({
@@ -110,7 +115,43 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-60 shrink-0 border-r border-white/10 bg-surface/40 p-5">
+      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center gap-3 border-b border-white/10 bg-surface px-4 md:hidden">
+        <button
+          onClick={() => setMenuOpen(true)}
+          aria-label="Открыть меню"
+          className="grid h-9 w-9 place-items-center rounded-lg border-gold"
+        >
+          <span className="relative block h-3 w-5">
+            <span className="absolute inset-x-0 top-0 h-0.5 bg-heading" />
+            <span className="absolute inset-x-0 top-1/2 h-0.5 -translate-y-1/2 bg-heading" />
+            <span className="absolute inset-x-0 bottom-0 h-0.5 bg-heading" />
+          </span>
+        </button>
+        <span className="font-sub text-heading">Админка</span>
+      </header>
+
+      {menuOpen && (
+        <div
+          onClick={() => setMenuOpen(false)}
+          className="fixed inset-0 z-40 overlay-dim backdrop-blur-sm md:hidden"
+          aria-hidden
+        />
+      )}
+
+      <aside
+        className={clsx(
+          "fixed inset-y-0 left-0 z-50 w-64 shrink-0 overflow-y-auto border-r border-white/10 bg-surface p-5 transition-transform duration-300 ease-out",
+          "md:static md:z-auto md:w-60 md:translate-x-0 md:bg-surface/40 md:transition-none",
+          menuOpen ? "translate-x-0" : "-translate-x-full",
+        )}
+      >
+        <button
+          onClick={() => setMenuOpen(false)}
+          aria-label="Закрыть меню"
+          className="absolute right-3 top-3 text-2xl leading-none text-text/60 md:hidden"
+        >
+          ×
+        </button>
         <Link href="/admin" className="font-sub text-lg text-heading">
           Админка
         </Link>
@@ -160,7 +201,7 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      <div className="flex-1 overflow-x-hidden p-6 md:p-10">
+      <div className="flex-1 overflow-x-hidden p-4 pt-20 md:p-10 md:pt-10">
         <AdminProvider value={me}>{children}</AdminProvider>
       </div>
 

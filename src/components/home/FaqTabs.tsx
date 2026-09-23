@@ -7,10 +7,15 @@ import { clsx } from "@/lib/clsx";
 import type { HomeFaq } from "@/lib/api";
 
 export function FaqTabs({ items }: { items: HomeFaq[] }) {
-  const [activeId, setActiveId] = useState<number | null>(
-    items[0]?.id ?? null,
-  );
+  const [activeId, setActiveId] = useState<number | null>(items[0]?.id ?? null);
   const refs = useRef<Record<number, HTMLDivElement | null>>({});
+  const listRef = useRef<HTMLDivElement | null>(null);
+
+  const scrollToTabs = (id: number) => {
+    const wide = window.innerWidth >= 748;
+    const target = wide ? listRef.current : refs.current[id];
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   if (!items.length) return null;
 
@@ -20,7 +25,10 @@ export function FaqTabs({ items }: { items: HomeFaq[] }) {
     <section className="pt-16 pb-0 md:py-24">
       <Container>
         <Grid className="items-start">
-          <div className="order-2 col-span-12 space-y-3 lg:order-1 lg:col-span-7">
+          <div
+            ref={listRef}
+            className="order-2 col-span-12 scroll-mt-28 space-y-3 lg:order-1 lg:col-span-7"
+          >
             {items.map((item) => {
               const isOpen = item.id === activeId;
               return (
@@ -36,14 +44,7 @@ export function FaqTabs({ items }: { items: HomeFaq[] }) {
                       const next = isOpen ? null : item.id;
                       setActiveId(next);
                       if (next !== null)
-                        setTimeout(
-                          () =>
-                            refs.current[item.id]?.scrollIntoView({
-                              behavior: "smooth",
-                              block: "start",
-                            }),
-                          60,
-                        );
+                        setTimeout(() => scrollToTabs(item.id), 60);
                     }}
                     className="flex w-full items-center gap-3 px-5 py-4 text-left"
                   >

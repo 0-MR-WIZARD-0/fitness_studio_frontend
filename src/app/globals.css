@@ -31,6 +31,19 @@ h3,
 h4 {
   font-family: var(--font-heading);
   color: var(--color-heading);
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+@media (max-width: 380px) {
+  h1 {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+  h2 {
+    font-size: 1.375rem;
+    line-height: 1.25;
+  }
 }
 
 @keyframes chevron-bounce {

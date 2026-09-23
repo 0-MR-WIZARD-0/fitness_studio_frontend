@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import Image from "next/image";
 import { Container } from "../Container";
 import { useBooking } from "../BookingProvider";
@@ -9,14 +9,23 @@ import { clsx } from "@/lib/clsx";
 
 export function StepsShowcase({ steps }: { steps: HomeStep[] }) {
   const [active, setActive] = useState(0);
+  const sectionRef = useRef<HTMLElement | null>(null);
   const { open } = useBooking();
+
+  const pick = (i: number) => {
+    setActive(i);
+    sectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   if (!steps.length) return null;
   const step = steps[active];
   const bg = mediaUrl(step.imageUrl);
 
   return (
-    <section className="relative min-h-screen w-full overflow-hidden">
+    <section
+      ref={sectionRef}
+      className="relative min-h-screen w-full overflow-hidden"
+    >
       {bg ? (
         <Image
           src={bg}
@@ -54,7 +63,7 @@ export function StepsShowcase({ steps }: { steps: HomeStep[] }) {
             {steps.map((s, i) => (
               <Fragment key={s.id}>
                 <button
-                  onClick={() => setActive(i)}
+                  onClick={() => pick(i)}
                   aria-label={s.label}
                   className={clsx(
                     "h-4 w-4 shrink-0 rounded-full border-2 border-white transition",

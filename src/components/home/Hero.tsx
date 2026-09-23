@@ -59,8 +59,21 @@ export function Hero({ hero }: { hero: HomeHero }) {
         className="animate-chevron absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-heading/80 hover:text-heading"
       >
         <svg width="42" height="42" viewBox="0 0 24 24" fill="none">
-          <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M6 14l6 6 6-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
+          <path
+            d="M6 9l6 6 6-6"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M6 14l6 6 6-6"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            opacity="0.5"
+          />
         </svg>
       </button>
     </section>
@@ -173,8 +186,8 @@ function Circle({
       className={clsx(
         "absolute grid h-32 w-32 place-items-center rounded-full border backdrop-blur-[3px] transition duration-300 ease-out sm:h-36 sm:w-36 md:h-44 md:w-44",
         active
-          ? "scale-105 border-accent bg-accent/20"
-          : "border-accent/50 bg-bg/30 hover:scale-105 hover:border-accent/80 hover:bg-bg/45",
+          ? "scale-105 border-accent bg-accent/25"
+          : "border-accent/50 bg-bg/20 hover:scale-105 hover:border-accent/80 hover:bg-bg/35",
         className,
       )}
     >

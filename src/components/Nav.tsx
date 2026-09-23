@@ -7,7 +7,7 @@ import { useBooking } from "./BookingProvider";
 import { useAccount } from "./account/AccountProvider";
 import { Container } from "./Container";
 import { clsx } from "@/lib/clsx";
-import Logo from "../../public/logo.svg"
+import Logo from "../../public/logo.svg";
 import Image from "next/image";
 
 export function Nav() {
@@ -85,7 +85,7 @@ export function Nav() {
             />
           </Link>
 
-          <nav className="hidden items-center gap-6 font-sub text-sm md:flex md:gap-10 md:text-base">
+          <nav className="hidden items-center gap-6 font-sub text-sm lg:flex lg:gap-10 lg:text-base">
             {items.map((item) => {
               const className = clsx(
                 "transition hover:text-accent",
@@ -111,7 +111,7 @@ export function Nav() {
             onClick={() => setMenuOpen((v) => !v)}
             aria-label={menuOpen ? "Закрыть меню" : "Открыть меню"}
             aria-expanded={menuOpen}
-            className="relative h-8 w-8 md:hidden"
+            className="relative h-8 w-8 lg:hidden"
           >
             <span
               className={clsx(
@@ -137,38 +137,45 @@ export function Nav() {
 
       <div
         className={clsx(
-          "fixed inset-x-0 bottom-0 top-20 z-30 bg-bg/95 transition-transform duration-300 ease-out md:hidden",
-          menuOpen ? "translate-x-0" : "translate-x-full",
+          "fixed inset-x-0 bottom-0 top-20 z-30 overflow-hidden lg:hidden",
+          menuOpen ? "" : "pointer-events-none",
         )}
         aria-hidden={!menuOpen}
       >
-        <Container className="flex h-full flex-col gap-2 pt-8">
-          {items.map((item) => {
-            const className = clsx(
-              "border-b border-white/10 py-3.5 text-left font-sub text-lg transition",
-              item.active ? "text-accent" : "text-heading/90",
-            );
-            return item.href ? (
-              <Link
-                key={item.label}
-                href={item.href}
-                tabIndex={menuOpen ? undefined : -1}
-                className={className}
-              >
-                {item.label}
-              </Link>
-            ) : (
-              <button
-                key={item.label}
-                onClick={item.onClick}
-                tabIndex={menuOpen ? undefined : -1}
-                className={className}
-              >
-                {item.label}
-              </button>
-            );
-          })}
-        </Container>
+        <div
+          className={clsx(
+            "h-full w-full bg-bg/95 transition-transform duration-300 ease-out",
+            menuOpen ? "translate-x-0" : "translate-x-full",
+          )}
+        >
+          <Container className="flex h-full flex-col gap-2 pt-8">
+            {items.map((item) => {
+              const className = clsx(
+                "border-b border-white/10 py-3.5 text-left font-sub text-lg transition",
+                item.active ? "text-accent" : "text-heading/90",
+              );
+              return item.href ? (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  tabIndex={menuOpen ? undefined : -1}
+                  className={className}
+                >
+                  {item.label}
+                </Link>
+              ) : (
+                <button
+                  key={item.label}
+                  onClick={item.onClick}
+                  tabIndex={menuOpen ? undefined : -1}
+                  className={className}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </Container>
+        </div>
       </div>
     </>
   );
