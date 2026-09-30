@@ -52,7 +52,7 @@ export default function AdminTrainers() {
 
   return (
     <div className="max-w-2xl">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <PageTitle>Тренеры</PageTitle>
         <button
           onClick={() => setAdding(true)}

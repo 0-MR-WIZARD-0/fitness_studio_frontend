@@ -30,6 +30,7 @@ const groups = [
     title: "Работа студии",
     items: [
       { href: "/admin/booking", label: "Расписание и запись" },
+      { href: "/admin/clients", label: "Клиенты" },
       { href: "/admin/trainers", label: "Тренеры" },
       { href: "/admin/halls", label: "Залы" },
       { href: "/admin/services", label: "Дополнительные услуги" },
@@ -115,7 +116,7 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-screen">
-      <header className="fixed inset-x-0 top-0 z-40 flex h-14 items-center gap-3 border-b border-white/10 bg-surface px-4 md:hidden">
+      <header className="no-print fixed inset-x-0 top-0 z-40 flex h-14 items-center gap-3 border-b border-white/10 bg-surface px-4 md:hidden">
         <button
           onClick={() => setMenuOpen(true)}
           aria-label="Открыть меню"
@@ -140,7 +141,7 @@ export default function AdminLayout({
 
       <aside
         className={clsx(
-          "fixed inset-y-0 left-0 z-50 w-64 shrink-0 overflow-y-auto border-r border-white/10 bg-surface p-5 transition-transform duration-300 ease-out",
+          "no-print fixed inset-y-0 left-0 z-50 w-64 shrink-0 overflow-y-auto border-r border-white/10 bg-surface p-5 transition-transform duration-300 ease-out",
           "md:static md:z-auto md:w-60 md:translate-x-0 md:bg-surface/40 md:transition-none",
           menuOpen ? "translate-x-0" : "-translate-x-full",
         )}

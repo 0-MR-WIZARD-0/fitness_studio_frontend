@@ -58,7 +58,7 @@ export default function AdminFormats() {
 
   return (
     <div className="max-w-3xl">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <PageTitle>Форматы</PageTitle>
         <Link href="/admin/formats/new" className="btn-gold">
           + Новый формат
@@ -69,7 +69,7 @@ export default function AdminFormats() {
         {items.map((f, i) => (
           <div
             key={f.id}
-            className="flex items-center justify-between rounded-xl border-gold bg-surface/40 px-4 py-3"
+            className="flex flex-col gap-3 rounded-xl border-gold bg-surface/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="flex items-center gap-3">
               <MoveButtons
@@ -88,7 +88,7 @@ export default function AdminFormats() {
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-4 pl-12 text-sm sm:pl-0">
               <Link
                 href={`/admin/formats/${f.id}`}
                 className="text-accent hover:underline"

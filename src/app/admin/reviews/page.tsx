@@ -35,7 +35,7 @@ export default function AdminReviews() {
     <div className="max-w-3xl">
       <PageTitle>Модерация отзывов</PageTitle>
 
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex flex-wrap gap-2">
         {filters.map((f) => (
           <button
             key={f.value}

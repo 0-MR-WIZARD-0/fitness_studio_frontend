@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { mediaUrl } from "@/lib/api";
+import { clsx } from "@/lib/clsx";
 import { deleteUpload, uploadFile, type UploadFolder } from "@/lib/admin";
 
 export function PageTitle({ children }: { children: React.ReactNode }) {
@@ -187,6 +188,143 @@ export function StringList({
       </div>
     </Labeled>
   );
+}
+
+export interface SelectOption {
+  value: string;
+  label: string;
+}
+
+export function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label?: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: SelectOption[];
+}) {
+  const [open, setOpen] = useState(false);
+  const [up, setUp] = useState(false);
+  const [active, setActive] = useState(0);
+  const box = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
+
+  const current = options.find((o) => o.value === value) ?? options[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  function toggle() {
+    if (!open) {
+      const rect = trigger.current?.getBoundingClientRect();
+      setUp(!!rect && window.innerHeight - rect.bottom < 240);
+      setActive(
+        Math.max(
+          0,
+          options.findIndex((o) => o.value === value),
+        ),
+      );
+    }
+    setOpen(!open);
+  }
+
+  function pick(next: string) {
+    onChange(next);
+    setOpen(false);
+    trigger.current?.focus();
+  }
+
+  function onKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Escape") {
+      setOpen(false);
+      return;
+    }
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      if (open) pick(options[active]?.value ?? value);
+      else toggle();
+      return;
+    }
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      if (!open) {
+        toggle();
+        return;
+      }
+      const step = e.key === "ArrowDown" ? 1 : -1;
+      setActive((i) => (i + step + options.length) % options.length);
+    }
+  }
+
+  const list = (
+    <div
+      role="listbox"
+      className={clsx(
+        "absolute inset-x-0 z-30 max-h-60 overflow-y-auto rounded-xl border-gold bg-surface py-1 shadow-xl",
+        up ? "bottom-full mb-1" : "top-full mt-1",
+      )}
+    >
+      {options.map((o, i) => (
+        <button
+          key={o.value}
+          type="button"
+          role="option"
+          aria-selected={o.value === value}
+          onMouseEnter={() => setActive(i)}
+          onClick={() => pick(o.value)}
+          className={clsx(
+            "block w-full px-4 py-2 text-left text-sm transition",
+            o.value === value
+              ? "bg-accent/20 text-heading"
+              : i === active
+                ? "bg-surface-2 text-heading"
+                : "text-text/80",
+          )}
+        >
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+
+  const control = (
+    <div className="relative" ref={box}>
+      <button
+        ref={trigger}
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        onClick={toggle}
+        onKeyDown={onKeyDown}
+        className="field flex items-center justify-between gap-3 text-left"
+      >
+        <span className="truncate">{current?.label ?? ""}</span>
+        <svg
+          viewBox="0 0 12 8"
+          aria-hidden
+          className={clsx(
+            "h-2 w-3 shrink-0 fill-none stroke-current stroke-2 text-text/70 transition-transform",
+            open && "rotate-180",
+          )}
+        >
+          <path d="M1 1.5 6 6.5 11 1.5" strokeLinecap="round" />
+        </svg>
+      </button>
+      {open && list}
+    </div>
+  );
+
+  return label ? <Labeled label={label}>{control}</Labeled> : control;
 }
 
 export function Toast({ message }: { message: string | null }) {

@@ -111,6 +111,131 @@ h4 {
   background: color-mix(in srgb, #000 82%, transparent);
 }
 
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .print-report {
+    font-family:
+      system-ui,
+      -apple-system,
+      "Segoe UI",
+      sans-serif;
+    font-size: 10pt;
+    line-height: 1.35;
+    color: #000;
+  }
+  .print-report .studio {
+    font-size: 8.5pt;
+    color: #444;
+    letter-spacing: 0.04em;
+    margin: 0 0 6pt;
+  }
+  .print-report h1 {
+    font-family: inherit;
+    font-size: 15pt;
+    color: #000;
+    margin: 0 0 8pt;
+  }
+  .print-report h2 {
+    font-family: inherit;
+    font-size: 11pt;
+    color: #000;
+    margin: 12pt 0 0;
+    padding-bottom: 2pt;
+    border-bottom: 1px solid #000;
+  }
+  .print-report section {
+    break-inside: avoid;
+  }
+
+  .print-report table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .print-report thead {
+    display: table-header-group;
+  }
+  .print-report tbody {
+    display: table-row-group;
+  }
+  .print-report tr {
+    display: table-row;
+  }
+  .print-report th,
+  .print-report td {
+    display: table-cell;
+  }
+  .print-report table.meta td {
+    padding: 1pt 0;
+    vertical-align: top;
+    font-size: 9.5pt;
+  }
+  .print-report table.report-table {
+    margin-top: 4pt;
+  }
+  .print-report table.report-table th,
+  .print-report table.report-table td {
+    border: 1px solid #8a8a8a;
+    padding: 3pt 5pt;
+    text-align: left;
+    vertical-align: top;
+  }
+  .print-report table.report-table th {
+    font-size: 9pt;
+    font-weight: 600;
+    background: #eee;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .print-report table.report-table th.num,
+  .print-report table.report-table td.num {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .print-report table.report-table th.no,
+  .print-report table.report-table td.no {
+    width: 5%;
+    text-align: center;
+  }
+  .print-report .diff {
+    color: #555;
+  }
+
+  .print-report .notes {
+    margin: 6pt 0 0;
+  }
+  .print-report .notes dt {
+    font-weight: 600;
+    font-size: 9.5pt;
+  }
+  .print-report .notes dd {
+    margin: 0 0 6pt;
+    white-space: pre-line;
+  }
+  .print-report .empty {
+    margin-top: 6pt;
+    color: #555;
+  }
+  .print-report .foot {
+    margin-top: 14pt;
+    font-size: 8pt;
+    color: #555;
+  }
+}
+
 .btn-gold {
   display: inline-flex;
   align-items: center;

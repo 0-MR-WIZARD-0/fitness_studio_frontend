@@ -29,9 +29,11 @@ import {
   type SiteSettings,
   type Slot,
 } from "@/lib/api";
+import { myCard, type ClientCardData } from "@/lib/clients";
 import { WeekGrid } from "../booking/WeekGrid";
 import { toKey } from "../Calendar";
 import { useAccount } from "./AccountProvider";
+import { DiagnosticsTab } from "./DiagnosticsTab";
 
 const when = (iso: string | null) =>
   iso
@@ -44,7 +46,7 @@ const when = (iso: string | null) =>
       })
     : "—";
 
-type Tab = "profile" | "bookings" | "promo";
+type Tab = "profile" | "bookings" | "promo" | "diagnostics";
 
 interface Confirm {
   title: string;
@@ -69,6 +71,7 @@ export function AccountDashboard() {
   const [courses, setCourses] = useState<AccountCourse[]>([]);
   const [freezes, setFreezes] = useState<AccountFreeze[]>([]);
   const [contacts, setContacts] = useState<SiteSettings | null>(null);
+  const [cardData, setCardData] = useState<ClientCardData | null>(null);
   const [moving, setMoving] = useState<AccountBooking | null>(null);
   const [confirming, setConfirming] = useState<Confirm | null>(null);
   const [tab, setTab] = useState<Tab>("profile");
@@ -87,6 +90,9 @@ export function AccountDashboard() {
       .catch(() => {});
     accountFreezes()
       .then(setFreezes)
+      .catch(() => {});
+    myCard()
+      .then(setCardData)
       .catch(() => {});
   }, []);
 
@@ -186,10 +192,14 @@ export function AccountDashboard() {
     });
   }
 
+  const diagnostics = cardData?.measurements.length ?? 0;
   const tabs: [Tab, string][] = [
     ["profile", "Личная информация"],
     ["bookings", `Мои записи${upcoming.length ? ` · ${upcoming.length}` : ""}`],
     ["promo", `Мои промокоды${activePromos ? ` · ${activePromos}` : ""}`],
+    ...(diagnostics
+      ? ([["diagnostics", `Диагностика · ${diagnostics}`]] as [Tab, string][])
+      : []),
   ];
 
   return (
@@ -252,6 +262,10 @@ export function AccountDashboard() {
               setMessage("Профиль сохранён");
             }}
           />
+        )}
+
+        {tab === "diagnostics" && cardData && (
+          <DiagnosticsTab data={cardData} />
         )}
 
         {tab === "bookings" && (

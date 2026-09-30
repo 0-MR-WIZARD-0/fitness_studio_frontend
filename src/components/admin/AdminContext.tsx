@@ -10,6 +10,7 @@ export const AdminProvider = AdminContext.Provider;
 export const TRAINER_PATHS = [
   "/admin/profile",
   "/admin/booking",
+  "/admin/clients",
   "/admin/services",
   "/admin/promo",
   "/admin/reviews",

@@ -57,7 +57,7 @@ export default function AdminPromo() {
 
   return (
     <div className="max-w-2xl">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <PageTitle>Промокоды</PageTitle>
         <button onClick={generate} className="btn-gold">
           Сгенерировать промокод

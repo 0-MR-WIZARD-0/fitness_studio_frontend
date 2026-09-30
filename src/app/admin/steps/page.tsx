@@ -43,7 +43,7 @@ export default function AdminSteps() {
 
   return (
     <div className="max-w-2xl">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
         <PageTitle>Шаги «Начни уже сегодня»</PageTitle>
         <button
           onClick={() => setAdding(true)}
@@ -133,7 +133,7 @@ function StepCard({
 
   return (
     <div className="rounded-2xl border-gold bg-surface/50 p-5 space-y-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <TextField
           label="Подпись точки"
           value={draft.label}
