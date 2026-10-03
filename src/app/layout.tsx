@@ -32,6 +32,7 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,
   robots: { index: true, follow: true },
+  verification: { yandex: "873bd6b9cba34746" },
   openGraph: {
     type: "website",
     locale: "ru_RU",

@@ -20,7 +20,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority,
   }));
 
-  // страницы форматов берём из API; если он молчит, отдаём хотя бы статику
   try {
     const formats = await getFormats();
     pages.push(
