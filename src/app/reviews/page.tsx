@@ -3,14 +3,18 @@ import { Reveal } from "@/components/Reveal";
 import { SubmitReview } from "@/components/reviews/SubmitReview";
 import { getApprovedReviews, mediaUrl, type Review } from "@/lib/api";
 
-export const metadata = { title: "Отзывы — Триединство" };
+export const metadata = {
+  title: "Отзывы",
+  description:
+    "Что говорят о студии «Триединство» те, кто уже занимается. Можно оставить свой отзыв.",
+  alternates: { canonical: "/reviews" },
+};
 
 export default async function ReviewsPage() {
   let reviews: Review[] = [];
   try {
     reviews = await getApprovedReviews();
-  } catch {
-  }
+  } catch {}
 
   return (
     <div className="pt-32 pb-10">

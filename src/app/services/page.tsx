@@ -12,7 +12,12 @@ import {
   type StudioPhoto,
 } from "@/lib/api";
 
-export const metadata = { title: "Дополнительные услуги — Триединство" };
+export const metadata = {
+  title: "Дополнительные услуги и аренда зала",
+  description:
+    "Услуги студии «Триединство» и аренда зала: что входит, сколько стоит и как забронировать время.",
+  alternates: { canonical: "/services" },
+};
 
 export default async function ServicesPage() {
   const [photos, services, halls] = await Promise.all([

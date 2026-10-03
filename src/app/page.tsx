@@ -21,6 +21,8 @@ import {
   type SiteSettings,
 } from "@/lib/api";
 
+export const metadata = { alternates: { canonical: "/" } };
+
 const FALLBACK_HERO: HomeHero = {
   id: 0,
   title: "ТРИЕДИНСТВО",
@@ -49,8 +51,7 @@ export default async function HomePage() {
       getAnnouncements(),
       getSettings(),
     ]);
-  } catch {
-  }
+  } catch {}
 
   return (
     <>

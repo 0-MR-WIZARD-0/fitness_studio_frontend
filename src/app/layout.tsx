@@ -6,7 +6,9 @@ import { BookingProvider } from "@/components/BookingProvider";
 import { AccountProvider } from "@/components/account/AccountProvider";
 import { PublicChrome } from "@/components/PublicChrome";
 import { SocialDock } from "@/components/SocialDock";
+import { StructuredData } from "@/components/StructuredData";
 import { getSettings, type SiteSettings } from "@/lib/api";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 
 const montserrat = Montserrat({
   variable: "--font-montserrat",
@@ -22,8 +24,19 @@ const montserratAlt = Montserrat_Alternates({
 });
 
 export const metadata: Metadata = {
-  title: "Триединство — фитнес-студия",
-  description: "Фитнес, здоровье и уход в одной системе. Студия для женщин.",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `${SITE_NAME} — фитнес-студия для женщин`,
+    template: `%s — ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  robots: { index: true, follow: true },
+  openGraph: {
+    type: "website",
+    locale: "ru_RU",
+    siteName: SITE_NAME,
+  },
 };
 
 const FALLBACK_SETTINGS: SiteSettings = {
@@ -61,6 +74,7 @@ export default async function RootLayout({
       className={`${montserrat.variable} ${montserratAlt.variable} h-full`}
     >
       <body className="min-h-full flex flex-col bg-bg text-text">
+        <StructuredData settings={settings} />
         <AccountProvider>
           <BookingProvider>
             <PublicChrome footer={<Footer settings={settings} />}>

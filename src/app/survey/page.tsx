@@ -9,7 +9,12 @@ import {
   type SiteSettings,
 } from "@/lib/api";
 
-export const metadata = { title: "Подбор формата — Триединство" };
+export const metadata = {
+  title: "Подбор формата",
+  description:
+    "Короткий опрос про самочувствие и ограничения — подскажем, какой формат занятий в студии подойдёт именно вам.",
+  alternates: { canonical: "/survey" },
+};
 
 const FALLBACK_SETTINGS: SiteSettings = {
   id: 1,

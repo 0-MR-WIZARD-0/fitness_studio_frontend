@@ -1,7 +1,10 @@
 import { Container } from "@/components/Container";
 import { AccountAuthForm } from "@/components/account/AccountAuthForm";
 
-export const metadata = { title: "Личный кабинет — Триединство" };
+export const metadata = {
+  title: "Личный кабинет",
+  robots: { index: false, follow: false },
+};
 
 export default async function AccountLoginPage({
   searchParams,

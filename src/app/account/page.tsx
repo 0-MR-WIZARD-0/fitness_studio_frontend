@@ -1,7 +1,10 @@
 import { Container } from "@/components/Container";
 import { AccountDashboard } from "@/components/account/AccountDashboard";
 
-export const metadata = { title: "Мои записи — Триединство" };
+export const metadata = {
+  title: "Мои записи",
+  robots: { index: false, follow: false },
+};
 
 export default function AccountPage() {
   return (

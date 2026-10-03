@@ -27,9 +27,17 @@ export async function generateMetadata({
   const { slug } = await params;
   try {
     const f = await getFormat(slug);
-    return { title: `Формат ${f.name} — Триединство` };
+    const description =
+      f.subtitle.trim() ||
+      `Формат «${f.name}» в студии «Триединство»: для кого подходит, как проходит занятие и сколько длится.`;
+    return {
+      title: f.name,
+      description,
+      alternates: { canonical: `/formats/${f.slug}` },
+      openGraph: { title: `${f.name} — Триединство`, description },
+    };
   } catch {
-    return { title: "Формат — Триединство" };
+    return { title: "Формат" };
   }
 }
 
@@ -111,62 +119,61 @@ export default async function FormatPage({
               {(settings?.pricePerSession ?? 0).toLocaleString("ru-RU")} руб. ·{" "}
               {format.durationMin} мин
             </p>
-
           </div>
         </Container>
       </section>
 
       {format.forWhom && format.forWhom.length > 0 && (
         <Reveal>
-        <section className="py-16 md:py-20">
-          <Container>
-            <h2 className="text-3xl md:text-4xl font-bold">
-              Для кого этот формат
-            </h2>
-            {format.forWhom.length > 3 ? (
-              <ForWhomCarousel items={format.forWhom} className="mt-8" />
-            ) : (
-              <>
-                <ForWhomCarousel
-                  items={format.forWhom}
-                  className="mt-8 md:hidden"
-                />
-                <Grid className="mt-8 hidden md:grid">
-                  {format.forWhom.map((item) => (
-                    <div key={item.id} className="col-span-12 md:col-span-4">
-                      <ForWhomCard item={item} />
-                    </div>
-                  ))}
-                </Grid>
-              </>
-            )}
-          </Container>
-        </section>
+          <section className="py-16 md:py-20">
+            <Container>
+              <h2 className="text-3xl md:text-4xl font-bold">
+                Для кого этот формат
+              </h2>
+              {format.forWhom.length > 3 ? (
+                <ForWhomCarousel items={format.forWhom} className="mt-8" />
+              ) : (
+                <>
+                  <ForWhomCarousel
+                    items={format.forWhom}
+                    className="mt-8 md:hidden"
+                  />
+                  <Grid className="mt-8 hidden md:grid">
+                    {format.forWhom.map((item) => (
+                      <div key={item.id} className="col-span-12 md:col-span-4">
+                        <ForWhomCard item={item} />
+                      </div>
+                    ))}
+                  </Grid>
+                </>
+              )}
+            </Container>
+          </section>
         </Reveal>
       )}
 
       {format.mechanisms && format.mechanisms.length > 0 && (
         <Reveal>
-        <section className="pt-10 pb-20">
-          <Container>
-            <h2 className="text-2xl md:text-4xl font-bold uppercase">
-              Как это работает: {format.mechanisms.length}{" "}
-              {plural(format.mechanisms.length, [
-                "механизм ",
-                "механизма ",
-                "механизмов ",
-              ])}
-              формата «{format.name}»
-            </h2>
-            <div className="mt-10 space-y-8">
-              {format.mechanisms.map((m, i) => (
-                <Reveal key={m.id} delay={i * 80}>
-                  <Mechanism mechanism={m} flip={i % 2 === 1} />
-                </Reveal>
-              ))}
-            </div>
-          </Container>
-        </section>
+          <section className="pt-10 pb-20">
+            <Container>
+              <h2 className="text-2xl md:text-4xl font-bold uppercase">
+                Как это работает: {format.mechanisms.length}{" "}
+                {plural(format.mechanisms.length, [
+                  "механизм ",
+                  "механизма ",
+                  "механизмов ",
+                ])}
+                формата «{format.name}»
+              </h2>
+              <div className="mt-10 space-y-8">
+                {format.mechanisms.map((m, i) => (
+                  <Reveal key={m.id} delay={i * 80}>
+                    <Mechanism mechanism={m} flip={i % 2 === 1} />
+                  </Reveal>
+                ))}
+              </div>
+            </Container>
+          </section>
         </Reveal>
       )}
     </article>
@@ -186,7 +193,9 @@ function Mechanism({
         <span className="text-4xl md:text-5xl font-bold text-accent tabular-nums">
           {String(mechanism.number).padStart(2, "0")}
         </span>
-        <h3 className="mt-1 font-sub text-xl text-heading">{mechanism.title}</h3>
+        <h3 className="mt-1 font-sub text-xl text-heading">
+          {mechanism.title}
+        </h3>
       </div>
       <ul className="mt-4 space-y-1.5 text-sm leading-relaxed text-text/85">
         {mechanism.bullets.map((b, idx) => (

@@ -6,6 +6,9 @@ RUN --mount=type=cache,target=/root/.npm npm ci
 COPY . .
 ARG NEXT_PUBLIC_API_URL=http://localhost:4000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+# публичный адрес сайта: попадает в canonical, карту сайта и robots.txt
+ARG NEXT_PUBLIC_SITE_URL=https://triedinstvo-studio.ru
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 RUN --mount=type=cache,target=/app/.next/cache npm run build
 
 FROM node:22-slim AS runtime

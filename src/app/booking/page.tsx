@@ -1,7 +1,12 @@
 import { Container } from "@/components/Container";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 
-export const metadata = { title: "Запись — Триединство" };
+export const metadata = {
+  title: "Запись на занятие",
+  description:
+    "Расписание студии «Триединство» и запись онлайн: выберите формат, дату и время.",
+  alternates: { canonical: "/booking" },
+};
 
 export default async function BookingPage({
   searchParams,

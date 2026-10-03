@@ -12,15 +12,19 @@ import {
   type SiteSettings,
 } from "@/lib/api";
 
-export const metadata = { title: "Форматы — Триединство" };
+export const metadata = {
+  title: "Форматы занятий",
+  description:
+    "Направления студии «Триединство»: для кого подходит каждый формат, как проходит занятие и сколько длится.",
+  alternates: { canonical: "/formats" },
+};
 
 export default async function FormatsPage() {
   let formats: Format[] = [];
   let settings: SiteSettings | null = null;
   try {
     [formats, settings] = await Promise.all([getFormats(), getSettings()]);
-  } catch {
-  }
+  } catch {}
   const price = settings?.pricePerSession ?? 0;
 
   return (
@@ -104,9 +108,7 @@ function FormatCard({
         </div>
       </Link>
       <div className="mt-4 px-1 text-center text-sm leading-relaxed">
-        <p>
-          Цена за занятие — {price.toLocaleString("ru-RU")} руб.
-        </p>
+        <p>Цена за занятие — {price.toLocaleString("ru-RU")} руб.</p>
         <p className="text-text/60">{format.durationMin} мин</p>
       </div>
     </div>
