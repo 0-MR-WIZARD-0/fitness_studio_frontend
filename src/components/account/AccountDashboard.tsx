@@ -48,13 +48,18 @@ const when = (iso: string | null) =>
 
 type Tab = "profile" | "bookings" | "promo" | "diagnostics";
 
+type UpcomingRow =
+  | { kind: "one"; booking: AccountBooking }
+  | { kind: "course"; id: string; items: AccountBooking[] };
+
 interface Confirm {
   title: string;
   text: string;
   warning?: string | null;
   confirmLabel: string;
   danger?: boolean;
-  run: () => Promise<void>;
+  needPassword?: boolean;
+  run: (password: string) => Promise<void>;
 }
 
 const timeOf = (iso: string) =>
@@ -120,27 +125,53 @@ export function AccountDashboard() {
       </div>
     );
 
-  const upcoming = bookings.filter(
-    (b) =>
-      b.status !== "CANCELLED" &&
-      b.startsAt &&
-      new Date(b.startsAt).getTime() > Date.now(),
-  );
+  const upcoming = bookings
+    .filter(
+      (b) =>
+        b.status !== "CANCELLED" &&
+        b.startsAt &&
+        new Date(b.startsAt).getTime() > Date.now(),
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.startsAt ?? 0).getTime() -
+        new Date(b.startsAt ?? 0).getTime(),
+    );
   const history = bookings.filter((b) => !upcoming.includes(b));
+
+  const upcomingRows: UpcomingRow[] = [];
+  const courseRows = new Map<
+    string,
+    Extract<UpcomingRow, { kind: "course" }>
+  >();
+  for (const b of upcoming) {
+    if (!b.courseGroupId) {
+      upcomingRows.push({ kind: "one", booking: b });
+      continue;
+    }
+    const existing = courseRows.get(b.courseGroupId);
+    if (existing) {
+      existing.items.push(b);
+      continue;
+    }
+    const row = {
+      kind: "course" as const,
+      id: b.courseGroupId,
+      items: [b],
+    };
+    courseRows.set(b.courseGroupId, row);
+    upcomingRows.push(row);
+  }
   const activePromos = promos.filter(
     (p) => !p.isUsed && new Date(p.expiresAt).getTime() > Date.now(),
   ).length;
 
   const run = async (action: () => Promise<string>) => {
     setError(null);
-    try {
-      setMessage(await action());
-      reload();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Не удалось выполнить");
-    } finally {
-      setConfirming(null);
-    }
+    const result = await action();
+    setMessage(result);
+    reload();
+    setConfirming(null);
   };
 
   function askCancel(booking: AccountBooking) {
@@ -150,12 +181,16 @@ export function AccountDashboard() {
       warning: booking.cancelWarning,
       confirmLabel: "Отменить запись",
       danger: true,
-      run: () =>
+      needPassword: true,
+      run: (password) =>
         run(async () => {
-          const res = await cancelAccountBooking(booking.id);
-          return res.burnedGift
-            ? `Запись отменена, промокод ${res.burnedGift} сгорел`
-            : "Запись отменена";
+          const res = await cancelAccountBooking(booking.id, password);
+          const parts = ["Запись отменена"];
+          if (res.burnedGift) parts.push(`промокод ${res.burnedGift} сгорел`);
+          if (res.burnedFreeze) parts.push("заморозка сгорела");
+          return res.refundNote
+            ? `${parts.join(", ")}. ${res.refundNote}`
+            : parts.join(", ");
         }),
     });
   }
@@ -184,10 +219,12 @@ export function AccountDashboard() {
         : "Снимутся все занятия курса вместе с занятием по подарочному промокоду.",
       confirmLabel: "Отказаться от курса",
       danger: true,
-      run: () =>
+      needPassword: true,
+      run: (password) =>
         run(async () => {
-          const res = await cancelAccountCourse(course.courseGroupId);
-          return `Курс отменён, снято записей: ${res.cancelled}`;
+          const res = await cancelAccountCourse(course.courseGroupId, password);
+          const head = `Курс отменён, снято записей: ${res.cancelled}`;
+          return res.refundNote ? `${head}. ${res.refundNote}` : head;
         }),
     });
   }
@@ -334,18 +371,52 @@ export function AccountDashboard() {
                 </p>
               ) : (
                 <div className="mt-4 space-y-3">
-                  {upcoming.map((b) => (
-                    <BookingRow
-                      key={b.id}
-                      booking={b}
-                      onCancel={() => askCancel(b)}
-                      onFreeze={() => askFreeze(b)}
-                      onMove={() => {
-                        setError(null);
-                        setMoving(b);
-                      }}
-                    />
-                  ))}
+                  {upcomingRows.map((row) => {
+                    const rows = row.kind === "one" ? [row.booking] : row.items;
+                    const cards = rows.map((b) => (
+                      <BookingRow
+                        key={b.id}
+                        booking={b}
+                        onCancel={() => askCancel(b)}
+                        onFreeze={() => askFreeze(b)}
+                        onMove={() => {
+                          setError(null);
+                          setMoving(b);
+                        }}
+                      />
+                    ));
+                    if (row.kind === "one") return cards;
+
+                    const course = courses.find(
+                      (c) => c.courseGroupId === row.id,
+                    );
+                    return (
+                      <div
+                        key={row.id}
+                        className="rounded-2xl border border-accent/35 bg-accent/5 p-3 sm:p-4"
+                      >
+                        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                          <p className="font-sub text-heading">
+                            Курс · {row.items.length}{" "}
+                            {plural(row.items.length, [
+                              "занятие",
+                              "занятия",
+                              "занятий",
+                            ])}
+                          </p>
+                          {course && (
+                            <span className="text-xs text-text/60">
+                              {course.total.toLocaleString("ru-RU")} ₽
+                              {course.giftCode
+                                ? ` · подарок ${course.giftCode}`
+                                : ""}
+                            </span>
+                          )}
+                        </div>
+                        <div className="space-y-3">{cards}</div>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </section>
@@ -813,6 +884,9 @@ function ConfirmDialog({
   onClose: () => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const blocked = busy || (data.needPassword && !password);
 
   return (
     <div
@@ -838,17 +912,43 @@ function ConfirmDialog({
           </p>
         )}
 
+        {data.needPassword && (
+          <label className="mt-4 block">
+            <span className="mb-1 block font-sub text-sm text-text/80">
+              Пароль от кабинета
+            </span>
+            <input
+              className="field"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              placeholder="Введите пароль"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <span className="mt-1 block text-xs text-text/50">
+              Подтвердите, что отменяете запись вы, а не кто-то другой.
+            </span>
+          </label>
+        )}
+
+        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+
         <div className="mt-5 flex flex-wrap gap-3">
           <button
             onClick={async () => {
+              setError(null);
               setBusy(true);
               try {
-                await data.run();
+                await data.run(password);
+              } catch (e) {
+                setError(
+                  e instanceof Error ? e.message : "Не удалось выполнить",
+                );
               } finally {
                 setBusy(false);
               }
             }}
-            disabled={busy}
+            disabled={blocked}
             className={clsx(
               "disabled:opacity-40",
               data.danger

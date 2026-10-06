@@ -38,6 +38,13 @@ import { NumberInput } from "@/components/admin/NumberInput";
 import { useAdmin } from "@/components/admin/AdminContext";
 import Link from "next/link";
 
+const toLocalInput = (value: string | Date) => {
+  const d = new Date(value);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 16);
+};
+
 export default function AdminBooking() {
   const [formats, setFormats] = useState<Format[]>([]);
   const [formatId, setFormatId] = useState<number | null>(null);
@@ -165,6 +172,14 @@ export default function AdminBooking() {
   }
 
   async function create() {
+    if (
+      (asAnnouncement || !weekdayMode) &&
+      new Date(startsAtIso()).getTime() < Date.now()
+    ) {
+      flash("Нельзя поставить занятие в прошлом — выберите время позже");
+      return;
+    }
+
     if (asAnnouncement) {
       if (!annTitle.trim()) {
         flash("Укажите название занятия");
@@ -676,10 +691,11 @@ export default function AdminBooking() {
                   <input
                     type="datetime-local"
                     className="field"
+                    min={toLocalInput(new Date())}
                     value={
                       editing?.id === openSlot.id
                         ? editing.value
-                        : new Date(openSlot.startsAt).toISOString().slice(0, 16)
+                        : toLocalInput(openSlot.startsAt)
                     }
                     onChange={(e) =>
                       setEditing({ id: openSlot.id, value: e.target.value })
@@ -816,7 +832,7 @@ export default function AdminBooking() {
           defaultValue={
             editing?.id === dialog.slot.id
               ? editing.value
-              : new Date(dialog.slot.startsAt).toISOString().slice(0, 16)
+              : toLocalInput(dialog.slot.startsAt)
           }
           error={moveError}
           onClose={() => {
@@ -932,6 +948,7 @@ function SlotActionDialog({
             <input
               type="datetime-local"
               className="field"
+              min={toLocalInput(new Date())}
               value={value}
               onChange={(e) => setValue(e.target.value)}
             />

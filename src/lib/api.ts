@@ -299,19 +299,28 @@ export const accountBookings = () =>
   api<AccountBooking[]>("/account/bookings", { auth: true });
 export const accountPromos = () =>
   api<AccountPromo[]>("/account/promo", { auth: true });
-export const cancelAccountBooking = (id: number) =>
-  api<{ ok: boolean; burnedGift: string | null }>(
-    `/account/bookings/${id}/cancel`,
-    accountOpts("POST"),
-  );
+export const cancelAccountBooking = (id: number, password: string) =>
+  api<{
+    ok: boolean;
+    burnedGift: string | null;
+    burnedFreeze: boolean;
+    refunded: number;
+    refundNote: string | null;
+  }>(`/account/bookings/${id}/cancel`, accountOpts("POST", { password }));
 export const accountCourses = () =>
   api<AccountCourse[]>("/account/courses", { auth: true });
 export const accountFreezes = () =>
   api<AccountFreeze[]>("/account/freezes", { auth: true });
-export const cancelAccountCourse = (courseGroupId: string) =>
-  api<{ ok: boolean; cancelled: number; burnedGift: string | null }>(
+export const cancelAccountCourse = (courseGroupId: string, password: string) =>
+  api<{
+    ok: boolean;
+    cancelled: number;
+    burnedGift: string | null;
+    refunded: number;
+    refundNote: string | null;
+  }>(
     "/account/courses/cancel",
-    accountOpts("POST", { courseGroupId }),
+    accountOpts("POST", { courseGroupId, password }),
   );
 export const freezeAccountBooking = (id: number) =>
   api<{ ok: boolean }>(`/account/bookings/${id}/freeze`, accountOpts("POST"));
