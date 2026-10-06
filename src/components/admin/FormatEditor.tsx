@@ -10,6 +10,7 @@ import {
   ImageField,
   Labeled,
   PageTitle,
+  SelectField,
   StringList,
   TextField,
   Toast,
@@ -34,6 +35,7 @@ interface Draft {
   durationMin: number;
   order: number;
   isActive: boolean;
+  isExtra: boolean;
   forWhom: ForWhom[];
   mechanisms: Mechanism[];
 }
@@ -47,6 +49,7 @@ const empty: Draft = {
   durationMin: 60,
   order: 0,
   isActive: true,
+  isExtra: false,
   forWhom: [],
   mechanisms: [],
 };
@@ -120,6 +123,20 @@ export function FormatEditor({ initial }: { initial?: Format }) {
         value={d.subtitle}
         onChange={(v) => set({ subtitle: v })}
       />
+
+      <SelectField
+        label="Группа на странице форматов"
+        value={d.isExtra ? "extra" : "main"}
+        options={[
+          { value: "main", label: "Основные форматы" },
+          { value: "extra", label: "Дополнительные форматы" },
+        ]}
+        onChange={(v) => set({ isExtra: v === "extra" })}
+      />
+      <p className="-mt-2 text-xs text-text/50">
+        Отличается только вкладкой, в которой формат показывается посетителю.
+        Запись, расписание и цены работают одинаково.
+      </p>
 
       <StringList
         label="Мини-итоги (Сила / Выносливость …)"

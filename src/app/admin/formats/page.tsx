@@ -81,6 +81,11 @@ export default function AdminFormats() {
               <div>
                 <span className="text-heading">{f.name}</span>{" "}
                 <span className="text-xs text-text/50">/{f.slug}</span>
+                {f.isExtra && (
+                  <span className="ml-2 rounded-md border border-accent/40 bg-accent/10 px-1.5 py-0.5 text-xs text-accent">
+                    дополнительный
+                  </span>
+                )}
                 {f.upcomingLessons > 0 && (
                   <span className="ml-2 text-xs text-text/50">
                     занятий в расписании: {f.upcomingLessons}

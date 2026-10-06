@@ -101,6 +101,7 @@ export interface Format {
   durationMin: number;
   order: number;
   isActive: boolean;
+  isExtra: boolean;
   forWhom?: ForWhomItem[];
   mechanisms?: Mechanism[];
 }
