@@ -11,23 +11,25 @@ export function Hero({ hero }: { hero: HomeHero }) {
 
   return (
     <section className="relative flex min-h-[100svh] w-full flex-col overflow-hidden">
-      {bg ? (
-        <Image
-          src={bg}
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
-      ) : (
-        <div className="absolute inset-0 bg-gradient-to-b from-[#3a2d24] via-[#2a2122] to-bg" />
-      )}
+      <div className="absolute inset-x-0 top-0 h-[100svh] overflow-hidden lg:bottom-0 lg:h-auto">
+        {bg ? (
+          <Image
+            src={bg}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-b from-[#3a2d24] via-[#2a2122] to-bg" />
+        )}
+      </div>
       <div className="absolute inset-0 bg-gradient-to-b from-bg/70 via-bg/45 to-bg md:from-bg/30 md:via-transparent" />
 
       <Container className="relative z-10 flex flex-1 flex-col pt-28 pb-24 md:pt-32 lg:pb-28">
         <div className="flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-6">
-          <div className="order-1 lg:order-none lg:col-span-7 lg:row-start-1 lg:pt-8">
+          <div className="lg:col-span-7 lg:row-start-1 lg:pt-8">
             <h1 className="font-bold tracking-tight [overflow-wrap:normal] text-[10.5vw] md:text-[clamp(2rem,9vw,4.5rem)] lg:text-[clamp(3rem,calc(7.1vw-12px),6rem)]">
               {hero.title}
             </h1>
@@ -41,11 +43,11 @@ export function Hero({ hero }: { hero: HomeHero }) {
             )}
           </div>
 
-          <div className="order-3 mt-auto flex items-center justify-center lg:order-none lg:mt-0 lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">
+          <div className="mt-[40svh] flex items-center justify-center lg:mt-0 lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">
             <Spheres spheres={hero.spheres} subtitle2={hero.subtitle2} />
           </div>
 
-          <div className="order-2 max-w-2xl lg:order-none lg:col-span-7 lg:row-start-2 lg:self-end">
+          <div className="max-w-2xl lg:col-span-7 lg:row-start-2 lg:self-end">
             <Description text={hero.description} />
           </div>
         </div>
