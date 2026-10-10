@@ -60,7 +60,11 @@ export default async function HomePage() {
         <FaqTabs items={faq} />
       </Reveal>
       <Reveal>
-        <FormatsSlider formats={formats} />
+        <FormatsSlider
+          formats={[...formats].sort(
+            (a, b) => Number(a.isExtra) - Number(b.isExtra),
+          )}
+        />
       </Reveal>
       {settings && formats.length > 0 && (
         <Reveal>

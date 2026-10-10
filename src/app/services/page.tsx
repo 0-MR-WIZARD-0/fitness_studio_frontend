@@ -31,21 +31,8 @@ export default async function ServicesPage() {
 
   const servicesTab = (
     <Container>
-      <p className="mt-4 max-w-2xl text-sm md:text-base leading-relaxed">
-        Составление индивидуального плана питания под ваши запросы и
-        потребности.
-      </p>
-
       {withoutTime.length > 0 ? (
-        <div className="mt-8">
-          <h2 className="font-sub text-2xl text-heading">
-            Услуги без записи по времени
-          </h2>
-          <p className="mt-2 max-w-2xl text-sm text-text/70">
-            Оставьте заявку — студия свяжется с вами и договорится о деталях.
-          </p>
-          <ServiceOrder services={withoutTime} />
-        </div>
+        <ServiceOrder services={withoutTime} />
       ) : (
         <p className="mt-8 text-sm text-text/60">Услуги пока не добавлены.</p>
       )}

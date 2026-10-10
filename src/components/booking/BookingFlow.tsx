@@ -85,6 +85,7 @@ export function BookingFlow({
   const { user } = useAccount();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [studioPhone, setStudioPhone] = useState("");
   const [done, setDone] = useState<null | {
     courses?: number;
     gifts?: string[];
@@ -97,6 +98,7 @@ export function BookingFlow({
     getFormats().then(setFormats);
     getSettings().then((s) => {
       setThreshold(s.courseThreshold);
+      setStudioPhone(s.phone);
     });
     getDocuments()
       .then(setDocuments)
@@ -130,6 +132,9 @@ export function BookingFlow({
       },
     };
   }, [lessons, diagSlots, announcements, filterFormatId, filterDiagnostic]);
+
+  const noDiagnostics =
+    filterDiagnostic && !diagSlots.some((s) => s.remaining > 0);
 
   const hasPaid = scope.paid.slots.length + scope.paid.anns.length > 0;
   const hasFree = scope.free.slots.length + scope.free.anns.length > 0;
@@ -467,6 +472,29 @@ export function BookingFlow({
               {label}
             </button>
           ))}
+        </div>
+      )}
+
+      {noDiagnostics && (
+        <div className="mt-6 rounded-2xl border border-amber-400/40 bg-amber-400/5 px-4 py-3 text-sm leading-relaxed text-amber-200">
+          <p className="font-sub">Записи на диагностику сейчас нет</p>
+          <p className="mt-1 text-amber-200/85">
+            Свободных слотов в расписании не осталось. Загляните позже или
+            свяжитесь со студией
+            {studioPhone ? (
+              <>
+                {" "}
+                по телефону{" "}
+                <a
+                  href={`tel:${studioPhone.replace(/[^\d+]/g, "")}`}
+                  className="underline underline-offset-4"
+                >
+                  {studioPhone}
+                </a>
+              </>
+            ) : null}{" "}
+            — подберём время.
+          </p>
         </div>
       )}
 
