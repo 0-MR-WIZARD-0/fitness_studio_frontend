@@ -27,8 +27,8 @@ export function Hero({ hero }: { hero: HomeHero }) {
 
       <Container className="relative z-10 flex flex-1 flex-col pt-28 pb-24 md:pt-32 lg:pb-28">
         <div className="flex flex-1 flex-col gap-6 lg:grid lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-6">
-          <div className="lg:col-span-7 lg:row-start-1 lg:pt-8">
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight">
+          <div className="order-1 lg:order-none lg:col-span-7 lg:row-start-1 lg:pt-8">
+            <h1 className="font-bold tracking-tight [overflow-wrap:normal] text-[10.5vw] md:text-[clamp(2rem,9vw,4.5rem)] lg:text-[clamp(3rem,calc(7.1vw-12px),6rem)]">
               {hero.title}
             </h1>
             <p className="mt-3 font-sub text-base sm:text-lg md:text-2xl text-heading/90">
@@ -41,11 +41,11 @@ export function Hero({ hero }: { hero: HomeHero }) {
             )}
           </div>
 
-          <div className="flex items-center justify-center lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">
+          <div className="order-3 mt-auto flex items-center justify-center lg:order-none lg:mt-0 lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">
             <Spheres spheres={hero.spheres} subtitle2={hero.subtitle2} />
           </div>
 
-          <div className="max-w-2xl lg:col-span-7 lg:row-start-2 lg:self-end">
+          <div className="order-2 max-w-2xl lg:order-none lg:col-span-7 lg:row-start-2 lg:self-end">
             <Description text={hero.description} />
           </div>
         </div>

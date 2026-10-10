@@ -43,7 +43,7 @@ export default async function ServicesPage() {
     <>
       <Container>
         <div className="mt-4 max-w-2xl text-sm md:text-base leading-relaxed">
-          <p>Доступ к залу и оборудованию по часам.</p>
+          <p>Для доступа к залу и оборудованию по часам:</p>
           <ol className="mt-1 list-decimal space-y-1 pl-6 marker:text-accent">
             <li>
               Выбираете удобное время в расписании или приложенной к залу
