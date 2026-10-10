@@ -19,16 +19,12 @@ export default function AdminFormats() {
   const [items, setItems] = useState<AdminFormat[]>([]);
   const [removing, setRemoving] = useState<AdminFormat | null>(null);
   const [threshold, setThreshold] = useState(3);
-  const [price, setPrice] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
   const reload = () => adminFormatList().then(setItems);
   useEffect(() => {
     reload();
-    getSettings().then((s) => {
-      setThreshold(s.courseThreshold);
-      setPrice(s.pricePerSession);
-    });
+    getSettings().then((s) => setThreshold(s.courseThreshold));
   }, []);
 
   const flash = (m: string) => {
@@ -37,11 +33,8 @@ export default function AdminFormats() {
   };
 
   async function savePrices() {
-    await updateSettings({
-      courseThreshold: Math.max(1, threshold),
-      pricePerSession: Math.max(0, price),
-    });
-    flash("Цены сохранены");
+    await updateSettings({ courseThreshold: Math.max(1, threshold) });
+    flash("Сохранено");
   }
 
   async function move(index: number, dir: -1 | 1) {
@@ -119,19 +112,17 @@ export default function AdminFormats() {
       </div>
 
       <div className="mt-8 max-w-xxl rounded-xl border-gold bg-surface/40 p-4">
-        <p className="mb-3 font-sub text-heading">Цены и курс</p>
+        <p className="mb-3 font-sub text-heading">Курс</p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <Labeled label="Цена за занятие, ₽">
-            <NumberInput value={price} onChange={setPrice} min={0} />
-          </Labeled>
           <Labeled label="Занятий = курс">
             <NumberInput value={threshold} onChange={setThreshold} min={1} />
           </Labeled>
         </div>
         <p className="mt-2 text-xs text-text/50">
-          Цена одна для всех форматов. Набрал столько занятий за 7 дней — платит
-          за них полную цену и получает промокод на бесплатное занятие, которым
-          можно воспользоваться в течение месяца.
+          Цена и количество мест задаются внутри каждого формата. Набрал столько
+          занятий за 7 дней — получает промокод на бесплатное занятие, которым
+          можно воспользоваться в течение месяца. В счёт идут только форматы с
+          галочкой «входит в курс».
         </p>
         <button onClick={savePrices} className="btn-gold mt-3">
           Сохранить

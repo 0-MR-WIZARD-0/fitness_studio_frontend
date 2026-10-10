@@ -12,6 +12,7 @@ import {
   PageTitle,
   SelectField,
   StringList,
+  TextArea,
   TextField,
   Toast,
 } from "./ui";
@@ -33,6 +34,12 @@ interface Draft {
   miniResults: string[];
   heroImageUrl: string | null;
   durationMin: number;
+  price: number;
+  capacity: number;
+  inCourse: boolean;
+  inSchedule: boolean;
+  contactUrl: string;
+  scheduleNote: string;
   order: number;
   isActive: boolean;
   isExtra: boolean;
@@ -47,6 +54,12 @@ const empty: Draft = {
   miniResults: [],
   heroImageUrl: null,
   durationMin: 60,
+  price: 0,
+  capacity: 7,
+  inCourse: true,
+  inSchedule: true,
+  contactUrl: "",
+  scheduleNote: "",
   order: 0,
   isActive: true,
   isExtra: false,
@@ -138,6 +151,46 @@ export function FormatEditor({ initial }: { initial?: Format }) {
         Запись, расписание и цены работают одинаково.
       </p>
 
+      {d.isExtra && (
+        <div className="rounded-xl border-gold bg-surface/40 p-4 space-y-3">
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={d.inSchedule}
+              onChange={(e) => set({ inSchedule: e.target.checked })}
+            />
+            <span>
+              Включать в расписание
+              <span className="mt-0.5 block text-xs text-text/50">
+                Если снять, занятия этому формату ставить нельзя, а клиент
+                вместо записи увидит, как с вами связаться.
+              </span>
+            </span>
+          </label>
+
+          {!d.inSchedule && (
+            <>
+              <TextField
+                label="Ссылка для связи (необязательно)"
+                value={d.contactUrl}
+                onChange={(v) => set({ contactUrl: v })}
+              />
+              <TextArea
+                label="Комментарий по доступному времени"
+                rows={3}
+                value={d.scheduleNote}
+                onChange={(v) => set({ scheduleNote: v })}
+              />
+              <p className="text-xs text-text/50">
+                Комментарий увидит клиент в окне вместо записи. Телефон студии
+                подставится из контактов автоматически.
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
       <StringList
         label="Мини-итоги (Сила / Выносливость …)"
         value={d.miniResults}
@@ -151,15 +204,45 @@ export function FormatEditor({ initial }: { initial?: Format }) {
         folder="formats"
       />
 
-      <div className="grid grid-cols-2 gap-3">
-        <Labeled label="Продолжительность занятия, мин">
+      <div className="grid items-end gap-3 sm:grid-cols-3">
+        <Labeled label="Длительность, мин">
           <NumberInput
             value={d.durationMin}
             onChange={(v) => set({ durationMin: v })}
             min={5}
           />
         </Labeled>
+        <Labeled label="Цена за занятие, ₽">
+          <NumberInput
+            value={d.price}
+            onChange={(v) => set({ price: v })}
+            min={0}
+          />
+        </Labeled>
+        <Labeled label="Мест на занятии">
+          <NumberInput
+            value={d.capacity}
+            onChange={(v) => set({ capacity: v })}
+            min={1}
+          />
+        </Labeled>
       </div>
+
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="mt-1"
+          checked={d.inCourse}
+          onChange={(e) => set({ inCourse: e.target.checked })}
+        />
+        <span>
+          Входит в курс
+          <span className="mt-0.5 block text-xs text-text/50">
+            Занятия этого формата считаются в тройку, за которую клиент получает
+            бесплатное занятие. Если галочки нет — не считаются.
+          </span>
+        </span>
+      </label>
       <p className="-mt-2 text-xs text-text/50">
         Подставляется при создании слотов в разделе «Запись» и показывается
         посетителю в расписании.

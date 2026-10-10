@@ -251,6 +251,9 @@ export interface ServiceInput {
   title: string;
   description?: string;
   price?: number;
+  priceWeek?: number | null;
+  priceMonth?: number | null;
+  isFree?: boolean;
   order?: number;
   isActive?: boolean;
 }

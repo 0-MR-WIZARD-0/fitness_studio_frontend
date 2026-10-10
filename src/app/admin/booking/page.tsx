@@ -131,7 +131,8 @@ export default function AdminBooking() {
         formatName: s.format?.name ?? null,
         trainerId: s.trainerId,
         trainerName: s.trainer?.name ?? null,
-        pricePerSession: s.isDiagnostic ? 0 : (rules?.pricePerSession ?? -1),
+        pricePerSession: s.isDiagnostic ? 0 : (s.format?.price ?? -1),
+        inCourse: !s.isDiagnostic && (s.format?.inCourse ?? false),
         taken: s._count.bookings,
         remaining: Math.max(0, s.capacity - s._count.bookings),
       })),
@@ -534,20 +535,25 @@ export default function AdminBooking() {
                 />
               </label>
 
-              <label className="text-sm">
-                <span className="mb-1 block h-5 text-text/80">Мест</span>
-                <NumberInput
-                  value={capacity}
-                  onChange={(v) => setCapacity(v)}
-                  min={1}
-                  max={7}
-                />
-              </label>
+              {diag && (
+                <label className="text-sm">
+                  <span className="mb-1 block h-5 text-text/80">Мест</span>
+                  <NumberInput
+                    value={capacity}
+                    onChange={(v) => setCapacity(v)}
+                    min={1}
+                    max={7}
+                  />
+                </label>
+              )}
             </div>
 
             <p className="mt-2 text-xs text-text/50">
               Занятие {duration} мин — следующее можно ставить с{" "}
-              {shiftTime(time, duration)}. Мест не больше 7.
+              {shiftTime(time, duration)}.
+              {diag
+                ? " Мест не больше 7."
+                : " Количество мест берётся из формата."}
             </p>
 
             <div className="mt-4 flex flex-wrap items-center gap-4">

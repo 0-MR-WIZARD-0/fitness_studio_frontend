@@ -1,8 +1,6 @@
-import Link from "next/link";
 import { Container } from "@/components/Container";
 import { Reveal } from "@/components/Reveal";
 import { FormatTabs } from "@/components/formats/FormatTabs";
-import { CoursePromo } from "@/components/CoursePromo";
 import {
   getFormats,
   getSettings,
@@ -23,7 +21,6 @@ export default async function FormatsPage() {
   try {
     [formats, settings] = await Promise.all([getFormats(), getSettings()]);
   } catch {}
-  const price = settings?.pricePerSession ?? 0;
 
   return (
     <div className="pt-32 pb-10">
@@ -36,23 +33,9 @@ export default async function FormatsPage() {
           <FormatTabs
             main={formats.filter((f) => !f.isExtra)}
             extra={formats.filter((f) => f.isExtra)}
-            price={price}
+            threshold={settings?.courseThreshold ?? 3}
           />
         </Reveal>
-
-        {settings && (
-          <CoursePromo
-            className="mt-12"
-            threshold={settings.courseThreshold}
-            price={settings.pricePerSession}
-          />
-        )}
-
-        <div className="mt-10 flex justify-center md:justify-end">
-          <Link href="/survey" className="btn-gold">
-            Пройти опрос и подобрать формат
-          </Link>
-        </div>
       </Container>
     </div>
   );

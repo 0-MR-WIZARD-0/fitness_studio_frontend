@@ -5,11 +5,11 @@ const money = (value: number) => value.toLocaleString("ru-RU");
 
 export function CoursePromo({
   threshold,
-  price,
+  price = 0,
   className,
 }: {
   threshold: number;
-  price: number;
+  price?: number;
   className?: string;
 }) {
   const total = price * threshold;
@@ -40,10 +40,12 @@ export function CoursePromo({
           </span>{" "}
           вместо{" "}
           <span className="text-text/60 line-through">{money(price)} ₽</span>.
-          Промокод на бесплатное занятие придёт в личный кабинет. Действует на
-          любые тренировки из расписания студии.
         </p>
       )}
+      <p className="mt-2 text-sm leading-relaxed text-text/85">
+        Промокод на бесплатное занятие придёт в личный кабинет. Действует на
+        любые тренировки из расписания студии.
+      </p>
     </div>
   );
 }

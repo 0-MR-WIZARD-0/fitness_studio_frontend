@@ -111,12 +111,15 @@ export default async function FormatPage({
             )}
 
             <div className="mt-7 flex flex-wrap items-center gap-4">
-              <BookFormatButton formatId={format.id} />
+              <BookFormatButton
+                formatId={format.id}
+                format={format}
+                settings={settings}
+              />
             </div>
 
             <p className="mt-5 text-sm text-text/80">
-              Цена за занятие —{" "}
-              {(settings?.pricePerSession ?? 0).toLocaleString("ru-RU")} руб. ·{" "}
+              Цена за занятие — {format.price.toLocaleString("ru-RU")} руб. ·{" "}
               {format.durationMin} мин
             </p>
           </div>

@@ -8,6 +8,8 @@ import {
   type Service,
   type StudioDocument,
 } from "@/lib/api";
+import { servicePeriods, priceLabel } from "@/lib/service-periods";
+import type { ServicePeriod } from "@/lib/api";
 import { useAccount } from "../account/AccountProvider";
 import {
   ClientCard,
@@ -18,6 +20,7 @@ import {
 export function ServiceOrder({ services }: { services: Service[] }) {
   const { user } = useAccount();
   const [picked, setPicked] = useState<Service | null>(null);
+  const [period, setPeriod] = useState<ServicePeriod>("single");
   const [documents, setDocuments] = useState<StudioDocument[]>([]);
   const [accepted, setAccepted] = useState<number[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -27,7 +30,9 @@ export function ServiceOrder({ services }: { services: Service[] }) {
   );
 
   useEffect(() => {
-    getDocuments().then(setDocuments).catch(() => {});
+    getDocuments()
+      .then(setDocuments)
+      .catch(() => {});
   }, []);
 
   const docsAccepted = documents.every((d) => accepted.includes(d.id));
@@ -58,7 +63,10 @@ export function ServiceOrder({ services }: { services: Service[] }) {
           <button
             key={s.id}
             type="button"
-            onClick={() => setPicked((prev) => (prev?.id === s.id ? null : s))}
+            onClick={() => {
+              setPicked((prev) => (prev?.id === s.id ? null : s));
+              setPeriod(servicePeriods(s)[0].value);
+            }}
             className={clsx(
               "rounded-2xl border p-5 text-left transition",
               picked?.id === s.id
@@ -73,9 +81,13 @@ export function ServiceOrder({ services }: { services: Service[] }) {
               </p>
             )}
             <p className="mt-3 text-accent">
-              {s.price > 0
-                ? `${s.price.toLocaleString("ru-RU")} ₽`
-                : "бесплатно"}
+              {servicePeriods(s)
+                .map((o) =>
+                  o.label === "бесплатно"
+                    ? o.label
+                    : `${o.label} — ${priceLabel(o.price)}`,
+                )
+                .join(" · ")}
             </p>
           </button>
         ))}
@@ -85,13 +97,36 @@ export function ServiceOrder({ services }: { services: Service[] }) {
 
       {picked && user && (
         <div className="mt-6 max-w-md space-y-3">
+          {servicePeriods(picked).length > 1 && (
+            <div>
+              <p className="mb-2 text-sm text-text/80">На какой срок</p>
+              <div className="flex flex-wrap gap-2">
+                {servicePeriods(picked).map((o) => (
+                  <button
+                    key={o.value}
+                    type="button"
+                    onClick={() => setPeriod(o.value)}
+                    className={clsx(
+                      "rounded-xl border px-4 py-2 text-sm transition",
+                      period === o.value
+                        ? "border-accent bg-accent/15 text-heading"
+                        : "border-white/15 text-text/70 hover:bg-surface-2/50",
+                    )}
+                  >
+                    {o.label} · {priceLabel(o.price)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <p className="rounded-xl border-gold bg-surface/40 px-4 py-3 text-sm">
-            Заявка на{" "}
-            <span className="text-heading">«{picked.title}»</span> ·{" "}
+            Заявка на <span className="text-heading">«{picked.title}»</span> ·{" "}
             <span className="text-accent">
-              {picked.price > 0
-                ? `${picked.price.toLocaleString("ru-RU")} ₽`
-                : "бесплатно"}
+              {priceLabel(
+                servicePeriods(picked).find((o) => o.value === period)?.price ??
+                  0,
+              )}
             </span>
           </p>
 
@@ -116,6 +151,7 @@ export function ServiceOrder({ services }: { services: Service[] }) {
               try {
                 const res = await orderService({
                   serviceId: picked.id,
+                  period,
                   documentIds: accepted,
                 });
                 setDone({ title: picked.title, total: res.total });
@@ -123,7 +159,9 @@ export function ServiceOrder({ services }: { services: Service[] }) {
                 setAccepted([]);
               } catch (e) {
                 setError(
-                  e instanceof Error ? e.message : "Не удалось отправить заявку",
+                  e instanceof Error
+                    ? e.message
+                    : "Не удалось отправить заявку",
                 );
               } finally {
                 setSubmitting(false);

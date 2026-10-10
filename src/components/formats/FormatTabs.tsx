@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Grid } from "@/components/Container";
 import { FormatsCarousel } from "@/components/formats/FormatsCarousel";
+import { CoursePromo } from "@/components/CoursePromo";
 import { clsx } from "@/lib/clsx";
 import { mediaUrl, type Format } from "@/lib/api";
 
@@ -13,11 +14,11 @@ type Tab = "main" | "extra";
 export function FormatTabs({
   main,
   extra,
-  price,
+  threshold,
 }: {
   main: Format[];
   extra: Format[];
-  price: number;
+  threshold: number;
 }) {
   const [tab, setTab] = useState<Tab>("main");
   const withTabs = extra.length > 0;
@@ -60,20 +61,25 @@ export function FormatTabs({
           <FormatsCarousel
             key={tab}
             formats={items}
-            price={price}
             className="mt-10 md:hidden"
           />
 
           <Grid className="mt-12 hidden items-stretch md:grid">
             {items.map((f, i) => (
-              <FormatCard
-                key={f.id}
-                format={f}
-                price={price}
-                highlight={i === 0}
-              />
+              <FormatCard key={f.id} format={f} highlight={i === 0} />
             ))}
           </Grid>
+        </>
+      )}
+
+      {tab === "main" && (
+        <>
+          <CoursePromo className="mt-12" threshold={threshold} />
+          <div className="mt-10 flex justify-center md:justify-end">
+            <Link href="/survey" className="btn-gold">
+              Пройти опрос и подобрать формат
+            </Link>
+          </div>
         </>
       )}
     </div>
@@ -82,11 +88,9 @@ export function FormatTabs({
 
 function FormatCard({
   format,
-  price,
   highlight,
 }: {
   format: Format;
-  price: number;
   highlight?: boolean;
 }) {
   const img = mediaUrl(format.heroImageUrl);
@@ -117,7 +121,7 @@ function FormatCard({
         </div>
       </Link>
       <div className="mt-4 px-1 text-center text-sm leading-relaxed">
-        <p>Цена за занятие — {price.toLocaleString("ru-RU")} руб.</p>
+        <p>Цена за занятие — {format.price.toLocaleString("ru-RU")} руб.</p>
         <p className="text-text/60">{format.durationMin} мин</p>
       </div>
     </div>

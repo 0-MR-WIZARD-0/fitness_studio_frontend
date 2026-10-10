@@ -29,7 +29,7 @@ export default function AdminSurvey() {
   const reload = () => adminConditions().then(setItems);
 
   useEffect(() => {
-    adminFormatList().then(setFormats);
+    adminFormatList().then((all) => setFormats(all.filter((f) => !f.isExtra)));
     reload();
   }, []);
 

@@ -99,9 +99,15 @@ export interface Format {
   previewImageUrl: string | null;
   heroImageUrl: string | null;
   durationMin: number;
+  price: number;
+  capacity: number;
+  inCourse: boolean;
   order: number;
   isActive: boolean;
   isExtra: boolean;
+  inSchedule: boolean;
+  contactUrl: string;
+  scheduleNote: string;
   forWhom?: ForWhomItem[];
   mechanisms?: Mechanism[];
 }
@@ -160,11 +166,16 @@ export interface Hall {
 }
 export const getHalls = () => api<Hall[]>("/halls");
 
+export type ServicePeriod = "single" | "week" | "month";
+
 export interface Service {
   id: number;
   title: string;
   description: string;
   price: number;
+  priceWeek: number | null;
+  priceMonth: number | null;
+  isFree: boolean;
   durationMin: number | null;
   order: number;
   isActive: boolean;
@@ -173,6 +184,7 @@ export interface Service {
 export const getServices = () => api<Service[]>("/services");
 export const orderService = (data: {
   serviceId: number;
+  period?: ServicePeriod;
   documentIds?: number[];
 }) =>
   api<{ total: number }>("/services/order", {
@@ -364,6 +376,7 @@ export interface Slot {
   hallId?: number | null;
   hallName?: string | null;
   pricePerSession: number;
+  inCourse: boolean;
   taken: number;
   remaining: number;
   createdById?: number | null;
@@ -374,8 +387,6 @@ export interface SiteSettings {
   phone: string;
   email: string;
   courseThreshold: number;
-  pricePerSession: number;
-  priceCourse: number;
   userAgreementUrl: string;
   telegramUrl: string;
   maxUrl: string;

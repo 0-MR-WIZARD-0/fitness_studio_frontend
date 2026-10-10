@@ -9,8 +9,85 @@ import {
 } from "@/lib/admin";
 import type { Service } from "@/lib/api";
 import { PageTitle, Toast } from "@/components/admin/ui";
-import { NumberInput } from "@/components/admin/NumberInput";
+import { onlyDigits } from "@/lib/number-input";
 import { useAdmin } from "@/components/admin/AdminContext";
+
+type PriceDraft = {
+  price: number;
+  priceWeek: number | null;
+  priceMonth: number | null;
+  isFree: boolean;
+};
+
+function PeriodPrices({
+  draft,
+  disabled,
+  onChange,
+}: {
+  draft: PriceDraft;
+  disabled?: boolean;
+  onChange: (patch: Partial<PriceDraft>) => void;
+}) {
+  const field = (key: "priceWeek" | "priceMonth", label: string) => (
+    <label className="text-sm">
+      <span className="mb-1 block text-text/80">{label}</span>
+      <input
+        className="field"
+        inputMode="numeric"
+        disabled={disabled}
+        placeholder="нет"
+        value={draft[key] == null ? "" : String(draft[key])}
+        onChange={(e) => {
+          const v = onlyDigits(e.target.value, true);
+          onChange({
+            [key]: v === "" ? null : Number(v),
+          } as Partial<PriceDraft>);
+        }}
+      />
+    </label>
+  );
+
+  return (
+    <div className="mt-3">
+      <label className="flex items-center gap-2 text-sm text-text/80">
+        <input
+          type="checkbox"
+          disabled={disabled}
+          checked={draft.isFree}
+          onChange={(e) => onChange({ isFree: e.target.checked })}
+        />
+        Бесплатно
+      </label>
+
+      {!draft.isFree && (
+        <>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <label className="text-sm">
+              <span className="mb-1 block text-text/80">Разовая, ₽</span>
+              <input
+                className="field"
+                inputMode="numeric"
+                disabled={disabled}
+                value={String(draft.price)}
+                onChange={(e) =>
+                  onChange({
+                    price: Number(onlyDigits(e.target.value, true) || 0),
+                  })
+                }
+              />
+            </label>
+            {field("priceWeek", "За неделю, ₽")}
+            {field("priceMonth", "За месяц, ₽")}
+          </div>
+          <p className="mt-1 text-xs text-text/50">
+            Разовая цена — это и есть цена за один раз. Незаполненный срок
+            клиенту не показывается.
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default function AdminServices() {
   const [services, setServices] = useState<Service[]>([]);
@@ -62,14 +139,21 @@ function NewService({
   nextOrder: number;
   onCreated: () => void;
 }) {
-  const empty = { title: "", description: "", price: 0 };
+  const empty = {
+    title: "",
+    description: "",
+    price: 0,
+    priceWeek: null as number | null,
+    priceMonth: null as number | null,
+    isFree: false,
+  };
   const [draft, setDraft] = useState(empty);
   const [error, setError] = useState<string | null>(null);
 
   return (
     <div className="rounded-2xl border-gold bg-surface/50 p-5">
       <p className="mb-4 font-sub text-heading">Новая услуга</p>
-      <div className="grid items-start gap-4 md:grid-cols-3">
+      <div className="grid items-start gap-4 md:grid-cols-2">
         <label className="text-sm">
           <span className="mb-1 block text-text/80">Название</span>
           <input
@@ -77,14 +161,6 @@ function NewService({
             value={draft.title}
             onChange={(e) => setDraft({ ...draft, title: e.target.value })}
             placeholder="Планирование питания"
-          />
-        </label>
-        <label className="text-sm">
-          <span className="mb-1 block text-text/80">Цена, ₽</span>
-          <NumberInput
-            value={draft.price}
-            onChange={(v) => setDraft({ ...draft, price: v })}
-            min={0}
           />
         </label>
         <label className="text-sm">
@@ -100,6 +176,11 @@ function NewService({
         </label>
       </div>
 
+      <PeriodPrices
+        draft={draft}
+        onChange={(patch) => setDraft({ ...draft, ...patch })}
+      />
+
       {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
 
       <button
@@ -110,6 +191,9 @@ function NewService({
               title: draft.title.trim(),
               description: draft.description,
               price: draft.price,
+              priceWeek: draft.priceWeek,
+              priceMonth: draft.priceMonth,
+              isFree: draft.isFree,
               order: nextOrder,
               isActive: true,
             });
@@ -141,13 +225,19 @@ function ServiceRow({
     title: service.title,
     description: service.description,
     price: service.price,
+    priceWeek: service.priceWeek,
+    priceMonth: service.priceMonth,
+    isFree: service.isFree,
   });
   const [busy, setBusy] = useState(false);
 
   const changed =
     draft.title !== service.title ||
     draft.description !== service.description ||
-    draft.price !== service.price;
+    draft.price !== service.price ||
+    draft.priceWeek !== service.priceWeek ||
+    draft.priceMonth !== service.priceMonth ||
+    draft.isFree !== service.isFree;
 
   const save = async (patch?: { isActive?: boolean }) => {
     setBusy(true);
@@ -156,6 +246,9 @@ function ServiceRow({
         title: draft.title.trim(),
         description: draft.description,
         price: draft.price,
+        priceWeek: draft.priceWeek,
+        priceMonth: draft.priceMonth,
+        isFree: draft.isFree,
         order: service.order,
         isActive: patch?.isActive ?? service.isActive,
       });
@@ -167,17 +260,12 @@ function ServiceRow({
 
   return (
     <div className="rounded-2xl border border-white/10 bg-surface/30 p-4">
-      <div className="grid items-start gap-3 md:grid-cols-3">
+      <div className="grid items-start gap-3 md:grid-cols-2">
         <input
           className="field"
           value={draft.title}
           disabled={!mine}
           onChange={(e) => setDraft({ ...draft, title: e.target.value })}
-        />
-        <NumberInput
-          value={draft.price}
-          onChange={(v) => setDraft({ ...draft, price: v })}
-          min={0}
         />
         <input
           className="field"
@@ -186,6 +274,12 @@ function ServiceRow({
           onChange={(e) => setDraft({ ...draft, description: e.target.value })}
         />
       </div>
+
+      <PeriodPrices
+        draft={draft}
+        disabled={!mine}
+        onChange={(patch) => setDraft({ ...draft, ...patch })}
+      />
 
       <div className="mt-3 flex flex-wrap items-center gap-4 text-sm">
         {mine ? (

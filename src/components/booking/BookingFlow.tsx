@@ -14,12 +14,16 @@ import {
   getDiagnosticSlots,
   getDocuments,
   getFormats,
+  getServices,
   getSettings,
   type Announcement,
   type Format,
+  type Service,
+  type ServicePeriod,
   type Slot,
   type StudioDocument,
 } from "@/lib/api";
+import { servicePeriods, priceLabel } from "@/lib/service-periods";
 import { useAccount } from "../account/AccountProvider";
 import { formatPhone, isValidPhone } from "@/lib/phone";
 import {
@@ -153,7 +157,26 @@ export function BookingFlow({
     [cart, threshold],
   );
   const courses = groups.length;
-  const total = cart.reduce((sum, s) => sum + s.pricePerSession, 0);
+
+  const [extras, setExtras] = useState<Service[]>([]);
+  const [extrasOpen, setExtrasOpen] = useState(false);
+  const [picked, setPicked] = useState<Record<number, ServicePeriod>>({});
+
+  useEffect(() => {
+    getServices()
+      .then(setExtras)
+      .catch(() => {});
+  }, []);
+
+  const extrasTotal = Object.entries(picked).reduce((sum, [id, period]) => {
+    const service = extras.find((x) => x.id === Number(id));
+    if (!service) return sum;
+    const option = servicePeriods(service).find((o) => o.value === period);
+    return sum + (option?.price ?? 0);
+  }, 0);
+
+  const total =
+    cart.reduce((sum, s) => sum + s.pricePerSession, 0) + extrasTotal;
   const docsAccepted = documents.every((d) => accepted.includes(d.id));
 
   function scrollToSummary() {
@@ -270,7 +293,12 @@ export function BookingFlow({
         return;
       }
 
-      if (cart.length === 1) {
+      const chosenServices = Object.entries(picked).map(([id, period]) => ({
+        serviceId: Number(id),
+        period,
+      }));
+
+      if (cart.length === 1 && chosenServices.length === 0) {
         const res = await api<Booked>("/booking/single", {
           method: "POST",
           auth: true,
@@ -295,6 +323,7 @@ export function BookingFlow({
           body: JSON.stringify({
             slotIds: cart.map((s) => s.id),
             documentIds,
+            services: chosenServices,
           }),
         });
         if (toPayment(res)) return;
@@ -522,6 +551,101 @@ export function BookingFlow({
                 </button>
               </div>
             ))}
+            {extras.length > 0 && (
+              <div className="mt-3 border-t border-white/10 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setExtrasOpen((v) => !v)}
+                  className="flex w-full items-center justify-between text-left text-sm text-text/80 hover:text-heading"
+                >
+                  <span>
+                    Дополнительные услуги
+                    {extrasTotal > 0 && (
+                      <span className="ml-2 text-accent">
+                        +{extrasTotal.toLocaleString("ru-RU")} ₽
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-text/50">
+                    {extrasOpen ? "свернуть" : "развернуть"}
+                  </span>
+                </button>
+
+                {extrasOpen && (
+                  <div className="mt-3 space-y-3">
+                    {extras.map((service) => {
+                      const options = servicePeriods(service);
+                      const chosen = picked[service.id];
+                      return (
+                        <div
+                          key={service.id}
+                          className="rounded-xl border border-white/10 bg-bg/40 p-3"
+                        >
+                          <label className="flex items-start gap-2 text-sm">
+                            <input
+                              type="checkbox"
+                              className="mt-1"
+                              checked={chosen !== undefined}
+                              onChange={(e) =>
+                                setPicked((prev) => {
+                                  const next = { ...prev };
+                                  if (e.target.checked)
+                                    next[service.id] = options[0].value;
+                                  else delete next[service.id];
+                                  return next;
+                                })
+                              }
+                            />
+                            <span>
+                              <span className="text-heading">
+                                {service.title}
+                              </span>
+                              {service.description && (
+                                <span className="mt-0.5 block text-xs text-text/55">
+                                  {service.description}
+                                </span>
+                              )}
+                            </span>
+                          </label>
+
+                          {chosen !== undefined && options.length > 1 && (
+                            <div className="mt-2 flex flex-wrap gap-2 pl-6">
+                              {options.map((o) => (
+                                <button
+                                  key={o.value}
+                                  type="button"
+                                  onClick={() =>
+                                    setPicked((prev) => ({
+                                      ...prev,
+                                      [service.id]: o.value,
+                                    }))
+                                  }
+                                  className={clsx(
+                                    "rounded-lg border px-3 py-1 text-xs transition",
+                                    chosen === o.value
+                                      ? "border-accent bg-accent/15 text-heading"
+                                      : "border-white/15 text-text/70 hover:bg-surface-2/50",
+                                  )}
+                                >
+                                  {o.label} · {priceLabel(o.price)}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+
+                          {chosen !== undefined && options.length === 1 && (
+                            <p className="mt-1 pl-6 text-xs text-accent">
+                              {priceLabel(options[0].price)}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="mt-3 border-t border-white/10 pt-3">
               <span className="text-heading">
                 Итого: {total.toLocaleString("ru-RU")} ₽

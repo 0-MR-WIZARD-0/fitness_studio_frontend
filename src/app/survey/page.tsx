@@ -22,8 +22,6 @@ const FALLBACK_SETTINGS: SiteSettings = {
   phone: "",
   email: "",
   courseThreshold: 3,
-  pricePerSession: 0,
-  priceCourse: 0,
   userAgreementUrl: "",
   telegramUrl: "",
   maxUrl: "",
@@ -61,7 +59,7 @@ export default async function SurveyPage() {
 
         <SurveyForm
           conditions={conditions}
-          formats={formats}
+          formats={formats.filter((f) => !f.isExtra)}
           phone={settings.phone}
           email={settings.email}
         />

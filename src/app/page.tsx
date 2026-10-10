@@ -65,10 +65,7 @@ export default async function HomePage() {
       {settings && formats.length > 0 && (
         <Reveal>
           <Container className="pb-8 md:pb-10">
-            <CoursePromo
-              threshold={settings.courseThreshold}
-              price={settings.pricePerSession}
-            />
+            <CoursePromo threshold={settings.courseThreshold} />
           </Container>
         </Reveal>
       )}
