@@ -14,12 +14,14 @@ import { Labeled, PageTitle, Toast } from "@/components/admin/ui";
 import { PasswordDialog } from "@/components/admin/PasswordDialog";
 import { NumberInput } from "@/components/admin/NumberInput";
 import { MoveButtons } from "@/components/admin/MoveButtons";
+import { clsx } from "@/lib/clsx";
 
 export default function AdminFormats() {
   const [items, setItems] = useState<AdminFormat[]>([]);
   const [removing, setRemoving] = useState<AdminFormat | null>(null);
   const [threshold, setThreshold] = useState(3);
   const [toast, setToast] = useState<string | null>(null);
+  const [tab, setTab] = useState<"main" | "extra">("main");
 
   const reload = () => adminFormatList().then(setItems);
   useEffect(() => {
@@ -37,17 +39,21 @@ export default function AdminFormats() {
     flash("Сохранено");
   }
 
-  async function move(index: number, dir: -1 | 1) {
+  async function move(list: AdminFormat[], index: number, dir: -1 | 1) {
     const target = index + dir;
-    if (target < 0 || target >= items.length) return;
-    const a = items[index];
-    const b = items[target];
+    if (target < 0 || target >= list.length) return;
+    const a = list[index];
+    const b = list[target];
     await Promise.all([
       updateFormat(a.id, { slug: a.slug, name: a.name, order: b.order }),
       updateFormat(b.id, { slug: b.slug, name: b.name, order: a.order }),
     ]);
     await reload();
   }
+
+  const main = items.filter((f) => !f.isExtra);
+  const extra = items.filter((f) => f.isExtra);
+  const shown = tab === "extra" ? extra : main;
 
   return (
     <div className="max-w-3xl">
@@ -58,27 +64,46 @@ export default function AdminFormats() {
         </Link>
       </div>
 
+      <div className="mb-5 flex flex-wrap gap-2 text-sm">
+        {(
+          [
+            ["main", "Основные", main.length],
+            ["extra", "Доп. форматы", extra.length],
+          ] as [typeof tab, string, number][]
+        ).map(([key, label, count]) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTab(key)}
+            className={clsx(
+              "rounded-xl border px-4 py-2 transition",
+              tab === key
+                ? "border-accent bg-accent/15 text-heading"
+                : "border-white/15 text-text/70 hover:bg-surface-2/50",
+            )}
+          >
+            {label}
+            <span className="ml-2 text-text/50">{count}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="space-y-2">
-        {items.map((f, i) => (
+        {shown.map((f, i) => (
           <div
             key={f.id}
             className="flex flex-col gap-3 rounded-xl border-gold bg-surface/40 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="flex items-center gap-3">
               <MoveButtons
-                onUp={() => move(i, -1)}
-                onDown={() => move(i, 1)}
+                onUp={() => move(shown, i, -1)}
+                onDown={() => move(shown, i, 1)}
                 disableUp={i === 0}
-                disableDown={i === items.length - 1}
+                disableDown={i === shown.length - 1}
               />
               <div>
                 <span className="text-heading">{f.name}</span>{" "}
                 <span className="text-xs text-text/50">/{f.slug}</span>
-                {f.isExtra && (
-                  <span className="ml-2 rounded-md border border-accent/40 bg-accent/10 px-1.5 py-0.5 text-xs text-accent">
-                    дополнительный
-                  </span>
-                )}
                 {f.upcomingLessons > 0 && (
                   <span className="ml-2 text-xs text-text/50">
                     занятий в расписании: {f.upcomingLessons}
@@ -108,7 +133,13 @@ export default function AdminFormats() {
             </div>
           </div>
         ))}
-        {items.length === 0 && <p className="text-text/60">Форматов нет.</p>}
+        {shown.length === 0 && (
+          <p className="text-text/60">
+            {tab === "extra"
+              ? "Дополнительных форматов пока нет."
+              : "Форматов нет."}
+          </p>
+        )}
       </div>
 
       <div className="mt-8 max-w-xxl rounded-xl border-gold bg-surface/40 p-4">
