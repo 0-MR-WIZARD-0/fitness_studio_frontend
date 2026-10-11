@@ -207,7 +207,7 @@ export function WeekMatrix({
         </button>
       </div>
 
-      <div className="hidden md:block">
+      <div className="hidden lg:block">
         <div className="grid grid-cols-[minmax(120px,150px)_repeat(7,minmax(0,1fr))]">
           <div className={clsx("border-b", LINE)} />
           {days.map((date) => {
@@ -279,7 +279,7 @@ export function WeekMatrix({
         </div>
       </div>
 
-      <div className="space-y-4 md:hidden">
+      <div className="space-y-4 lg:hidden">
         {days.map((date) => {
           const key = toKey(date);
           const daySlots = rows.flatMap((r) => cellSlots(r, key));
