@@ -6,6 +6,7 @@ import {
   getDocuments,
   orderService,
   type Service,
+  type SiteSettings,
   type StudioDocument,
 } from "@/lib/api";
 import { servicePeriods, priceLabel } from "@/lib/service-periods";
@@ -17,7 +18,13 @@ import {
   LoginRequired,
 } from "../account/BookingGate";
 
-export function ServiceOrder({ services }: { services: Service[] }) {
+export function ServiceOrder({
+  services,
+  settings,
+}: {
+  services: Service[];
+  settings?: SiteSettings | null;
+}) {
   const { user } = useAccount();
   const [picked, setPicked] = useState<Service | null>(null);
   const [period, setPeriod] = useState<ServicePeriod>("single");
@@ -65,7 +72,7 @@ export function ServiceOrder({ services }: { services: Service[] }) {
             type="button"
             onClick={() => {
               setPicked((prev) => (prev?.id === s.id ? null : s));
-              setPeriod(servicePeriods(s)[0].value);
+              setPeriod(servicePeriods(s)[0]?.value ?? "single");
             }}
             className={clsx(
               "rounded-2xl border p-5 text-left transition",
@@ -81,21 +88,63 @@ export function ServiceOrder({ services }: { services: Service[] }) {
               </p>
             )}
             <p className="mt-3 text-accent">
-              {servicePeriods(s)
-                .map((o) =>
-                  o.label === "бесплатно"
-                    ? o.label
-                    : `${o.label} — ${priceLabel(o.price)}`,
-                )
-                .join(" · ")}
+              {s.byAgreement
+                ? "по предварительному согласованию"
+                : servicePeriods(s)
+                    .map((o) =>
+                      o.label === "бесплатно"
+                        ? o.label
+                        : `${o.label} — ${priceLabel(o.price)}`,
+                    )
+                    .join(" · ")}
             </p>
           </button>
         ))}
       </div>
 
-      {picked && !user && <LoginRequired what="Заявка на услугу" />}
+      {picked?.byAgreement && (
+        <div className="mt-6 max-w-md rounded-2xl border border-accent/40 bg-accent/5 p-4 text-sm leading-relaxed">
+          <p className="font-sub text-heading">
+            «{picked.title}» — по согласованию
+          </p>
+          <p className="mt-2 text-text/85">
+            Оплатить сразу нельзя. Свяжитесь с нами
+            {settings?.phone ? (
+              <>
+                {" "}
+                по телефону{" "}
+                <a
+                  href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`}
+                  className="text-accent hover:underline"
+                >
+                  {settings.phone}
+                </a>
+              </>
+            ) : null}
+            {picked.contactUrl.trim() && (
+              <>
+                {settings?.phone ? " или " : " "}
+                <a
+                  href={picked.contactUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent hover:underline"
+                >
+                  по ссылке
+                </a>
+              </>
+            )}{" "}
+            — подберём время и поставим занятие в расписание, оттуда его можно
+            будет оплатить как обычно.
+          </p>
+        </div>
+      )}
 
-      {picked && user && (
+      {picked && !picked.byAgreement && !user && (
+        <LoginRequired what="Заявка на услугу" />
+      )}
+
+      {picked && !picked.byAgreement && user && (
         <div className="mt-6 max-w-md space-y-3">
           {servicePeriods(picked).length > 1 && (
             <div>

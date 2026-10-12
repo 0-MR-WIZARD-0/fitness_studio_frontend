@@ -176,6 +176,8 @@ export interface Service {
   priceWeek: number | null;
   priceMonth: number | null;
   isFree: boolean;
+  byAgreement: boolean;
+  contactUrl: string;
   durationMin: number | null;
   order: number;
   isActive: boolean;

@@ -157,13 +157,13 @@ export function FormatEditor({ initial }: { initial?: Format }) {
             <input
               type="checkbox"
               className="mt-1"
-              checked={d.inSchedule}
-              onChange={(e) => set({ inSchedule: e.target.checked })}
+              checked={!d.inSchedule}
+              onChange={(e) => set({ inSchedule: !e.target.checked })}
             />
             <span>
-              Включать в расписание
+              Индивидуальное расписание
               <span className="mt-0.5 block text-xs text-text/50">
-                Если снять, занятия этому формату ставить нельзя, а клиент
+                Занятия этому формату в общее расписание не ставятся, а клиент
                 вместо записи увидит, как с вами связаться.
               </span>
             </span>

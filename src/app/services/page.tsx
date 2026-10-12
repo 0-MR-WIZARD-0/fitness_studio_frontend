@@ -7,9 +7,11 @@ import { HallPrices } from "@/components/services/HallPrices";
 import {
   getHalls,
   getServices,
+  getSettings,
   getStudioPhotos,
   type Hall,
   type Service,
+  type SiteSettings,
   type StudioPhoto,
 } from "@/lib/api";
 
@@ -21,10 +23,11 @@ export const metadata = {
 };
 
 export default async function ServicesPage() {
-  const [photos, services, halls] = await Promise.all([
+  const [photos, services, halls, settings] = await Promise.all([
     getStudioPhotos().catch((): StudioPhoto[] => []),
     getServices().catch((): Service[] => []),
     getHalls().catch((): Hall[] => []),
+    getSettings().catch((): SiteSettings | null => null),
   ]);
 
   const withoutTime = services.filter((s) => !s.durationMin);
@@ -32,7 +35,7 @@ export default async function ServicesPage() {
   const servicesTab = (
     <Container>
       {withoutTime.length > 0 ? (
-        <ServiceOrder services={withoutTime} />
+        <ServiceOrder services={withoutTime} settings={settings} />
       ) : (
         <p className="mt-8 text-sm text-text/60">Услуги пока не добавлены.</p>
       )}

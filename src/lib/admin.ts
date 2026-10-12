@@ -254,6 +254,8 @@ export interface ServiceInput {
   priceWeek?: number | null;
   priceMonth?: number | null;
   isFree?: boolean;
+  byAgreement?: boolean;
+  contactUrl?: string;
   order?: number;
   isActive?: boolean;
 }

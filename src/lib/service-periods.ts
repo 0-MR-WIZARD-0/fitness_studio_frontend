@@ -7,6 +7,8 @@ export interface PeriodOption {
 }
 
 export function servicePeriods(service: Service): PeriodOption[] {
+  // по согласованию цену заранее не называем
+  if (service.byAgreement) return [];
   if (service.isFree)
     return [{ value: "single", label: "бесплатно", price: 0 }];
 

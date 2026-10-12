@@ -169,7 +169,7 @@ export function BookingFlow({
 
   useEffect(() => {
     getServices()
-      .then(setExtras)
+      .then((list) => setExtras(list.filter((s) => !s.byAgreement)))
       .catch(() => {});
   }, []);
 

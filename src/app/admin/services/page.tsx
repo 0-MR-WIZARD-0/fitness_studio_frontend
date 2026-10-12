@@ -17,6 +17,8 @@ type PriceDraft = {
   priceWeek: number | null;
   priceMonth: number | null;
   isFree: boolean;
+  byAgreement: boolean;
+  contactUrl: string;
 };
 
 function PeriodPrices({
@@ -49,17 +51,52 @@ function PeriodPrices({
 
   return (
     <div className="mt-3">
-      <label className="flex items-center gap-2 text-sm text-text/80">
+      <label className="flex items-start gap-2 text-sm text-text/80">
         <input
           type="checkbox"
+          className="mt-1"
           disabled={disabled}
-          checked={draft.isFree}
-          onChange={(e) => onChange({ isFree: e.target.checked })}
+          checked={draft.byAgreement}
+          onChange={(e) => onChange({ byAgreement: e.target.checked })}
         />
-        Бесплатно
+        <span>
+          Запись по предварительному согласованию
+          <span className="mt-0.5 block text-xs text-text/50">
+            Оплатить сразу нельзя: клиент увидит телефон студии и ссылку.
+            Занятие по такой услуге вы потом ставите в расписание обычным
+            образом — оттуда клиент уже оплачивает как всегда.
+          </span>
+        </span>
       </label>
 
-      {!draft.isFree && (
+      {draft.byAgreement && (
+        <label className="mt-3 block text-sm">
+          <span className="mb-1 block text-text/80">
+            Ссылка для связи (необязательно)
+          </span>
+          <input
+            className="field"
+            disabled={disabled}
+            value={draft.contactUrl}
+            placeholder="https://t.me/..."
+            onChange={(e) => onChange({ contactUrl: e.target.value })}
+          />
+        </label>
+      )}
+
+      {!draft.byAgreement && (
+        <label className="mt-3 flex items-center gap-2 text-sm text-text/80">
+          <input
+            type="checkbox"
+            disabled={disabled}
+            checked={draft.isFree}
+            onChange={(e) => onChange({ isFree: e.target.checked })}
+          />
+          Бесплатно
+        </label>
+      )}
+
+      {!draft.byAgreement && !draft.isFree && (
         <>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             <label className="text-sm">
@@ -146,6 +183,8 @@ function NewService({
     priceWeek: null as number | null,
     priceMonth: null as number | null,
     isFree: false,
+    byAgreement: false,
+    contactUrl: "",
   };
   const [draft, setDraft] = useState(empty);
   const [error, setError] = useState<string | null>(null);
@@ -194,6 +233,8 @@ function NewService({
               priceWeek: draft.priceWeek,
               priceMonth: draft.priceMonth,
               isFree: draft.isFree,
+              byAgreement: draft.byAgreement,
+              contactUrl: draft.contactUrl,
               order: nextOrder,
               isActive: true,
             });
@@ -228,6 +269,8 @@ function ServiceRow({
     priceWeek: service.priceWeek,
     priceMonth: service.priceMonth,
     isFree: service.isFree,
+    byAgreement: service.byAgreement,
+    contactUrl: service.contactUrl,
   });
   const [busy, setBusy] = useState(false);
 
@@ -237,7 +280,9 @@ function ServiceRow({
     draft.price !== service.price ||
     draft.priceWeek !== service.priceWeek ||
     draft.priceMonth !== service.priceMonth ||
-    draft.isFree !== service.isFree;
+    draft.isFree !== service.isFree ||
+    draft.byAgreement !== service.byAgreement ||
+    draft.contactUrl !== service.contactUrl;
 
   const save = async (patch?: { isActive?: boolean }) => {
     setBusy(true);
@@ -249,6 +294,8 @@ function ServiceRow({
         priceWeek: draft.priceWeek,
         priceMonth: draft.priceMonth,
         isFree: draft.isFree,
+        byAgreement: draft.byAgreement,
+        contactUrl: draft.contactUrl,
         order: service.order,
         isActive: patch?.isActive ?? service.isActive,
       });
