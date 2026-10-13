@@ -371,6 +371,7 @@ export interface Slot {
   durationMin: number;
   capacity: number;
   formatId: number | null;
+  serviceId?: number | null;
   isDiagnostic: boolean;
   formatName: string | null;
   trainerId: number | null;

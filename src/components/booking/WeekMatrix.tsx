@@ -122,6 +122,30 @@ export function WeekMatrix({
       });
     }
 
+    const byService = new Map<number, Slot[]>();
+    for (const s of thisWeek(slots)) {
+      if (s.isDiagnostic || !s.serviceId) continue;
+      byService.set(s.serviceId, [...(byService.get(s.serviceId) ?? []), s]);
+    }
+    for (const [serviceId, own] of byService) {
+      const prices = [...new Set(own.map((s) => s.pricePerSession))];
+      const from = Math.min(...prices);
+      list.push({
+        key: `s-${serviceId}`,
+        label: own[0].formatName ?? "Занятие",
+        hint:
+          from < 0
+            ? undefined
+            : from === 0
+              ? "бесплатно"
+              : prices.length > 1
+                ? `от ${money(from)}`
+                : money(from),
+        slots: own,
+        announcements: [],
+      });
+    }
+
     const diagnostics = thisWeek(slots.filter((s) => s.isDiagnostic));
     if (diagnostics.length)
       list.push({

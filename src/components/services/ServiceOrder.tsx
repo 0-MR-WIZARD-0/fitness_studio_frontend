@@ -88,15 +88,18 @@ export function ServiceOrder({
               </p>
             )}
             <p className="mt-3 text-accent">
-              {s.byAgreement
-                ? "по предварительному согласованию"
-                : servicePeriods(s)
-                    .map((o) =>
-                      o.label === "бесплатно"
-                        ? o.label
-                        : `${o.label} — ${priceLabel(o.price)}`,
-                    )
-                    .join(" · ")}
+              {servicePeriods(s)
+                .map((o) =>
+                  o.label === "бесплатно"
+                    ? o.label
+                    : `${o.label} — ${priceLabel(o.price)}`,
+                )
+                .join(" · ")}
+              {s.byAgreement && (
+                <span className="mt-1 block text-xs text-text/60">
+                  по предварительному согласованию
+                </span>
+              )}
             </p>
           </button>
         ))}

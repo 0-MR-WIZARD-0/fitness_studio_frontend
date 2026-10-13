@@ -84,19 +84,17 @@ function PeriodPrices({
         </label>
       )}
 
-      {!draft.byAgreement && (
-        <label className="mt-3 flex items-center gap-2 text-sm text-text/80">
-          <input
-            type="checkbox"
-            disabled={disabled}
-            checked={draft.isFree}
-            onChange={(e) => onChange({ isFree: e.target.checked })}
-          />
-          Бесплатно
-        </label>
-      )}
+      <label className="mt-3 flex items-center gap-2 text-sm text-text/80">
+        <input
+          type="checkbox"
+          disabled={disabled}
+          checked={draft.isFree}
+          onChange={(e) => onChange({ isFree: e.target.checked })}
+        />
+        Бесплатно
+      </label>
 
-      {!draft.byAgreement && !draft.isFree && (
+      {!draft.isFree && (
         <>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             <label className="text-sm">
