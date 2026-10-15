@@ -169,7 +169,7 @@ export function BookingFlow({
 
   useEffect(() => {
     getServices()
-      .then((list) => setExtras(list.filter((s) => !s.byAgreement)))
+      .then(setExtras)
       .catch(() => {});
   }, []);
 
@@ -432,7 +432,7 @@ export function BookingFlow({
       <p className="rounded-xl bg-surface-2/60 px-4 py-3 text-sm leading-relaxed text-text/85">
         В расписании студии представлены занятия всех форматов и спецпротоколов,
         а также бесплатная диагностика. Приобретайте любые {threshold} занятия в
-        неделю (основные форматы или дополнительные) — 4-е в подарок!
+        неделю (основные форматы или отдельные направления) — 4-е в подарок!
         {cart.length > 0 && (
           <span className="text-emerald-400">
             {" "}

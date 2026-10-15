@@ -146,10 +146,8 @@ export interface AdminSlot {
   durationMin: number;
   capacity: number;
   formatId: number | null;
-  serviceId: number | null;
   isDiagnostic: boolean;
   format: Format | null;
-  service: Service | null;
   trainerId: number | null;
   trainer: Trainer | null;
   hallId: number | null;
@@ -162,7 +160,6 @@ export const adminSlots = () =>
   api<AdminSlot[]>("/booking/admin/slots", { auth: true });
 export const createSlot = (data: {
   formatId?: number;
-  serviceId?: number;
   trainerId?: number | null;
   hallId?: number | null;
   startsAt: string;
@@ -257,8 +254,6 @@ export interface ServiceInput {
   priceWeek?: number | null;
   priceMonth?: number | null;
   isFree?: boolean;
-  byAgreement?: boolean;
-  contactUrl?: string;
   order?: number;
   isActive?: boolean;
 }

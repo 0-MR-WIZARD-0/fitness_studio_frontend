@@ -69,7 +69,10 @@ export default async function HomePage() {
       {settings && formats.length > 0 && (
         <Reveal>
           <Container className="pb-8 md:pb-10">
-            <CoursePromo threshold={settings.courseThreshold} />
+            <CoursePromo
+              threshold={settings.courseThreshold}
+              prices={formats.filter((f) => f.inCourse).map((f) => f.price)}
+            />
           </Container>
         </Reveal>
       )}

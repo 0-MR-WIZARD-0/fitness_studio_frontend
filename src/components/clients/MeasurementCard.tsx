@@ -5,6 +5,7 @@ import { plural } from "@/lib/plural";
 import {
   ZONE_CLASS,
   type ClientCard,
+  type Conclusion,
   type Measurement,
   type NumericKey,
   type Protocol,
@@ -97,6 +98,78 @@ function Block({
   );
 }
 
+export function ConclusionBlock({
+  conclusion,
+}: {
+  conclusion: Conclusion | undefined;
+}) {
+  if (!conclusion) return null;
+  const { strengths, risks, notes } = conclusion;
+  if (!strengths.length && !risks.length && !notes.length) return null;
+
+  return (
+    <Block title="Заключение по составу тела">
+      <div className="space-y-4">
+        {strengths.length > 0 && (
+          <div>
+            <p className="text-xs text-text/50">Сильные стороны</p>
+            <ul className="mt-1 space-y-1">
+              {strengths.map((f) => (
+                <li key={f.key} className="text-sm text-heading">
+                  <span className="text-emerald-300">{f.title}</span> ({f.value}
+                  ) — {f.text}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {risks.length > 0 && (
+          <div>
+            <p className="text-xs text-text/50">Зоны риска</p>
+            <ul className="mt-1 space-y-2">
+              {risks.map((f) => (
+                <li
+                  key={f.key}
+                  className="rounded-xl border border-white/10 bg-bg/40 p-3"
+                >
+                  <p className="flex flex-wrap items-center gap-2 text-sm text-heading">
+                    <span>
+                      {f.title} ({f.value})
+                    </span>
+                    <ZoneBadge zone={{ level: f.level, label: f.zoneLabel }} />
+                  </p>
+                  <p className="mt-1 text-sm text-text/85">{f.text}</p>
+                  {f.risk && (
+                    <p className="mt-1 text-sm text-text/70">Риск: {f.risk}</p>
+                  )}
+                  {f.solution && (
+                    <p className="mt-1 text-sm text-text/70">
+                      Что делать: {f.solution}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {notes.length > 0 && (
+          <div className="space-y-1">
+            {notes.map((n) => (
+              <p key={n} className="text-sm text-text/70">
+                {n}
+              </p>
+            ))}
+          </div>
+        )}
+
+        <p className="text-xs text-text/45">{conclusion.disclaimer}</p>
+      </div>
+    </Block>
+  );
+}
+
 function Notes({ m }: { m: Measurement }) {
   const items: [string, string][] = [
     ["Сильные стороны", m.strengths],
@@ -144,8 +217,10 @@ export function MeasurementCard({
 
   const bioZone = (key: string): Zone | null | undefined => {
     if (key === "fatPct") return d.fat;
+    if (key === "muscleKg") return d.muscle;
     if (key === "waterPct") return d.water;
     if (key === "visceralFat") return d.visceral;
+    if (key === "metabolicAge") return d.metabolicAge;
     return undefined;
   };
 
@@ -174,6 +249,7 @@ export function MeasurementCard({
             value={value(f.key)}
             unit="см"
             delta={m.delta[f.key]}
+            zone={f.key === "waistCm" ? d.waist : undefined}
           />
         ))}
       </Block>
@@ -283,6 +359,8 @@ export function MeasurementCard({
           })}
         </Block>
       )}
+
+      <ConclusionBlock conclusion={d.conclusion} />
 
       <Notes m={m} />
     </article>

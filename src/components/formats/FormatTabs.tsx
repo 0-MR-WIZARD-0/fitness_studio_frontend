@@ -26,7 +26,7 @@ export function FormatTabs({
 
   const tabs: [Tab, string, number][] = [
     ["main", "Основные форматы", main.length],
-    ["extra", "Дополнительные форматы", extra.length],
+    ["extra", "Отдельные направления", extra.length],
   ];
 
   return (
@@ -74,7 +74,13 @@ export function FormatTabs({
 
       {tab === "main" && (
         <>
-          <CoursePromo className="mt-12" threshold={threshold} />
+          <CoursePromo
+            className="mt-12"
+            threshold={threshold}
+            prices={[...main, ...extra]
+              .filter((f) => f.inCourse)
+              .map((f) => f.price)}
+          />
           <div className="mt-10 flex justify-center md:justify-end">
             <Link href="/survey" className="btn-gold">
               Пройти опрос и подобрать формат

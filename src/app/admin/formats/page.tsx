@@ -68,7 +68,7 @@ export default function AdminFormats() {
         {(
           [
             ["main", "Основные", main.length],
-            ["extra", "Доп. форматы", extra.length],
+            ["extra", "Отдельные направления", extra.length],
           ] as [typeof tab, string, number][]
         ).map(([key, label, count]) => (
           <button

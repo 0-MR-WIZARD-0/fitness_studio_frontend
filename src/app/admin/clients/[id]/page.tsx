@@ -150,6 +150,7 @@ export default function AdminClientCard({
           <div className="mb-5">
             <MeasurementForm
               protocol={protocol}
+              userId={userId}
               initial={null}
               onCancel={() => setEditing(null)}
               onSave={async (draft) => {
@@ -167,6 +168,7 @@ export default function AdminClientCard({
               <MeasurementForm
                 key={m.id}
                 protocol={protocol}
+                userId={userId}
                 initial={m}
                 onCancel={() => setEditing(null)}
                 onSave={async (draft) => {

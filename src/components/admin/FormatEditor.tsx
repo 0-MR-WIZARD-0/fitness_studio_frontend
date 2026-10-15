@@ -142,7 +142,7 @@ export function FormatEditor({ initial }: { initial?: Format }) {
         value={d.isExtra ? "extra" : "main"}
         options={[
           { value: "main", label: "Основные форматы" },
-          { value: "extra", label: "Дополнительные форматы" },
+          { value: "extra", label: "Отдельные направления" },
         ]}
         onChange={(v) => set({ isExtra: v === "extra" })}
       />
@@ -161,10 +161,10 @@ export function FormatEditor({ initial }: { initial?: Format }) {
               onChange={(e) => set({ inSchedule: !e.target.checked })}
             />
             <span>
-              Индивидуальное расписание
+              Запись по предварительному согласованию
               <span className="mt-0.5 block text-xs text-text/50">
-                Занятия этому формату в общее расписание не ставятся, а клиент
-                вместо записи увидит, как с вами связаться.
+                Занятия этому направлению в общее расписание не ставятся, а
+                клиент вместо записи увидит, как с вами связаться.
               </span>
             </span>
           </label>

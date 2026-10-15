@@ -3,12 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   getHalls,
-  getServices,
   getSettings,
   type Announcement,
   type Format,
   type Hall,
-  type Service,
   type SiteSettings,
   type Slot,
   type Trainer,
@@ -51,8 +49,6 @@ export default function AdminBooking() {
   const [formats, setFormats] = useState<Format[]>([]);
   const [formatId, setFormatId] = useState<number | null>(null);
   const [diag, setDiag] = useState(false);
-  const [agreed, setAgreed] = useState<Service[]>([]);
-  const [serviceId, setServiceId] = useState<number | null>(null);
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [trainerId, setTrainerId] = useState<number | null>(null);
   const [halls, setHalls] = useState<Hall[]>([]);
@@ -116,9 +112,6 @@ export default function AdminBooking() {
   };
   useEffect(() => {
     reload();
-    getServices()
-      .then((list) => setAgreed(list.filter((x) => x.byAgreement)))
-      .catch(() => {});
   }, []);
 
   const flash = (m: string) => {
@@ -135,17 +128,10 @@ export default function AdminBooking() {
         capacity: s.capacity,
         formatId: s.formatId,
         isDiagnostic: s.isDiagnostic,
-        formatName: s.format?.name ?? s.service?.title ?? null,
-        serviceId: s.serviceId,
+        formatName: s.format?.name ?? null,
         trainerId: s.trainerId,
         trainerName: s.trainer?.name ?? null,
-        pricePerSession: s.isDiagnostic
-          ? 0
-          : s.service
-            ? s.service.isFree
-              ? 0
-              : s.service.price
-            : (s.format?.price ?? -1),
+        pricePerSession: s.isDiagnostic ? 0 : (s.format?.price ?? -1),
         inCourse: !s.isDiagnostic && (s.format?.inCourse ?? false),
         taken: s._count.bookings,
         remaining: Math.max(0, s.capacity - s._count.bookings),
@@ -227,7 +213,7 @@ export default function AdminBooking() {
       flash("Сначала добавьте тренера");
       return;
     }
-    if (!diag && !serviceId && !formatId) return;
+    if (!diag && !formatId) return;
 
     if (weekdayMode) {
       const res = await createWeekdaySlots({
@@ -247,8 +233,7 @@ export default function AdminBooking() {
       );
     } else {
       await createSlot({
-        formatId: diag || serviceId ? undefined : formatId!,
-        serviceId: serviceId ?? undefined,
+        formatId: diag ? undefined : formatId!,
         trainerId,
         hallId: hallId === "" ? null : hallId,
         startsAt: startsAtIso(),
@@ -499,28 +484,14 @@ export default function AdminBooking() {
               <div className="text-sm">
                 <span className="mb-1 block h-5 text-text/80">Занятие</span>
                 <Select
-                  value={
-                    diag
-                      ? "diag"
-                      : serviceId
-                        ? `svc-${serviceId}`
-                        : (formatId ?? "")
-                  }
+                  value={diag ? "diag" : (formatId ?? "")}
                   onChange={(v) => {
                     const value = String(v);
                     setDiag(value === "diag");
-                    setServiceId(
-                      value.startsWith("svc-") ? Number(value.slice(4)) : null,
-                    );
-                    if (!value.startsWith("svc-") && value !== "diag")
-                      setFormatId(Number(v));
+                    if (value !== "diag") setFormatId(Number(v));
                   }}
                   options={[
                     ...formats.map((f) => ({ value: f.id, label: f.name })),
-                    ...agreed.map((s) => ({
-                      value: `svc-${s.id}`,
-                      label: `${s.title} (по согласованию)`,
-                    })),
                     { value: "diag", label: "Диагностика (бесплатно)" },
                   ]}
                 />
@@ -561,7 +532,7 @@ export default function AdminBooking() {
                 />
               </label>
 
-              {(diag || serviceId) && (
+              {diag && (
                 <label className="text-sm">
                   <span className="mb-1 block h-5 text-text/80">Мест</span>
                   <NumberInput
@@ -577,7 +548,7 @@ export default function AdminBooking() {
             <p className="mt-2 text-xs text-text/50">
               Занятие {duration} мин — следующее можно ставить с{" "}
               {shiftTime(time, duration)}.
-              {diag || serviceId
+              {diag
                 ? " Мест не больше 7."
                 : " Количество мест берётся из формата."}
             </p>

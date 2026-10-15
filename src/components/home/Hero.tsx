@@ -8,7 +8,6 @@ import { clsx } from "@/lib/clsx";
 
 export function Hero({ hero }: { hero: HomeHero }) {
   const bg = mediaUrl(hero.imageUrl);
-  const hasToggle = (hero.description?.length ?? 0) > MOBILE_LIMIT;
 
   return (
     <section className="relative flex min-h-[100svh] w-full flex-col overflow-hidden">
@@ -37,24 +36,19 @@ export function Hero({ hero }: { hero: HomeHero }) {
             <p className="mt-3 font-sub text-base sm:text-lg md:text-2xl text-heading/90">
               {hero.subtitle}
             </p>
-          </div>
-
-          <div className="mt-[22svh] flex items-center justify-center lg:mt-0 lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">
-            <Spheres spheres={hero.spheres} subtitle2={hero.subtitle2} />
-          </div>
-
-          <div className="max-w-2xl lg:col-span-7 lg:row-start-2 lg:self-end">
-            <Description text={hero.description} />
             {hero.subtitle2 && (
-              <p
-                className={clsx(
-                  "mt-3 font-sub text-base text-emerald-300 sm:text-lg lg:hidden",
-                  hasToggle ? "md:text-center" : "text-center",
-                )}
-              >
+              <p className="mt-2 font-sub text-base text-emerald-300 sm:text-lg lg:hidden">
                 {hero.subtitle2}
               </p>
             )}
+          </div>
+
+          <div className="flex items-center justify-center max-[769px]:hidden lg:col-span-5 lg:col-start-8 lg:row-span-2 lg:row-start-1">
+            <Spheres spheres={hero.spheres} subtitle2={hero.subtitle2} />
+          </div>
+
+          <div className="max-w-2xl max-[769px]:mt-auto lg:col-span-7 lg:row-start-2 lg:self-end">
+            <Description text={hero.description} />
           </div>
         </div>
       </Container>

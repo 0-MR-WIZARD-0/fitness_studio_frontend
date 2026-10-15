@@ -71,6 +71,24 @@ export interface Ratio {
   zone: Zone;
 }
 
+export interface Finding {
+  key: string;
+  title: string;
+  value: string;
+  level: ZoneLevel;
+  zoneLabel: string;
+  text: string;
+  risk?: string;
+  solution?: string;
+}
+
+export interface Conclusion {
+  strengths: Finding[];
+  risks: Finding[];
+  notes: string[];
+  disclaimer: string;
+}
+
 export interface Derived {
   age: number | null;
   bmi: Ratio | null;
@@ -82,9 +100,13 @@ export interface Derived {
     bmiRef: number | null;
     average: number | null;
   };
+  waist: Zone | null;
   fat: Zone | null;
+  muscle: Zone | null;
   water: Zone | null;
   visceral: Zone | null;
+  metabolicAge: Zone | null;
+  conclusion: Conclusion;
 }
 
 export interface TestResult {
@@ -182,6 +204,12 @@ export const getClientCard = (userId: number) =>
 
 export const saveClientCard = (userId: number, draft: CardDraft) =>
   api<ClientCardData>(`/clients/admin/${userId}/card`, auth("PUT", draft));
+
+export const previewMeasurement = (userId: number, draft: MeasurementDraft) =>
+  api<{ derived: Derived; text: { strengths: string; risks: string } }>(
+    `/clients/admin/${userId}/preview`,
+    auth("POST", draft),
+  );
 
 export const addMeasurement = (userId: number, draft: MeasurementDraft) =>
   api<ClientCardData>(

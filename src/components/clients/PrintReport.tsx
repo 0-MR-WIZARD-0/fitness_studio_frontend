@@ -85,11 +85,17 @@ export function PrintReport({
   const bioZone = (key: string) =>
     key === "fatPct"
       ? d.fat
-      : key === "waterPct"
-        ? d.water
-        : key === "visceralFat"
-          ? d.visceral
-          : null;
+      : key === "muscleKg"
+        ? d.muscle
+        : key === "waterPct"
+          ? d.water
+          : key === "visceralFat"
+            ? d.visceral
+            : key === "metabolicAge"
+              ? d.metabolicAge
+              : null;
+
+  const conclusion = d.conclusion;
 
   return (
     <div className="print-report hidden print:block">
@@ -337,6 +343,56 @@ export function PrintReport({
           </table>
         </section>
       )}
+
+      <section>
+        <h2>6. Заключение по составу тела</h2>
+        {conclusion.strengths.length === 0 && conclusion.risks.length === 0 ? (
+          <p className="empty">
+            Недостаточно данных: заполните замеры и карточку клиента.
+          </p>
+        ) : (
+          <>
+            {conclusion.strengths.length > 0 && (
+              <p>
+                <b>Сильные стороны:</b>{" "}
+                {conclusion.strengths
+                  .map((f) => `${f.title} (${f.value}) — ${f.text}`)
+                  .join(" ")}
+              </p>
+            )}
+            {conclusion.risks.length > 0 && (
+              <table className="report-table">
+                <thead>
+                  <tr>
+                    <th>Показатель</th>
+                    <th className="num">Результат</th>
+                    <th>Зона</th>
+                    <th>Вывод, риск и что делать</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {conclusion.risks.map((f) => (
+                    <tr key={f.key}>
+                      <td>{f.title}</td>
+                      <td className="num">{f.value}</td>
+                      <td>{f.zoneLabel}</td>
+                      <td>
+                        {f.text}
+                        {f.risk && ` Риск: ${f.risk}`}
+                        {f.solution && ` Что делать: ${f.solution}`}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {conclusion.notes.map((n) => (
+              <p key={n}>{n}</p>
+            ))}
+          </>
+        )}
+        <p className="empty">{conclusion.disclaimer}</p>
+      </section>
 
       <section>
         <h2>Итоговые заметки тренера</h2>

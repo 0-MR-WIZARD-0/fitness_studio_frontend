@@ -6,7 +6,6 @@ import {
   getDocuments,
   orderService,
   type Service,
-  type SiteSettings,
   type StudioDocument,
 } from "@/lib/api";
 import { servicePeriods, priceLabel } from "@/lib/service-periods";
@@ -18,13 +17,7 @@ import {
   LoginRequired,
 } from "../account/BookingGate";
 
-export function ServiceOrder({
-  services,
-  settings,
-}: {
-  services: Service[];
-  settings?: SiteSettings | null;
-}) {
+export function ServiceOrder({ services }: { services: Service[] }) {
   const { user } = useAccount();
   const [picked, setPicked] = useState<Service | null>(null);
   const [period, setPeriod] = useState<ServicePeriod>("single");
@@ -95,59 +88,14 @@ export function ServiceOrder({
                     : `${o.label} — ${priceLabel(o.price)}`,
                 )
                 .join(" · ")}
-              {s.byAgreement && (
-                <span className="mt-1 block text-xs text-text/60">
-                  по предварительному согласованию
-                </span>
-              )}
             </p>
           </button>
         ))}
       </div>
 
-      {picked?.byAgreement && (
-        <div className="mt-6 max-w-md rounded-2xl border border-accent/40 bg-accent/5 p-4 text-sm leading-relaxed">
-          <p className="font-sub text-heading">
-            «{picked.title}» — по согласованию
-          </p>
-          <p className="mt-2 text-text/85">
-            Оплатить сразу нельзя. Свяжитесь с нами
-            {settings?.phone ? (
-              <>
-                {" "}
-                по телефону{" "}
-                <a
-                  href={`tel:${settings.phone.replace(/[^\d+]/g, "")}`}
-                  className="text-accent hover:underline"
-                >
-                  {settings.phone}
-                </a>
-              </>
-            ) : null}
-            {picked.contactUrl.trim() && (
-              <>
-                {settings?.phone ? " или " : " "}
-                <a
-                  href={picked.contactUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-accent hover:underline"
-                >
-                  по ссылке
-                </a>
-              </>
-            )}{" "}
-            — подберём время и поставим занятие в расписание, оттуда его можно
-            будет оплатить как обычно.
-          </p>
-        </div>
-      )}
+      {picked && !user && <LoginRequired what="Заявка на услугу" />}
 
-      {picked && !picked.byAgreement && !user && (
-        <LoginRequired what="Заявка на услугу" />
-      )}
-
-      {picked && !picked.byAgreement && user && (
+      {picked && user && (
         <div className="mt-6 max-w-md space-y-3">
           {servicePeriods(picked).length > 1 && (
             <div>

@@ -1,14 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Labeled, SelectField, TextArea } from "@/components/admin/ui";
 import { onlyDigits } from "@/lib/number-input";
+import { previewMeasurement } from "@/lib/clients";
 import type {
+  Derived,
   Measurement,
   MeasurementDraft,
   NumericKey,
   Protocol,
 } from "@/lib/clients";
+import { ConclusionBlock } from "./MeasurementCard";
 
 const INTEGER_KEYS = new Set(["metabolicAge", "bmr"]);
 
@@ -62,11 +65,13 @@ function NumField({
 
 export function MeasurementForm({
   protocol,
+  userId,
   initial,
   onSave,
   onCancel,
 }: {
   protocol: Protocol;
+  userId: number;
   initial: Measurement | null;
   onSave: (draft: MeasurementDraft) => Promise<void>;
   onCancel: () => void;
@@ -107,6 +112,35 @@ export function MeasurementForm({
 
   const set = (key: string, v: string) =>
     setNumbers((prev) => ({ ...prev, [key]: v }));
+
+  const [preview, setPreview] = useState<{
+    derived: Derived;
+    text: { strengths: string; risks: string };
+  } | null>(null);
+
+  const numbersKey = JSON.stringify(numbers);
+  useEffect(() => {
+    const draft: MeasurementDraft = {};
+    for (const [key, raw] of Object.entries(JSON.parse(numbersKey))) {
+      const parsed = asNumber(String(raw));
+      if (parsed !== "bad") (draft as Record<string, unknown>)[key] = parsed;
+    }
+    const timer = setTimeout(() => {
+      previewMeasurement(userId, draft)
+        .then(setPreview)
+        .catch(() => setPreview(null));
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [numbersKey, userId]);
+
+  const conclusion = preview?.derived.conclusion;
+  const canFill = !!preview?.text.strengths || !!preview?.text.risks;
+
+  function fillNotes() {
+    if (!preview) return;
+    setStrengths(preview.text.strengths);
+    setRisks(preview.text.risks);
+  }
 
   async function submit() {
     setError(null);
@@ -246,7 +280,22 @@ export function MeasurementForm({
         </div>
       )}
 
+      <ConclusionBlock conclusion={conclusion} />
+
       <div className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="font-sub text-sm uppercase tracking-wider text-text/60">
+            Заметки тренера
+          </p>
+          <button
+            type="button"
+            onClick={fillNotes}
+            disabled={!canFill}
+            className="rounded-xl border border-accent/60 px-3 py-1.5 text-sm text-heading transition hover:bg-accent/15 disabled:opacity-40"
+          >
+            Подставить заключение
+          </button>
+        </div>
         <TextArea
           label="Сильные стороны"
           rows={2}

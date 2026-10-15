@@ -35,7 +35,7 @@ export default async function ServicesPage() {
   const servicesTab = (
     <Container>
       {withoutTime.length > 0 ? (
-        <ServiceOrder services={withoutTime} settings={settings} />
+        <ServiceOrder services={withoutTime} />
       ) : (
         <p className="mt-8 text-sm text-text/60">Услуги пока не добавлены.</p>
       )}

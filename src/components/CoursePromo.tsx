@@ -5,15 +5,18 @@ const money = (value: number) => value.toLocaleString("ru-RU");
 
 export function CoursePromo({
   threshold,
-  price = 0,
+  prices = [],
   className,
 }: {
   threshold: number;
-  price?: number;
+  prices?: number[];
   className?: string;
 }) {
-  const total = price * threshold;
-  const full = price * (threshold + 1);
+  const paid = prices.filter((p) => p > 0);
+  const base = paid.length ? Math.min(...paid) : 0;
+  const same = new Set(paid).size === 1;
+  const total = base * threshold;
+  const full = base * (threshold + 1);
   const perLesson = Math.round(total / (threshold + 1) / 10) * 10;
 
   return (
@@ -28,9 +31,19 @@ export function CoursePromo({
         {plural(threshold, ["занятие", "занятия", "занятий"])} в неделю —{" "}
         {threshold + 1}-е в подарок!
       </p>
-      {price > 0 && (
+      {base > 0 && (
         <p className="mt-2 text-sm leading-relaxed text-text/85">
-          Всего{" "}
+          {same ? (
+            "Всего "
+          ) : (
+            <>
+              Например, занятия по{" "}
+              <span className="font-sub text-emerald-300">
+                {money(base)} ₽
+              </span>{" "}
+              — всего{" "}
+            </>
+          )}
           <span className="font-sub text-emerald-300">{money(total)} ₽</span>{" "}
           вместо{" "}
           <span className="text-text/60 line-through">{money(full)} ₽</span>.
@@ -39,7 +52,7 @@ export function CoursePromo({
             {money(perLesson)} ₽
           </span>{" "}
           вместо{" "}
-          <span className="text-text/60 line-through">{money(price)} ₽</span>.
+          <span className="text-text/60 line-through">{money(base)} ₽</span>.
         </p>
       )}
       <p className="mt-2 text-sm leading-relaxed text-text/85">
