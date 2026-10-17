@@ -130,7 +130,7 @@ export function PrintReport({
               <b>Email:</b> {user.email}
             </td>
             <td>
-              <b>Диагностику проводил:</b> {m.author ?? "—"}
+              <b>Диагностика проведена:</b> {m.author ?? "—"}
               {m.editor && `, правки: ${m.editor}`}
             </td>
           </tr>

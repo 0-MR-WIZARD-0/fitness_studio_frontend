@@ -28,7 +28,7 @@ export function CoursePromo({
     >
       <p className="font-sub text-emerald-300">
         Приобретаете {threshold}{" "}
-        {plural(threshold, ["занятие", "занятия", "занятий"])} в неделю —{" "}
+        {plural(threshold, ["занятие", "занятия", "занятий"])} (входящие в курс) в неделю —{" "}
         {threshold + 1}-е в подарок!
       </p>
       {base > 0 && (
@@ -55,7 +55,7 @@ export function CoursePromo({
       )}
       <p className="mt-2 text-sm leading-relaxed text-text/85">
         Промокод на бесплатное занятие придёт в личный кабинет. Действует на
-        любые тренировки из расписания студии.
+        любые тренировки (входящие в курс) из расписания студии.
       </p>
     </div>
   );

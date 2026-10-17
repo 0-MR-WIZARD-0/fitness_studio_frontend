@@ -105,9 +105,7 @@ function AnnouncementBookingModal({
     name: "",
     phone: "",
     email: "",
-    promo: "",
   });
-  const [usePromo, setUsePromo] = useState(false);
   const [agreementUrl, setAgreementUrl] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -131,7 +129,6 @@ function AnnouncementBookingModal({
           name: form.name,
           phone: form.phone,
           email: form.email,
-          promoCode: usePromo && form.promo ? form.promo : undefined,
         }),
       });
       setDone(true);
@@ -198,28 +195,6 @@ function AnnouncementBookingModal({
             />
             {form.email && !isValidEmail(form.email) && (
               <p className="text-xs text-red-400">Email должен содержать «@»</p>
-            )}
-            {!item.isFree && (
-              <>
-                <label className="flex items-center gap-2 text-sm text-text/80">
-                  <input
-                    type="checkbox"
-                    checked={usePromo}
-                    onChange={(e) => setUsePromo(e.target.checked)}
-                  />
-                  Использовать промокод
-                </label>
-                {usePromo && (
-                  <input
-                    className="field"
-                    placeholder="Промокод"
-                    value={form.promo}
-                    onChange={(e) =>
-                      setForm({ ...form, promo: e.target.value })
-                    }
-                  />
-                )}
-              </>
             )}
             {needsAgreement && (
               <label className="flex items-start gap-2 text-sm text-text/80">

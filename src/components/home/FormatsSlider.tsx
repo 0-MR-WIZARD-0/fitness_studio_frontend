@@ -29,13 +29,22 @@ export function FormatsSlider({
   return (
     <section className="pt-12 pb-8 md:pt-16 md:pb-10">
       <Container>
-        <h2 className="text-3xl md:text-4xl font-bold">{title}</h2>
+        <Link
+          href="/formats"
+          className="inline-block text-3xl font-bold transition hover:text-accent md:text-4xl"
+        >
+          {title}
+        </Link>
 
         <FormatsCarousel formats={formats} className="mt-8 md:hidden" />
 
         <Grid className="mt-8 hidden items-stretch md:grid">
           {visible.map((f, i) => (
-            <FormatCard key={f.id} format={f} highlight={start === 0 && i === 0} />
+            <FormatCard
+              key={f.id}
+              format={f}
+              highlight={start === 0 && i === 0}
+            />
           ))}
         </Grid>
 
@@ -48,7 +57,9 @@ export function FormatsSlider({
                 aria-label={`Страница ${i + 1}`}
                 className={clsx(
                   "h-2.5 rounded-full transition-all",
-                  i === page ? "w-7 bg-accent" : "w-2.5 bg-text/30 hover:bg-text/50",
+                  i === page
+                    ? "w-7 bg-accent"
+                    : "w-2.5 bg-text/30 hover:bg-text/50",
                 )}
               />
             ))}

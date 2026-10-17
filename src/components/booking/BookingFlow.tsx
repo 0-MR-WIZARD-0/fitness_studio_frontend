@@ -182,6 +182,9 @@ export function BookingFlow({
 
   const total =
     cart.reduce((sum, s) => sum + s.pricePerSession, 0) + extrasTotal;
+  const promoAllowed =
+    !annSlot && !diagSlot && cart.length === 1 && cart[0].inCourse;
+
   const docsAccepted = documents.every((d) => accepted.includes(d.id));
 
   function scrollToSummary() {
@@ -261,7 +264,7 @@ export function BookingFlow({
     setError(null);
     const items = pickedItems();
     try {
-      const promoCode = usePromo && promo ? promo : undefined;
+      const promoCode = promoAllowed && usePromo && promo ? promo : undefined;
       const documentIds = accepted;
       const guestData = user
         ? {}
@@ -737,7 +740,7 @@ export function BookingFlow({
             </>
           )}
 
-          {!!user && (!!diagSlot || !!annSlot || cart.length === 1) && (
+          {!!user && promoAllowed && (
             <>
               <label className="flex items-center gap-2 text-sm text-text/80">
                 <input
