@@ -61,14 +61,16 @@ export function FormatTabs({
           <FormatsCarousel
             key={tab}
             formats={items}
-            className="mt-10 md:hidden"
+            className={items.length > 3 ? "mt-10" : "mt-10 md:hidden"}
           />
 
-          <Grid className="mt-12 hidden items-stretch md:grid">
-            {items.map((f, i) => (
-              <FormatCard key={f.id} format={f} highlight={i === 0} />
-            ))}
-          </Grid>
+          {items.length <= 3 && (
+            <Grid className="mt-12 hidden items-stretch md:grid">
+              {items.map((f, i) => (
+                <FormatCard key={f.id} format={f} highlight={i === 0} />
+              ))}
+            </Grid>
+          )}
         </>
       )}
 
@@ -129,6 +131,7 @@ function FormatCard({
       <div className="mt-4 px-1 text-center text-sm leading-relaxed">
         <p>Цена за занятие — {format.price.toLocaleString("ru-RU")} руб.</p>
         <p className="text-text/60">{format.durationMin} мин</p>
+        {format.inCourse && <p className="text-emerald-300">входит в курс</p>}
       </div>
     </div>
   );

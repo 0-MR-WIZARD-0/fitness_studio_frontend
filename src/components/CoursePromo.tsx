@@ -17,7 +17,7 @@ export function CoursePromo({
   const same = new Set(paid).size === 1;
   const total = base * threshold;
   const full = base * (threshold + 1);
-  const perLesson = Math.round(total / (threshold + 1) / 10) * 10;
+  const perLesson = Math.round(total / (threshold + 1));
 
   return (
     <div
@@ -38,9 +38,7 @@ export function CoursePromo({
           ) : (
             <>
               Например, занятия по{" "}
-              <span className="font-sub text-emerald-300">
-                {money(base)} ₽
-              </span>{" "}
+              <span className="font-sub text-emerald-300">{money(base)} ₽</span>{" "}
               — всего{" "}
             </>
           )}

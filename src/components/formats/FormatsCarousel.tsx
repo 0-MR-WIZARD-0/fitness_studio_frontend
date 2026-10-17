@@ -18,6 +18,8 @@ export function FormatsCarousel({
       keyOf={(f) => f.id}
       labelOf={(f) => f.name}
       className={className}
+      itemClassName="w-[72vw] md:w-[calc((100%-2rem)/3)]"
+      trackClassName="-mx-5 px-[14vw] md:mx-0 md:px-0"
       renderItem={(f) => <Card format={f} />}
     />
   );
@@ -52,6 +54,7 @@ function Card({ format }: { format: Format }) {
       <div className="mt-3 px-1 text-center text-sm leading-relaxed">
         <p>Цена за занятие — {format.price.toLocaleString("ru-RU")} руб.</p>
         <p className="text-text/60">{format.durationMin} мин</p>
+        {format.inCourse && <p className="text-emerald-300">входит в курс</p>}
       </div>
     </div>
   );

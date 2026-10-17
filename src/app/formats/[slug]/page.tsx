@@ -122,6 +122,11 @@ export default async function FormatPage({
               Цена за занятие — {format.price.toLocaleString("ru-RU")} руб. ·{" "}
               {format.durationMin} мин
             </p>
+            {format.inCourse && (
+              <p className="mt-1 text-sm text-emerald-300">
+                Занятие входит в курс
+              </p>
+            )}
           </div>
         </Container>
       </section>
